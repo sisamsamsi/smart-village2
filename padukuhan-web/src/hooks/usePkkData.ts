@@ -16,13 +16,45 @@ export function useDasawismaList() {
           nama_dasawisma,
           rt_id,
           rts (nomor_rt),
-          wargas (count)
+          rumah_tanggas (
+            wargas (count)
+          )
         `)
         .order('nama_dasawisma')
 
       if (error) throw error
+      
+      // Flatten the count from nested rumah_tanggas
+      return data.map(dw => ({
+        ...dw,
+        warga_count: (dw.rumah_tanggas as any[])?.reduce((acc, rt) => acc + (rt.wargas?.[0]?.count || 0), 0) || 0
+      }))
+    },
+  })
+}
+
+export function useDasawismaWarga(dasawismaId?: string) {
+  const supabase = createClient()
+
+  return useQuery({
+    queryKey: ['dasawisma_warga', dasawismaId],
+    queryFn: async () => {
+      if (!dasawismaId) return []
+      const { data, error } = await supabase
+        .from('wargas')
+        .select(`
+          id,
+          nama_lengkap,
+          nik,
+          rumah_tanggas!inner (dasawisma_id)
+        `)
+        .eq('rumah_tanggas.dasawisma_id', dasawismaId)
+        .order('nama_lengkap')
+
+      if (error) throw error
       return data
     },
+    enabled: !!dasawismaId
   })
 }
 

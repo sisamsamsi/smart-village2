@@ -39,7 +39,7 @@ export default function LoginPage() {
         // Fetch profile
         const { data: profile } = await supabase
           .from('user_profiles')
-          .select('*')
+          .select('*, rts(nomor_rt)')
           .eq('id', data.user.id)
           .single()
         

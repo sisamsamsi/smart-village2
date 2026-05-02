@@ -18,14 +18,14 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     redirect('/login')
   }
 
-  const { data: profile } = await supabase.from('user_profiles').select('*').eq('id', session.user.id).single()
+  const { data: profile } = await supabase.from('user_profiles').select('*, rts(nomor_rt)').eq('id', session.user.id).single()
 
   const serverProfile = (profile ?? null) as UserProfile | null
 
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
       {/* Sidebar (Desktop) */}
-      <aside className="hidden w-72 flex-col border-r border-border/50 bg-white dark:bg-slate-900 md:flex">
+      <aside className="hidden w-72 flex-col border-r border-border/50 bg-white dark:bg-slate-900 md:flex print:hidden">
         <div className="flex h-20 items-center px-8 border-b border-border/40">
           <div className="h-10 w-10 rounded-2xl bg-primary flex items-center justify-center mr-3 shadow-lg shadow-primary/20">
             <Home className="h-6 w-6 text-white" />
@@ -61,7 +61,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Topbar - Glassmorphism */}
-        <header className="flex h-20 items-center justify-between px-8 glass sticky top-0 z-30">
+        <header className="flex h-20 items-center justify-between px-8 glass sticky top-0 z-30 print:hidden">
           <div className="flex items-center md:hidden">
              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center mr-2">
                <Home className="h-5 w-5 text-white" />

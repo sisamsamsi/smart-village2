@@ -8,4 +8,5 @@ export interface UserProfile {
   rt_id?: string | null
   dasawisma_id?: string | null
   warga_id?: string | null
+  rts?: { nomor_rt: number } | null
 }

@@ -30,6 +30,7 @@ export const viewport: Viewport = {
 ;
 
 import QueryProvider from "@/providers/QueryProvider";
+import { Toaster } from "sonner";
 
 export default function RootLayout({
   children,
@@ -45,6 +46,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <QueryProvider>
           {children}
+          <Toaster position="top-center" richColors />
         </QueryProvider>
       </body>
     </html>

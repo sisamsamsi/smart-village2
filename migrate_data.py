@@ -224,13 +224,73 @@ def map_status_warga(val):
     if 'pindah' in v: return 'pindah_keluar'
     return 'aktif'
 
+def migrate_pkk_partisipasi():
+    print("\nMigrating PKK Participation...")
+    conn = sqlite3.connect(SQLITE_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM partisipasi_kegiatan")
+    records = cursor.fetchall()
+    colnames = [d[0] for d in cursor.description]
+
+    # Get mapping of old warga_id to new UUID via no_reg
+    # We fetch wargas joined with rumah_tanggas to get the dasawisma_id
+    res = supabase.table('wargas').select('id, no_reg, rumah_tanggas(dasawisma_id)').execute()
+    warga_map = {}
+    for w in res.data:
+        if w['no_reg'] is not None:
+            # Extract dasawisma_id from the joined rumah_tanggas object
+            dw_id = w.get('rumah_tanggas', {}).get('dasawisma_id')
+            warga_map[w['no_reg']] = (w['id'], dw_id)
+
+    to_insert_map = {}
+    for r in records:
+        row = dict(zip(colnames, r))
+        old_wid = row['warga_id'] # This is the original id from wargas table
+        
+        if old_wid in warga_map:
+            new_id, dw_id = warga_map[old_wid]
+            
+            if dw_id:
+                # Use new_id as key to ensure uniqueness per warga
+                to_insert_map[new_id] = {
+                    'warga_id': new_id,
+                    'dasawisma_id': dw_id,
+                    'tahun': 2025, # Default tahun
+                    'penghayatan_pancasila': bool(row['penghayatan_pancasila']),
+                    'gotong_royong': bool(row['gotong_royong']),
+                    'pendidikan_keterampilan': bool(row['pendidikan_ketrampilan']),
+                    'pengembangan_koperasi': bool(row['pengembangan_koperasi']),
+                    'pangan': bool(row['pangan_beras']),
+                    'sandang': bool(row['sandang']),
+                    'kesehatan': bool(row['kesehatan']),
+                    'perencanaan_sehat': bool(row['perencanaan_sehat']),
+                    'kerja_bakti': bool(row['kerja_bakti']),
+                    'rukun_kematian': bool(row['rukun_kematian']),
+                    'kegiatan_keagamaan': bool(row['kegiatan_keagamaan']),
+                    'jimpitan': bool(row['jimpitan']),
+                    'arisan': bool(row['arisan']),
+                }
+            else:
+                print(f"  Skipping warga {old_wid}: No Dasawisma ID found in KK")
+
+    to_insert = list(to_insert_map.values())
+    if to_insert:
+        # Insert in batches
+        for i in range(0, len(to_insert), 100):
+            batch = to_insert[i:i+100]
+            supabase.table('pkk_partisipasi').upsert(batch).execute()
+            print(f"  Inserted batch {i//100 + 1}")
+    
+    print(f"Successfully migrated {len(to_insert)} PKK records.")
+
 def main():
     try:
         sync_rts_and_dasawismas()
-        migrate_kk()
-        migrate_wargas()
+        # migrate_kk()      # Skip as data already exists
+        # migrate_wargas()  # Skip as data already exists
+        migrate_pkk_partisipasi()
         print("\n" + "="*30)
-        print("MIGRATION COMPLETED SUCCESSFULLY!")
+        print("PKK DATA RECOVERY COMPLETED!")
         print("="*30)
     except Exception as e:
         print(f"\nMigration failed: {e}")
