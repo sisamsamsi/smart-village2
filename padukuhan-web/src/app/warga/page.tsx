@@ -13,49 +13,61 @@ const menuItems = [
 
 export default function WargaHomePage() {
   return (
-    <div className="space-y-6 pb-20">
-      <header className="py-4">
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Portal Warga</h1>
-        <p className="mt-1 text-slate-500">Layanan publik Padukuhan Mandingan.</p>
+    <div className="space-y-8 pb-24">
+      <header className="flex items-center justify-between py-2">
+        <div>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none">PORTAL<br/>WARGA</h1>
+          <p className="mt-2 text-sm font-bold text-slate-400 uppercase tracking-widest">Mandingan Village</p>
+        </div>
+        <div className="h-14 w-14 rounded-[1.5rem] bg-primary/10 flex items-center justify-center border border-primary/20">
+          <ShieldAlert className="h-7 w-7 text-primary" />
+        </div>
       </header>
 
-      <div className="rounded-2xl bg-gradient-to-br from-green-600 to-green-700 p-6 text-white shadow-lg shadow-green-200">
-        <h2 className="text-lg font-bold">Informasi RT</h2>
-        <p className="mt-2 text-sm text-green-50 opacity-90">
-          Akses informasi spesifik lingkungan Anda dengan memilih RT.
-        </p>
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {[1, 2, 3, 4, 5, 6].map((rt) => (
-            <Link 
-              key={rt}
-              href={`/warga/rt/${rt}`}
-              className="flex items-center justify-center rounded-lg bg-white/20 py-2 text-sm font-bold backdrop-blur-sm transition-colors hover:bg-white/30"
-            >
-              RT {rt}
-            </Link>
-          ))}
+      <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-primary to-secondary p-8 text-white shadow-2xl shadow-primary/20">
+        <div className="relative z-10">
+          <h2 className="text-xl font-black tracking-tight mb-2">Informasi RT</h2>
+          <p className="text-sm text-white/80 font-medium mb-6 leading-relaxed">
+            Pilih unit RT Anda untuk mendapatkan informasi spesifik lingkungan.
+          </p>
+          <div className="grid grid-cols-3 gap-3">
+            {[1, 2, 3, 4, 5, 6].map((rt) => (
+              <Link 
+                key={rt}
+                href={`/warga/rt/${rt}`}
+                className="flex items-center justify-center rounded-2xl bg-white/20 py-3 text-sm font-black backdrop-blur-md transition-all hover:bg-white/30 active:scale-90 border border-white/10 shadow-sm"
+              >
+                RT {rt}
+              </Link>
+            ))}
+          </div>
         </div>
+        <div className="absolute -top-10 -right-10 h-32 w-32 bg-white/10 rounded-full blur-2xl"></div>
+        <div className="absolute -bottom-5 -left-5 h-20 w-20 bg-black/10 rounded-full blur-xl"></div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-4">
         {menuItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
-            className="flex flex-col items-center justify-center rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all active:scale-95"
+            className="group flex flex-col items-center justify-center rounded-[2rem] border border-slate-100 bg-white p-6 shadow-xl shadow-slate-100/50 transition-all active:scale-95 hover:shadow-2xl"
           >
-            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 group-hover:bg-primary/5 transition-colors">
               {item.icon}
             </div>
-            <span className="text-sm font-bold text-slate-800 text-center">{item.label}</span>
+            <span className="text-sm font-black text-slate-800 text-center tracking-tight leading-tight">{item.label}</span>
           </Link>
         ))}
       </div>
 
-      <div className="rounded-2xl border border-dashed border-slate-200 p-6 text-center">
-        <Users className="mx-auto h-8 w-8 text-slate-300" />
-        <p className="mt-2 text-xs text-slate-400">
-          Butuh bantuan? Hubungi Ketua RT setempat atau gunakan layanan Darurat.
+      <div className="rounded-[2rem] bg-slate-50 p-8 text-center border border-slate-100">
+        <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+          <Users className="h-6 w-6 text-slate-300" />
+        </div>
+        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Pusat Bantuan</p>
+        <p className="text-xs text-slate-400 leading-relaxed max-w-[200px] mx-auto">
+          Butuh bantuan? Silakan hubungi pengurus RT Anda.
         </p>
       </div>
     </div>

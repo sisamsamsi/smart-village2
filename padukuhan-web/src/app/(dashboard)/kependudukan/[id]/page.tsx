@@ -39,50 +39,74 @@ export default async function WargaDetailPage({ params }: PageProps) {
   ]
 
   return (
-    <div className="p-6 md:p-8 space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/kependudukan">
-          <Button variant="outline" size="icon" className="rounded-full">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Detail Warga</h1>
-          <p className="text-sm text-muted-foreground">Informasi lengkap data penduduk.</p>
+    <div className="p-8 space-y-8">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          <Link href="/kependudukan">
+            <Button variant="outline" size="icon" className="h-12 w-12 rounded-2xl border-slate-200 hover:bg-primary/5 hover:text-primary transition-all">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-black tracking-tight">Detail Warga</h1>
+            <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest mt-1">Sistem Kependudukan Mandingan</p>
+          </div>
+        </div>
+        <div className="flex gap-3">
+           <Button variant="outline" className="rounded-2xl border-slate-200 font-bold">Edit Data</Button>
+           <Button className="rounded-2xl font-bold">Cetak Biodata</Button>
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card className="md:col-span-1 border-none shadow-md overflow-hidden bg-white dark:bg-slate-900">
-          <div className="bg-primary/10 h-32 flex items-center justify-center">
-            <div className="h-20 w-20 rounded-full bg-primary flex items-center justify-center">
-              <User className="h-10 w-10 text-primary-foreground" />
+      <div className="grid gap-8 md:grid-cols-3">
+        <Card className="md:col-span-1 border-none shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden bg-white dark:bg-slate-900/50 rounded-[2.5rem]">
+          <div className="bg-gradient-to-br from-primary to-secondary h-40 flex items-center justify-center relative">
+            <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px]"></div>
+            <div className="h-24 w-24 rounded-3xl bg-white flex items-center justify-center shadow-2xl relative z-10 border-4 border-white/20">
+              <User className="h-12 w-12 text-primary" />
             </div>
           </div>
-          <CardContent className="pt-6 text-center">
-            <h2 className="text-xl font-bold">{warga.nama_lengkap}</h2>
-            <div className="mt-2 flex justify-center gap-2">
-              <Badge variant="outline" className="capitalize">{warga.status_warga}</Badge>
-              <Badge>{warga.jenis_kelamin}</Badge>
+          <CardContent className="pt-8 text-center pb-10">
+            <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
+              {warga.nama_lengkap}
+            </h2>
+            <div className="mt-4 flex justify-center gap-2">
+              <Badge className="rounded-full px-4 py-1 bg-primary/10 text-primary border-none font-bold uppercase text-[10px] tracking-widest">
+                {warga.status_warga}
+              </Badge>
+              <Badge variant="outline" className="rounded-full px-4 py-1 border-slate-200 font-bold uppercase text-[10px] tracking-widest">
+                {warga.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'}
+              </Badge>
             </div>
-            <p className="mt-4 text-xs text-muted-foreground">ID: {warga.id}</p>
+            <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-4">
+               <div>
+                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Usia</p>
+                 <p className="text-lg font-black text-slate-800 dark:text-white">45 Th</p>
+               </div>
+               <div>
+                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">RT</p>
+                 <p className="text-lg font-black text-slate-800 dark:text-white">
+                   {Array.isArray(warga.rts) ? warga.rts[0]?.nomor_rt : (warga.rts as any)?.nomor_rt ?? '—'}
+                 </p>
+               </div>
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="md:col-span-2 border-none shadow-md bg-white dark:bg-slate-900">
-          <CardHeader>
-            <CardTitle>Data Personal</CardTitle>
-            <CardDescription>Verifikasi data sesuai kartu identitas (KTP/KK).</CardDescription>
+        <Card className="md:col-span-2 border-none shadow-xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-slate-900/50 rounded-[2.5rem] p-4">
+          <CardHeader className="px-6 pt-8 pb-4">
+            <CardTitle className="text-xl font-black tracking-tight">Informasi Data Pribadi</CardTitle>
+            <CardDescription className="text-sm font-medium">Validasi data sesuai dokumen kependudukan resmi.</CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-6 sm:grid-cols-2">
+          <CardContent className="grid gap-x-8 gap-y-10 sm:grid-cols-2 px-6 pb-10">
             {detailItems.map((item, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <div className="mt-0.5 rounded bg-slate-100 p-1.5 dark:bg-slate-800 text-slate-500">
+              <div key={i} className="flex items-start gap-4 group">
+                <div className="mt-1 rounded-2xl bg-slate-50 p-3 dark:bg-slate-800 text-slate-400 group-hover:bg-primary/5 group-hover:text-primary transition-all">
                   {item.icon}
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{item.label}</p>
-                  <p className="text-sm font-semibold mt-0.5">{item.value ?? '—'}</p>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-1">{item.label}</p>
+                  <p className="text-base font-black text-slate-800 dark:text-slate-100">{item.value ?? '—'}</p>
                 </div>
               </div>
             ))}
