@@ -4,6 +4,7 @@ import { Home, Users, ClipboardList, FileText, LayoutTemplate, Megaphone, Calend
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import SidebarClient from './SidebarClient'
+import MobileNav from './MobileNav'
 import { AuthStoreHydrator } from '@/components/dashboard/AuthStoreHydrator'
 import type { UserProfile } from '@/types/auth'
 
@@ -61,15 +62,12 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Topbar - Glassmorphism */}
-        <header className="flex h-20 items-center justify-between px-8 glass sticky top-0 z-30 print:hidden">
+        <header className="flex h-20 items-center justify-between px-4 sm:px-8 glass sticky top-0 z-30 print:hidden">
           <div className="flex items-center md:hidden">
-             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center mr-2">
-               <Home className="h-5 w-5 text-white" />
-             </div>
-             <span className="text-lg font-bold tracking-tight">Mandingan</span>
+            <MobileNav />
           </div>
           
-          <div className="flex flex-1 items-center justify-end gap-6">
+          <div className="flex flex-1 items-center justify-end gap-3 sm:gap-6">
             <button className="relative rounded-2xl p-2.5 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent hover:border-border/50">
               <Bell size={20} className="text-slate-600 dark:text-slate-300" />
               <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-900"></span>
