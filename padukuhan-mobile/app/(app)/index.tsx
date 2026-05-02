@@ -3,7 +3,7 @@ import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, ActivityIndicat
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { useAuthStore } from '@/stores/authStore';
 import { supabase } from '@/lib/supabase';
-import { Users, Home, FileText, AlertTriangle, Construction, ArrowRightLeft } from 'lucide-react-native';
+import { Users, Home, FileText, AlertTriangle, Construction, ArrowRightLeft, Megaphone } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 
 export default function DashboardScreen() {
@@ -84,6 +84,11 @@ export default function DashboardScreen() {
             <MenuCard 
               title="Kegiatan PKK" 
               icon={<Home size={24} color="#1B5E20" />} 
+            />
+            <MenuCard 
+              title="Pengumuman" 
+              icon={<Megaphone size={24} color="#1B5E20" />} 
+              onPress={() => router.push('/pengumuman' as any)}
             />
           </View>
         </View>
