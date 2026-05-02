@@ -3,10 +3,12 @@ import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, ActivityIndicat
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { useAuthStore } from '@/stores/authStore';
 import { supabase } from '@/lib/supabase';
-import { Users, Home, FileText, AlertTriangle } from 'lucide-react-native';
+import { Users, Home, FileText, AlertTriangle, Construction, ArrowRightLeft } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 
 export default function DashboardScreen() {
   const { profile } = useAuthStore();
+  const router = useRouter();
   const { data: stats, isLoading } = useDashboardStats();
 
   const handleLogout = async () => {
@@ -59,10 +61,30 @@ export default function DashboardScreen() {
         <View className="px-8 py-10">
           <Text className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Layanan Digital</Text>
           <View className="flex-row flex-wrap justify-between">
-            <MenuCard title="Data Warga" icon={<Users size={24} color="#1B5E20" />} />
-            <MenuCard title="Layanan Surat" icon={<FileText size={24} color="#1B5E20" />} />
-            <MenuCard title="Kegiatan PKK" icon={<Home size={24} color="#1B5E20" />} />
-            <MenuCard title="Keamanan" icon={<AlertTriangle size={24} color="#1B5E20" />} />
+            <MenuCard 
+              title="Data Warga" 
+              icon={<Users size={24} color="#1B5E20" />} 
+              onPress={() => router.push('/kependudukan')}
+            />
+            <MenuCard 
+              title="Pembangunan" 
+              icon={<Construction size={24} color="#1B5E20" />} 
+              onPress={() => router.push('/program')}
+            />
+            <MenuCard 
+              title="Mutasi Warga" 
+              icon={<ArrowRightLeft size={24} color="#1B5E20" />} 
+              onPress={() => router.push('/mutasi')}
+            />
+            <MenuCard 
+              title="Layanan Surat" 
+              icon={<FileText size={24} color="#1B5E20" />} 
+              onPress={() => router.push('/surat')}
+            />
+            <MenuCard 
+              title="Kegiatan PKK" 
+              icon={<Home size={24} color="#1B5E20" />} 
+            />
           </View>
         </View>
 
@@ -94,9 +116,12 @@ function StatItem({ label, value, color }: { label: string, value: number | stri
   )
 }
 
-function MenuCard({ title, icon }: { title: string, icon: React.ReactNode }) {
+function MenuCard({ title, icon, onPress }: { title: string, icon: React.ReactNode, onPress?: () => void }) {
   return (
-    <TouchableOpacity className="w-[47%] mb-6 p-7 rounded-[35px] bg-white items-center shadow-xl shadow-slate-200/40 border border-slate-50/50 active:scale-95 transition-all">
+    <TouchableOpacity 
+      onPress={onPress}
+      className="w-[47%] mb-6 p-7 rounded-[35px] bg-white items-center shadow-xl shadow-slate-200/40 border border-slate-50/50 active:scale-95 transition-all"
+    >
       <View className="h-14 w-14 rounded-2xl bg-primary/5 items-center justify-center mb-4">
          {icon}
       </View>
