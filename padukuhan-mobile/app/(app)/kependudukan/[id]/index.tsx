@@ -93,9 +93,18 @@ export default function WargaDetailScreen() {
 
           <Section title="KEPENDUDUKAN" icon={<Shield size={16} color="#1B5E20" />}>
             <InfoRow label="Nomor Kartu Keluarga" value={noKk || '-'} />
-            <InfoRow label="Hubungan Keluarga" value={(warga as any).hubungan_keluarga?.replace(/_/g, ' ') ?? '-'} />
+            <InfoRow label="Hubungan Keluarga" value={(warga as any).status_dalam_keluarga?.replace(/_/g, ' ') ?? '-'} />
             <InfoRow label="Wilayah RT" value={`RT 0${(warga as any).rts?.nomor_rt ?? '-'}`} />
           </Section>
+
+          {/* Section Khusus PKK jika Perempuan */}
+          {((warga as any).jenis_kelamin === 'P' || (warga as any).status_kehamilan || (warga as any).status_menyusui) && (
+            <Section title="DATA KESEHATAN (PKK)" icon={<Heart size={16} color="#1B5E20" />}>
+              <InfoRow label="Status Kehamilan" value={(warga as any).status_kehamilan ? 'Sedang Hamil' : 'Tidak Hamil'} />
+              <InfoRow label="Status Menyusui" value={(warga as any).status_menyusui ? 'Ya' : 'Tidak'} />
+              <InfoRow label="Aktif Posyandu" value={(warga as any).aktif_posyandu ? 'Ya' : 'Tidak'} />
+            </Section>
+          )}
 
           {/* Action Buttons */}
           <View style={styles.actionSection}>

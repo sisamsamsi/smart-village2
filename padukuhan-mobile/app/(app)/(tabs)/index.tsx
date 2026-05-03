@@ -94,6 +94,18 @@ export default function DashboardScreen() {
           </View>
         </View>
 
+        {/* PKK Stats Section */}
+        <View style={styles.pkkStatsSection}>
+          <Text style={styles.sectionLabel}>REKAPITULASI PKK & DASAWISMA</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pkkStatsScroll}>
+            <PkkStatItem label="Balita" value={stats?.balita ?? 0} color="#0EA5E9" bg="#F0F9FF" />
+            <PkkStatItem label="Lansia" value={stats?.lansia ?? 0} color="#6366F1" bg="#EEF2FF" />
+            <PkkStatItem label="WUS" value={stats?.wus ?? 0} color="#A855F7" bg="#FAF5FF" />
+            <PkkStatItem label="PUS" value={stats?.pus ?? 0} color="#EC4899" bg="#FFF1F2" />
+            <PkkStatItem label="Ibu Hamil" value={stats?.ibuHamil ?? 0} color="#F43F5E" bg="#FFF1F2" />
+          </ScrollView>
+        </View>
+
         {/* Info Box */}
         <View style={styles.infoContainer}>
           <View style={styles.infoBox}>
@@ -101,7 +113,7 @@ export default function DashboardScreen() {
             <Text style={styles.infoTitle}>
               Musyawarah Padukuhan Mandingan hari Sabtu, 10 Mei 2026 jam 19.30 WIB.
             </Text>
-            <TouchableOpacity style={styles.infoButton}>
+            <TouchableOpacity style={styles.infoButton} onPress={() => router.push('/pengumuman' as any)}>
               <Text style={styles.infoButtonText}>Lihat Agenda</Text>
               <ChevronRight size={14} color="#fff" />
             </TouchableOpacity>
@@ -119,6 +131,15 @@ function StatItem({ label, value, color }: { label: string, value: number | stri
     <View style={styles.statItem}>
       <Text style={[styles.statValue, { color }]}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  )
+}
+
+function PkkStatItem({ label, value, color, bg }: { label: string, value: number | string, color: string, bg: string }) {
+  return (
+    <View style={[styles.pkkStatCard, { backgroundColor: bg }]}>
+      <Text style={[styles.pkkStatValue, { color }]}>{value}</Text>
+      <Text style={styles.pkkStatLabel}>{label}</Text>
     </View>
   )
 }
@@ -347,5 +368,31 @@ const styles = StyleSheet.create({
     width: 120,
     borderRadius: 60,
     backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  pkkStatsSection: {
+    paddingTop: 24,
+  },
+  pkkStatsScroll: {
+    paddingHorizontal: 24,
+    gap: 12,
+  },
+  pkkStatCard: {
+    width: 100,
+    height: 80,
+    borderRadius: 24,
+    padding: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pkkStatValue: {
+    fontSize: 20,
+    fontWeight: '900',
+  },
+  pkkStatLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#64748B',
+    marginTop: 2,
+    textAlign: 'center',
   }
 });

@@ -50,8 +50,10 @@ export default function EditWargaScreen() {
     agama: '',
     pekerjaan: '',
     status_perkawinan: '',
-    hubungan_keluarga: '',
+    status_dalam_keluarga: '',
     status_warga: '',
+    status_kehamilan: false,
+    status_menyusui: false,
   });
 
   useEffect(() => {
@@ -65,8 +67,10 @@ export default function EditWargaScreen() {
         agama: warga.agama || '',
         pekerjaan: warga.pekerjaan || '',
         status_perkawinan: warga.status_perkawinan || '',
-        hubungan_keluarga: warga.hubungan_keluarga || '',
+        status_dalam_keluarga: warga.status_dalam_keluarga || '',
         status_warga: warga.status_warga || '',
+        status_kehamilan: warga.status_kehamilan || false,
+        status_menyusui: warga.status_menyusui || false,
       });
     }
   }, [warga]);
@@ -207,13 +211,57 @@ export default function EditWargaScreen() {
                 <View style={styles.inputWrapper}>
                   <Heart size={20} color="#94A3B8" style={{ marginLeft: 16 }} />
                   <TextInput
-                    placeholder="Contoh: Belum Kawin"
+                    placeholder="Contoh: Kawin"
                     style={styles.input}
                     value={form.status_perkawinan}
                     onChangeText={(val) => setForm({...form, status_perkawinan: val})}
                   />
                 </View>
               </View>
+
+              <View style={styles.field}>
+                <Text style={styles.fieldLabel}>HUBUNGAN KELUARGA</Text>
+                <View style={styles.inputWrapper}>
+                  <Users size={20} color="#94A3B8" style={{ marginLeft: 16 }} />
+                  <TextInput
+                    placeholder="Contoh: Anak"
+                    style={styles.input}
+                    value={form.status_dalam_keluarga}
+                    onChangeText={(val) => setForm({...form, status_dalam_keluarga: val})}
+                  />
+                </View>
+              </View>
+
+              {/* PKK Specific (Hanya untuk Perempuan atau jika sudah ada data sebelumnya) */}
+              {form.jenis_kelamin === 'P' && (
+                <View style={styles.pkkSection}>
+                  <Text style={styles.sectionDivider}>DATA KESEHATAN (PKK)</Text>
+                  
+                  <View style={styles.toggleRow}>
+                    <Text style={styles.toggleLabel}>Sedang Hamil?</Text>
+                    <TouchableOpacity 
+                      onPress={() => setForm({...form, status_kehamilan: !form.status_kehamilan})}
+                      style={[styles.toggleBtn, form.status_kehamilan && styles.toggleBtnActive]}
+                    >
+                      <Text style={[styles.toggleBtnText, form.status_kehamilan && styles.toggleBtnTextActive]}>
+                        {form.status_kehamilan ? 'YA' : 'TIDAK'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.toggleRow}>
+                    <Text style={styles.toggleLabel}>Sedang Menyusui?</Text>
+                    <TouchableOpacity 
+                      onPress={() => setForm({...form, status_menyusui: !form.status_menyusui})}
+                      style={[styles.toggleBtn, form.status_menyusui && styles.toggleBtnActive]}
+                    >
+                      <Text style={[styles.toggleBtnText, form.status_menyusui && styles.toggleBtnTextActive]}>
+                        {form.status_menyusui ? 'YA' : 'TIDAK'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
 
               <TouchableOpacity 
                 onPress={handleSubmit}
@@ -355,5 +403,53 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#fff',
+  },
+  pkkSection: {
+    backgroundColor: '#FFF1F2',
+    padding: 16,
+    borderRadius: 20,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#FFE4E6',
+  },
+  sectionDivider: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#E11D48',
+    letterSpacing: 1,
+    marginBottom: 16,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  toggleLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  toggleBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    minWidth: 70,
+    alignItems: 'center',
+  },
+  toggleBtnActive: {
+    backgroundColor: '#E11D48',
+    borderColor: '#E11D48',
+  },
+  toggleBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#94A3B8',
+  },
+  toggleBtnTextActive: {
+    color: '#fff',
   }
 });
