@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, Alert, ActivityIndicator, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQueryClient } from '@tanstack/react-query';
+import { ArrowLeft, User, CreditCard, MapPin, Calendar, Briefcase, Users, X, Check } from 'lucide-react-native';
 
 export default function TambahWargaScreen() {
   const router = useRouter();
@@ -47,111 +48,313 @@ export default function TambahWargaScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <ScrollView className="flex-1 p-6">
-        <TouchableOpacity onPress={() => router.back()} className="mb-6">
-          <Text className="text-blue-600 font-bold">✕ Batalkan</Text>
-        </TouchableOpacity>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
+            <X color="#64748B" size={24} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Tambah Warga</Text>
+          <View style={{ width: 44 }} />
+        </View>
 
-        <Text className="text-2xl font-bold text-slate-800 mb-2">Tambah Warga Baru</Text>
-        <Text className="text-slate-500 mb-8">Pastikan data yang dimasukkan sesuai dengan KTP/KK.</Text>
-
-        <View className="space-y-6">
-          <InputGroup
-            label="Nama Lengkap"
-            value={form.nama_lengkap}
-            onChangeText={(v: string) => setForm({ ...form, nama_lengkap: v })}
-            placeholder="Contoh: Budi Santoso"
-          />
-
-          <InputGroup
-            label="NIK"
-            value={form.nik}
-            onChangeText={(v: string) => setForm({ ...form, nik: v })}
-            placeholder="16 digit nomor induk"
-            keyboardType="numeric"
-          />
-
-          <View className="flex-row justify-between">
-            <View className="w-[48%]">
-              <Text className="mb-2 text-sm font-semibold text-slate-700">Jenis Kelamin</Text>
-              <View className="flex-row rounded-xl border border-slate-200 bg-slate-50 p-1">
-                <SelectBtn label="L" active={form.jenis_kelamin === 'L'} onPress={() => setForm({ ...form, jenis_kelamin: 'L' })} />
-                <SelectBtn label="P" active={form.jenis_kelamin === 'P'} onPress={() => setForm({ ...form, jenis_kelamin: 'P' })} />
-              </View>
+        <ScrollView 
+          style={styles.scrollView} 
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.introSection}>
+            <View style={styles.iconWrapper}>
+              <Users color="#1B5E20" size={32} />
             </View>
-            <View className="w-[48%]">
-              <InputGroup
-                label="RT"
-                value={form.rt_id}
-                onChangeText={(v: string) => setForm({ ...form, rt_id: v })}
-                placeholder="1-6"
-                keyboardType="numeric"
-              />
-            </View>
+            <Text style={styles.introTitle}>Data Penduduk Baru</Text>
+            <Text style={styles.introSub}>Lengkapi formulir di bawah sesuai dengan identitas resmi (KTP/KK).</Text>
           </View>
 
-          <InputGroup label="Tempat Lahir" value={form.tempat_lahir} onChangeText={(v: string) => setForm({ ...form, tempat_lahir: v })} />
+          <View style={styles.form}>
+            <InputGroup
+              label="Nama Lengkap"
+              icon={<User size={18} color="#94A3B8" />}
+              value={form.nama_lengkap}
+              onChangeText={(v) => setForm({ ...form, nama_lengkap: v })}
+              placeholder="Masukkan nama lengkap"
+            />
 
-          <InputGroup
-            label="Tanggal Lahir (YYYY-MM-DD)"
-            value={form.tanggal_lahir}
-            onChangeText={(v: string) => setForm({ ...form, tanggal_lahir: v })}
-            placeholder="2000-01-01"
-          />
+            <InputGroup
+              label="Nomor Induk Kependudukan (NIK)"
+              icon={<CreditCard size={18} color="#94A3B8" />}
+              value={form.nik}
+              onChangeText={(v) => setForm({ ...form, nik: v })}
+              placeholder="16 digit nomor NIK"
+              keyboardType="numeric"
+              maxLength={16}
+            />
 
-          <InputGroup label="Pekerjaan" value={form.pekerjaan} onChangeText={(v: string) => setForm({ ...form, pekerjaan: v })} />
+            <View style={styles.row}>
+              <View style={styles.half}>
+                <Text style={styles.label}>Jenis Kelamin</Text>
+                <View style={styles.genderToggle}>
+                  <TouchableOpacity 
+                    onPress={() => setForm({ ...form, jenis_kelamin: 'L' })}
+                    style={[styles.genderOption, form.jenis_kelamin === 'L' && styles.genderActive]}
+                  >
+                    <Text style={[styles.genderText, form.jenis_kelamin === 'L' && styles.genderTextActive]}>Pria</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    onPress={() => setForm({ ...form, jenis_kelamin: 'P' })}
+                    style={[styles.genderOption, form.jenis_kelamin === 'P' && styles.genderActive]}
+                  >
+                    <Text style={[styles.genderText, form.jenis_kelamin === 'P' && styles.genderTextActive]}>Wanita</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <View style={styles.half}>
+                <InputGroup
+                  label="Nomor RT"
+                  value={form.rt_id}
+                  onChangeText={(v) => setForm({ ...form, rt_id: v })}
+                  placeholder="1-6"
+                  keyboardType="numeric"
+                />
+              </View>
+            </View>
 
-          <TouchableOpacity
-            className={`mt-10 h-16 items-center justify-center rounded-2xl bg-blue-600 shadow-lg ${loading ? 'opacity-70' : ''}`}
-            onPress={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text className="text-lg font-bold text-white">Simpan Data Warga</Text>
-            )}
-          </TouchableOpacity>
+            <InputGroup 
+              label="Tempat Lahir" 
+              icon={<MapPin size={18} color="#94A3B8" />}
+              value={form.tempat_lahir} 
+              onChangeText={(v) => setForm({ ...form, tempat_lahir: v })} 
+              placeholder="Contoh: Bantul"
+            />
 
-          <View className="h-20" />
-        </View>
-      </ScrollView>
+            <InputGroup
+              label="Tanggal Lahir"
+              icon={<Calendar size={18} color="#94A3B8" />}
+              value={form.tanggal_lahir}
+              onChangeText={(v) => setForm({ ...form, tanggal_lahir: v })}
+              placeholder="YYYY-MM-DD"
+            />
+
+            <InputGroup 
+              label="Pekerjaan" 
+              icon={<Briefcase size={18} color="#94A3B8" />}
+              value={form.pekerjaan} 
+              onChangeText={(v) => setForm({ ...form, pekerjaan: v })} 
+              placeholder="Contoh: Karyawan Swasta"
+            />
+
+            <TouchableOpacity
+              style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+              onPress={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <>
+                  <Check color="#fff" size={20} style={{ marginRight: 8 }} />
+                  <Text style={styles.submitButtonText}>Simpan Data</Text>
+                </>
+              )}
+            </TouchableOpacity>
+
+            <View style={{ height: 40 }} />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 function InputGroup({
   label,
+  icon,
   value,
   onChangeText,
   placeholder,
   keyboardType,
+  maxLength
 }: {
   label: string;
+  icon?: React.ReactNode;
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
   keyboardType?: 'default' | 'numeric' | 'email-address' | 'phone-pad';
+  maxLength?: number;
 }) {
   return (
-    <View className="mb-4">
-      <Text className="mb-2 text-sm font-semibold text-slate-700">{label}</Text>
-      <TextInput
-        className="h-14 rounded-xl border border-slate-200 bg-slate-50 px-4 text-slate-800"
-        placeholder={placeholder}
-        value={value}
-        onChangeText={onChangeText}
-        keyboardType={keyboardType}
-      />
+    <View style={styles.inputContainer}>
+      <Text style={styles.label}>{label}</Text>
+      <View style={styles.inputWrapper}>
+        {icon && <View style={styles.inputIcon}>{icon}</View>}
+        <TextInput
+          style={styles.input}
+          placeholder={placeholder}
+          placeholderTextColor="#94A3B8"
+          value={value}
+          onChangeText={onChangeText}
+          keyboardType={keyboardType}
+          maxLength={maxLength}
+        />
+      </View>
     </View>
   );
 }
 
-function SelectBtn({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
-  return (
-    <TouchableOpacity onPress={onPress} className={`flex-1 h-10 items-center justify-center rounded-lg ${active ? 'bg-white shadow-sm' : ''}`}>
-      <Text className={`font-bold ${active ? 'text-blue-600' : 'text-slate-400'}`}>{label}</Text>
-    </TouchableOpacity>
-  );
-}
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    height: 56,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  closeButton: {
+    height: 44,
+    width: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#1E293B',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 24,
+  },
+  introSection: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  iconWrapper: {
+    height: 64,
+    width: 64,
+    borderRadius: 24,
+    backgroundColor: 'rgba(27, 94, 32, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  introTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#1E293B',
+    marginBottom: 8,
+  },
+  introSub: {
+    fontSize: 14,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 20,
+    paddingHorizontal: 20,
+  },
+  form: {
+    gap: 20,
+  },
+  inputContainer: {
+    gap: 8,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#475569',
+    marginLeft: 4,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 60,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingHorizontal: 16,
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    height: '100%',
+    color: '#1E293B',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  half: {
+    flex: 1,
+    gap: 8,
+  },
+  genderToggle: {
+    flexDirection: 'row',
+    height: 60,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 6,
+  },
+  genderOption: {
+    flex: 1,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  genderActive: {
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  genderText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#94A3B8',
+  },
+  genderTextActive: {
+    color: '#1B5E20',
+  },
+  submitButton: {
+    height: 64,
+    backgroundColor: '#1B5E20',
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    shadowColor: '#1B5E20',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+  submitButtonDisabled: {
+    opacity: 0.6,
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '900',
+  }
+});

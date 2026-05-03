@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, TextInput, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, StyleSheet, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCreateMutasi } from '@/hooks/useMutasi';
 import { supabase } from '@/lib/supabase';
 import { 
@@ -11,10 +12,15 @@ import {
   CheckCircle2,
   Calendar as CalendarIcon,
   User,
-  Info
+  Info,
+  X,
+  CreditCard,
+  MapPin,
+  FileText
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 
+const { width } = Dimensions.get('window');
 type MutationType = 'kelahiran' | 'kematian' | 'pindah_keluar' | 'pindah_masuk';
 
 export default function AddMutasiScreen() {
@@ -96,192 +102,221 @@ export default function AddMutasiScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F8FAFC]">
+    <SafeAreaView style={styles.container} edges={['top']}>
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
+        style={{ flex: 1 }}
       >
-        <ScrollView className="flex-1 px-6">
-          <View className="flex-row items-center mt-6 mb-8">
-            <TouchableOpacity onPress={() => router.back()} className="bg-slate-100 p-3 rounded-2xl">
-              <ArrowLeft color="#64748B" size={20} />
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+              <ArrowLeft color="#1B5E20" size={24} />
             </TouchableOpacity>
-            <Text className="ml-4 text-xl font-black text-slate-900">Input Mutasi</Text>
+            <Text style={styles.headerTitle}>Input Mutasi</Text>
+            <View style={{ width: 44 }} />
           </View>
 
-          {/* Tabs */}
-          <View className="flex-row mb-8 bg-white p-1.5 rounded-[25px] border border-slate-100 shadow-sm">
-            <TabButton 
-              active={activeTab === 'kelahiran'} 
-              label="Lahir" 
-              icon={<Baby size={14} color={activeTab === 'kelahiran' ? 'white' : '#64748B'} />}
-              onPress={() => setActiveTab('kelahiran')} 
-            />
-            <TabButton 
-              active={activeTab === 'kematian'} 
-              label="Wafat" 
-              icon={<Skull size={14} color={activeTab === 'kematian' ? 'white' : '#64748B'} />}
-              onPress={() => setActiveTab('kematian')} 
-            />
-            <TabButton 
-              active={activeTab === 'pindah_keluar'} 
-              label="Pindah" 
-              icon={<ArrowRightLeft size={14} color={activeTab === 'pindah_keluar' ? 'white' : '#64748B'} />}
-              onPress={() => setActiveTab('pindah_keluar')} 
-            />
-          </View>
+          <View style={styles.content}>
+            {/* Tab Switcher */}
+            <View style={styles.tabContainer}>
+              <TabButton 
+                active={activeTab === 'kelahiran'} 
+                label="Lahir" 
+                icon={<Baby size={16} color={activeTab === 'kelahiran' ? '#fff' : '#64748B'} />}
+                onPress={() => setActiveTab('kelahiran')} 
+              />
+              <TabButton 
+                active={activeTab === 'kematian'} 
+                label="Wafat" 
+                icon={<Skull size={16} color={activeTab === 'kematian' ? '#fff' : '#64748B'} />}
+                onPress={() => setActiveTab('kematian')} 
+              />
+              <TabButton 
+                active={activeTab === 'pindah_keluar'} 
+                label="Pindah" 
+                icon={<ArrowRightLeft size={16} color={activeTab === 'pindah_keluar' ? '#fff' : '#64748B'} />}
+                onPress={() => setActiveTab('pindah_keluar')} 
+              />
+            </View>
 
-          <View className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/50 space-y-6">
-            {/* Warga Search (Not for Kelahiran) */}
-            {activeTab !== 'kelahiran' && (
-              <View className="space-y-2">
-                <Text className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Pilih Warga</Text>
-                {selectedWarga ? (
-                  <View className="bg-slate-900 p-5 rounded-2xl flex-row items-center justify-between">
-                    <View className="flex-1">
-                      <Text className="text-white font-black text-base">{selectedWarga.nama_lengkap}</Text>
-                      <Text className="text-white/40 text-[10px] font-bold">NIK: {selectedWarga.nik} • RT {selectedWarga.rts?.nomor_rt}</Text>
-                    </View>
-                    <TouchableOpacity onPress={() => setSelectedWarga(null)} className="bg-white/10 p-2 rounded-full">
-                      <Text className="text-white text-xs">✕</Text>
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  <View className="relative">
-                    <View className="bg-slate-50 flex-row items-center px-5 rounded-2xl border border-slate-100">
-                      <Search size={18} color="#94A3B8" />
-                      <TextInput
-                        placeholder="Cari nama atau NIK..."
-                        className="flex-1 p-5 font-bold text-slate-800"
-                        value={wargaSearch}
-                        onChangeText={handleSearchWarga}
-                      />
-                      {searching && <ActivityIndicator size="small" color="#1B5E20" />}
-                    </View>
-                    
-                    {searchResults.length > 0 && (
-                      <View className="absolute top-full left-0 right-0 bg-white mt-2 rounded-2xl border border-slate-100 shadow-2xl z-50 overflow-hidden">
-                        {searchResults.map((w) => (
-                          <TouchableOpacity 
-                            key={w.id} 
-                            onPress={() => selectWarga(w)}
-                            className="p-4 border-b border-slate-50 flex-row justify-between items-center"
-                          >
-                            <View>
-                              <Text className="font-bold text-slate-800">{w.nama_lengkap}</Text>
-                              <Text className="text-[10px] text-slate-400">NIK: {w.nik}</Text>
-                            </View>
-                            <Text className="text-[10px] font-black text-slate-900 bg-slate-100 px-2 py-1 rounded-md">RT {w.rts?.nomor_rt}</Text>
-                          </TouchableOpacity>
-                        ))}
+            <View style={styles.formCard}>
+              {/* Warga Search (Not for Kelahiran) */}
+              {activeTab !== 'kelahiran' && (
+                <View style={styles.field}>
+                  <Text style={styles.fieldLabel}>WARGA YANG BERSANGKUTAN</Text>
+                  {selectedWarga ? (
+                    <View style={styles.selectedWargaCard}>
+                      <View style={styles.wargaAvatar}>
+                        <User color="#fff" size={20} />
                       </View>
-                    )}
-                  </View>
-                )}
-              </View>
-            )}
-
-            {/* Common Fields */}
-            <View className="space-y-2">
-              <Text className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tanggal Mutasi</Text>
-              <TextInput
-                placeholder="YYYY-MM-DD"
-                className="bg-slate-50 p-5 rounded-2xl border border-slate-100 font-bold"
-                value={form.tanggal_mutasi}
-                onChangeText={(val) => setForm({...form, tanggal_mutasi: val})}
-              />
-            </View>
-
-            {/* Type Specific Fields */}
-            {activeTab === 'kelahiran' && (
-              <>
-                <View className="space-y-2">
-                  <Text className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nama Bayi</Text>
-                  <TextInput
-                    placeholder="Nama Lengkap Bayi"
-                    className="bg-slate-50 p-5 rounded-2xl border border-slate-100 font-bold"
-                    value={form.nama_bayi}
-                    onChangeText={(val) => setForm({...form, nama_bayi: val})}
-                  />
-                </View>
-                <View className="flex-row space-x-4">
-                  <TouchableOpacity 
-                    onPress={() => setForm({...form, jenis_kelamin_bayi: 'L'})}
-                    className={`flex-1 p-4 rounded-2xl border items-center ${form.jenis_kelamin_bayi === 'L' ? 'bg-blue-600 border-blue-600' : 'bg-slate-50 border-slate-100'}`}
-                  >
-                    <Text className={`font-black text-[10px] uppercase ${form.jenis_kelamin_bayi === 'L' ? 'text-white' : 'text-slate-400'}`}>Laki-laki</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    onPress={() => setForm({...form, jenis_kelamin_bayi: 'P'})}
-                    className={`flex-1 p-4 rounded-2xl border items-center ${form.jenis_kelamin_bayi === 'P' ? 'bg-rose-600 border-rose-600' : 'bg-slate-50 border-slate-100'}`}
-                  >
-                    <Text className={`font-black text-[10px] uppercase ${form.jenis_kelamin_bayi === 'P' ? 'text-white' : 'text-slate-400'}`}>Perempuan</Text>
-                  </TouchableOpacity>
-                </View>
-                <View className="space-y-2">
-                  <Text className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nama Ibu</Text>
-                  <TextInput
-                    placeholder="Nama Lengkap Ibu"
-                    className="bg-slate-50 p-5 rounded-2xl border border-slate-100 font-bold"
-                    value={form.nama_ibu}
-                    onChangeText={(val) => setForm({...form, nama_ibu: val})}
-                  />
-                </View>
-              </>
-            )}
-
-            {activeTab === 'kematian' && (
-              <View className="space-y-2">
-                <Text className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Sebab Meninggal</Text>
-                <TextInput
-                  placeholder="Sakit, Usia Lanjut, dll"
-                  className="bg-slate-50 p-5 rounded-2xl border border-slate-100 font-bold"
-                  value={form.sebab_meninggal}
-                  onChangeText={(val) => setForm({...form, sebab_meninggal: val})}
-                />
-              </View>
-            )}
-
-            {activeTab === 'pindah_keluar' && (
-              <View className="space-y-2">
-                <Text className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tujuan Kepindahan</Text>
-                <TextInput
-                  placeholder="Kabupaten / Kota Tujuan"
-                  className="bg-slate-50 p-5 rounded-2xl border border-slate-100 font-bold"
-                  value={form.tujuan_daerah}
-                  onChangeText={(val) => setForm({...form, tujuan_daerah: val})}
-                />
-              </View>
-            )}
-
-            <View className="space-y-2">
-              <Text className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Keterangan</Text>
-              <TextInput
-                placeholder="Tambahkan catatan jika perlu..."
-                multiline
-                className="bg-slate-50 p-5 rounded-2xl border border-slate-100 font-medium h-24"
-                textAlignVertical="top"
-                value={form.keterangan}
-                onChangeText={(val) => setForm({...form, keterangan: val})}
-              />
-            </View>
-
-            <TouchableOpacity 
-              onPress={handleSubmit}
-              disabled={createMutasi.isPending}
-              className="bg-slate-900 p-6 rounded-3xl items-center shadow-xl shadow-slate-900/20"
-            >
-              {createMutasi.isPending ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <View className="flex-row items-center">
-                  <CheckCircle2 size={18} color="white" />
-                  <Text className="text-white font-black uppercase tracking-widest ml-3">Simpan Data</Text>
+                      <View style={styles.wargaInfo}>
+                        <Text style={styles.wargaName}>{selectedWarga.nama_lengkap}</Text>
+                        <Text style={styles.wargaSub}>NIK: {selectedWarga.nik} • RT {selectedWarga.rts?.nomor_rt}</Text>
+                      </View>
+                      <TouchableOpacity onPress={() => setSelectedWarga(null)} style={styles.removeWarga}>
+                        <X size={16} color="#64748B" />
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <View style={styles.searchContainer}>
+                      <View style={styles.searchInputWrapper}>
+                        <Search size={20} color="#94A3B8" style={{ marginLeft: 16 }} />
+                        <TextInput
+                          placeholder="Cari nama atau NIK..."
+                          style={styles.searchInput}
+                          value={wargaSearch}
+                          onChangeText={handleSearchWarga}
+                        />
+                        {searching && <ActivityIndicator size="small" color="#1B5E20" style={{ marginRight: 16 }} />}
+                      </View>
+                      
+                      {searchResults.length > 0 && (
+                        <View style={styles.resultsOverlay}>
+                          {searchResults.map((w) => (
+                            <TouchableOpacity 
+                              key={w.id} 
+                              onPress={() => selectWarga(w)}
+                              style={styles.resultItem}
+                            >
+                              <View style={styles.resultMain}>
+                                <Text style={styles.resultName}>{w.nama_lengkap}</Text>
+                                <Text style={styles.resultNik}>NIK: {w.nik}</Text>
+                              </View>
+                              <View style={styles.rtBadge}>
+                                <Text style={styles.rtBadgeText}>RT {w.rts?.nomor_rt}</Text>
+                              </View>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      )}
+                    </View>
+                  )}
                 </View>
               )}
-            </TouchableOpacity>
+
+              {/* Common Fields */}
+              <View style={styles.field}>
+                <Text style={styles.fieldLabel}>TANGGAL PERISTIWA</Text>
+                <View style={styles.inputWrapper}>
+                  <CalendarIcon size={20} color="#94A3B8" style={{ marginLeft: 16 }} />
+                  <TextInput
+                    placeholder="YYYY-MM-DD"
+                    style={styles.input}
+                    value={form.tanggal_mutasi}
+                    onChangeText={(val) => setForm({...form, tanggal_mutasi: val})}
+                  />
+                </View>
+              </View>
+
+              {/* Type Specific Fields */}
+              {activeTab === 'kelahiran' && (
+                <>
+                  <View style={styles.field}>
+                    <Text style={styles.fieldLabel}>NAMA BAYI</Text>
+                    <View style={styles.inputWrapper}>
+                      <Baby size={20} color="#94A3B8" style={{ marginLeft: 16 }} />
+                      <TextInput
+                        placeholder="Nama Lengkap Bayi"
+                        style={styles.input}
+                        value={form.nama_bayi}
+                        onChangeText={(val) => setForm({...form, nama_bayi: val})}
+                      />
+                    </View>
+                  </View>
+                  
+                  <View style={styles.field}>
+                    <Text style={styles.fieldLabel}>JENIS KELAMIN</Text>
+                    <View style={styles.genderRow}>
+                      <TouchableOpacity 
+                        onPress={() => setForm({...form, jenis_kelamin_bayi: 'L'})}
+                        style={[styles.genderButton, form.jenis_kelamin_bayi === 'L' && styles.genderButtonActive]}
+                      >
+                        <Text style={[styles.genderText, form.jenis_kelamin_bayi === 'L' && styles.genderTextActive]}>Laki-laki</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        onPress={() => setForm({...form, jenis_kelamin_bayi: 'P'})}
+                        style={[styles.genderButton, form.jenis_kelamin_bayi === 'P' && styles.genderButtonActive]}
+                      >
+                        <Text style={[styles.genderText, form.jenis_kelamin_bayi === 'P' && styles.genderTextActive]}>Perempuan</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  <View style={styles.field}>
+                    <Text style={styles.fieldLabel}>NAMA IBU</Text>
+                    <View style={styles.inputWrapper}>
+                      <User size={20} color="#94A3B8" style={{ marginLeft: 16 }} />
+                      <TextInput
+                        placeholder="Nama Lengkap Ibu"
+                        style={styles.input}
+                        value={form.nama_ibu}
+                        onChangeText={(val) => setForm({...form, nama_ibu: val})}
+                      />
+                    </View>
+                  </View>
+                </>
+              )}
+
+              {activeTab === 'kematian' && (
+                <View style={styles.field}>
+                  <Text style={styles.fieldLabel}>SEBAB MENINGGAL</Text>
+                  <View style={styles.inputWrapper}>
+                    <Info size={20} color="#94A3B8" style={{ marginLeft: 16 }} />
+                    <TextInput
+                      placeholder="Sakit, Usia Lanjut, Kecelakaan, dll"
+                      style={styles.input}
+                      value={form.sebab_meninggal}
+                      onChangeText={(val) => setForm({...form, sebab_meninggal: val})}
+                    />
+                  </View>
+                </View>
+              )}
+
+              {activeTab === 'pindah_keluar' && (
+                <View style={styles.field}>
+                  <Text style={styles.fieldLabel}>DAERAH TUJUAN</Text>
+                  <View style={styles.inputWrapper}>
+                    <MapPin size={20} color="#94A3B8" style={{ marginLeft: 16 }} />
+                    <TextInput
+                      placeholder="Contoh: Bantul, Yogyakarta"
+                      style={styles.input}
+                      value={form.tujuan_daerah}
+                      onChangeText={(val) => setForm({...form, tujuan_daerah: val})}
+                    />
+                  </View>
+                </View>
+              )}
+
+              <View style={styles.field}>
+                <Text style={styles.fieldLabel}>KETERANGAN TAMBAHAN</Text>
+                <TextInput
+                  placeholder="Tambahkan catatan jika diperlukan..."
+                  multiline
+                  style={[styles.input, styles.textArea]}
+                  textAlignVertical="top"
+                  value={form.keterangan}
+                  onChangeText={(val) => setForm({...form, keterangan: val})}
+                />
+              </View>
+
+              <TouchableOpacity 
+                onPress={handleSubmit}
+                disabled={createMutasi.isPending}
+                style={styles.submitButton}
+              >
+                {createMutasi.isPending ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <>
+                    <CheckCircle2 size={20} color="#fff" />
+                    <Text style={styles.submitButtonText}>SIMPAN DATA MUTASI</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
-          <View className="h-20" />
+          <View style={{ height: 40 }} />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -292,10 +327,278 @@ function TabButton({ active, label, icon, onPress }: { active: boolean, label: s
   return (
     <TouchableOpacity 
       onPress={onPress}
-      className={`flex-1 flex-row items-center justify-center py-3.5 rounded-[20px] ${active ? 'bg-slate-900 shadow-lg' : 'bg-transparent'}`}
+      style={[styles.tabButton, active && styles.tabButtonActive]}
     >
       {icon}
-      <Text className={`ml-2 text-[10px] font-black uppercase tracking-widest ${active ? 'text-white' : 'text-slate-400'}`}>{label}</Text>
+      <Text style={[styles.tabText, active && styles.tabTextActive]}>{label}</Text>
     </TouchableOpacity>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    height: 60,
+  },
+  backButton: {
+    height: 44,
+    width: 44,
+    borderRadius: 14,
+    backgroundColor: '#F8FAFC',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#1E293B',
+  },
+  content: {
+    paddingHorizontal: 24,
+    paddingTop: 10,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#F8FAFC',
+    padding: 6,
+    borderRadius: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  tabButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 48,
+    borderRadius: 16,
+  },
+  tabButtonActive: {
+    backgroundColor: '#1B5E20',
+    shadowColor: '#1B5E20',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  tabText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#64748B',
+    marginLeft: 8,
+  },
+  tabTextActive: {
+    color: '#fff',
+    fontWeight: '900',
+  },
+  formCard: {
+    gap: 20,
+  },
+  field: {
+    gap: 8,
+  },
+  fieldLabel: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#94A3B8',
+    letterSpacing: 1,
+    marginLeft: 4,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  input: {
+    flex: 1,
+    padding: 16,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  textArea: {
+    height: 100,
+    borderRadius: 16,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    padding: 16,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  selectedWargaCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1E293B',
+    padding: 16,
+    borderRadius: 20,
+  },
+  wargaAvatar: {
+    height: 44,
+    width: 44,
+    borderRadius: 14,
+    backgroundColor: '#1B5E20',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  wargaInfo: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  wargaName: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#fff',
+  },
+  wargaSub: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.5)',
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  removeWarga: {
+    height: 32,
+    width: 32,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  searchContainer: {
+    position: 'relative',
+    zIndex: 100,
+  },
+  searchInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  searchInput: {
+    flex: 1,
+    padding: 16,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  resultsOverlay: {
+    position: 'absolute',
+    top: '110%',
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+    overflow: 'hidden',
+  },
+  resultItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F8FAFC',
+  },
+  resultMain: {
+    flex: 1,
+  },
+  resultName: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#1E293B',
+  },
+  resultNik: {
+    fontSize: 11,
+    color: '#94A3B8',
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  rtBadge: {
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  rtBadgeText: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#1E293B',
+  },
+  genderRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  genderButton: {
+    flex: 1,
+    height: 54,
+    borderRadius: 16,
+    backgroundColor: '#F8FAFC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  genderButtonActive: {
+    backgroundColor: '#1B5E20',
+    borderColor: '#1B5E20',
+  },
+  genderText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  genderTextActive: {
+    color: '#fff',
+    fontWeight: '900',
+  },
+  submitButton: {
+    height: 64,
+    backgroundColor: '#1B5E20',
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+    shadowColor: '#1B5E20',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '900',
+    marginLeft: 12,
+    letterSpacing: 1,
+  },
+  loaderContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+  }
+});

@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, ActivityIndicator, Image, Share } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image, Share, StyleSheet, Dimensions, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAnnouncementDetail } from '@/hooks/useAnnouncements';
 import { 
   ArrowLeft, 
@@ -8,10 +9,15 @@ import {
   User, 
   Target,
   Megaphone,
-  Globe
+  Globe,
+  ChevronRight,
+  Clock,
+  ShieldCheck
 } from 'lucide-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { formatTanggal } from '@/lib/format';
+
+const { width } = Dimensions.get('window');
 
 export default function AnnouncementDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -30,96 +36,259 @@ export default function AnnouncementDetailScreen() {
   };
 
   if (isLoading) return (
-    <SafeAreaView className="flex-1 bg-white items-center justify-center">
-      <ActivityIndicator color="#1E293B" size="large" />
+    <SafeAreaView style={styles.loaderContainer}>
+      <ActivityIndicator color="#1B5E20" size="large" />
     </SafeAreaView>
   );
 
   if (!item) return (
-    <SafeAreaView className="flex-1 bg-white items-center justify-center">
-      <Text className="font-bold text-slate-400">Pengumuman tidak ditemukan.</Text>
+    <SafeAreaView style={styles.loaderContainer}>
+      <Text style={styles.emptyText}>Pengumuman tidak ditemukan.</Text>
     </SafeAreaView>
   );
 
   return (
-    <View className="flex-1 bg-white">
-      <ScrollView className="flex-1" bounces={false}>
+    <View style={styles.container}>
+      <ScrollView style={styles.scrollView} bounces={false} showsVerticalScrollIndicator={false}>
         {/* Dynamic Header / Hero */}
-        <View className="relative h-[400px] w-full">
+        <View style={styles.heroSection}>
           {item.foto_url ? (
-            <Image source={{ uri: item.foto_url }} className="w-full h-full" resizeMode="cover" />
+            <Image source={{ uri: item.foto_url }} style={styles.heroImage} resizeMode="cover" />
           ) : (
-            <View className="w-full h-full bg-slate-900 items-center justify-center">
-              <Megaphone size={80} color="#334155" />
+            <View style={styles.placeholderHero}>
+              <Megaphone size={60} color="#1B5E20" />
             </View>
           )}
           
-          <View className="absolute inset-0 bg-black/30" />
+          <View style={styles.heroOverlay} />
           
           {/* Top Actions */}
-          <SafeAreaView className="absolute top-0 left-0 right-0">
-            <View className="flex-row justify-between px-6 py-4">
-              <TouchableOpacity onPress={() => router.back()} className="bg-white/20 backdrop-blur-xl p-3 rounded-2xl border border-white/20">
-                <ArrowLeft color="white" size={20} />
+          <SafeAreaView style={styles.topActions} edges={['top']}>
+            <View style={styles.actionsRow}>
+              <TouchableOpacity onPress={() => router.back()} style={styles.actionButton}>
+                <ArrowLeft color="#fff" size={24} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleShare} className="bg-white/20 backdrop-blur-xl p-3 rounded-2xl border border-white/20">
-                <Share2 color="white" size={20} />
+              <TouchableOpacity onPress={handleShare} style={styles.actionButton}>
+                <Share2 color="#fff" size={24} />
               </TouchableOpacity>
             </View>
           </SafeAreaView>
         </View>
 
         {/* Content Section */}
-        <View className="flex-1 -mt-10 bg-white rounded-t-[50px] px-8 pt-10 pb-20">
-          <View className="flex-row items-center mb-6">
-            <View className="bg-blue-50 px-4 py-1.5 rounded-full mr-3 border border-blue-100">
-              <Text className="text-[10px] font-black text-blue-600 uppercase tracking-widest">
-                {item.rt_pembuat ? `RT ${item.rts?.nomor_rt}` : 'PENGUMUMAN DUKUH'}
+        <View style={styles.contentCard}>
+          {/* Metadata */}
+          <View style={styles.metaRow}>
+            <View style={styles.categoryBadge}>
+              <Text style={styles.categoryText}>
+                {item.rt_pembuat ? `RT ${item.rts?.nomor_rt}` : 'PUSAT'}
               </Text>
             </View>
-            <View className="flex-row items-center">
-              <Calendar size={12} color="#94A3B8" />
-              <Text className="text-slate-400 text-[10px] font-bold ml-1.5">{formatTanggal(item.created_at)}</Text>
+            <View style={styles.dateInfo}>
+              <Calendar size={14} color="#94A3B8" />
+              <Text style={styles.dateText}>{formatTanggal(item.created_at)}</Text>
             </View>
           </View>
 
-          <Text className="text-slate-900 text-3xl font-black tracking-tight leading-tight mb-8">
-            {item.judul}
-          </Text>
+          <Text style={styles.title}>{item.judul}</Text>
 
-          {/* Quick Info Grid */}
-          <View className="flex-row bg-slate-50 p-6 rounded-[35px] border border-slate-100 mb-8">
-            <View className="flex-1 flex-row items-center">
-              <View className="bg-white p-2.5 rounded-xl mr-3 shadow-sm">
-                <User size={16} color="#64748B" />
+          {/* Quick Info Bar */}
+          <View style={styles.infoBar}>
+            <View style={styles.infoItem}>
+              <View style={styles.infoIconWrapper}>
+                <User size={16} color="#1B5E20" />
               </View>
               <View>
-                <Text className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Penulis</Text>
-                <Text className="text-slate-900 text-[10px] font-black uppercase">
-                  {item.rt_pembuat ? 'Ketua RT' : 'Dukuh'}
-                </Text>
+                <Text style={styles.infoLabel}>PENERBIT</Text>
+                <Text style={styles.infoValue}>{item.rt_pembuat ? 'Ketua RT' : 'Dukuh'}</Text>
               </View>
             </View>
-            <View className="w-[1px] bg-slate-200 mx-4" />
-            <View className="flex-1 flex-row items-center">
-              <View className="bg-white p-2.5 rounded-xl mr-3 shadow-sm">
-                <Globe size={16} color="#64748B" />
+            <View style={styles.infoDivider} />
+            <View style={styles.infoItem}>
+              <View style={styles.infoIconWrapper}>
+                <Globe size={16} color="#1B5E20" />
               </View>
               <View>
-                <Text className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Target</Text>
-                <Text className="text-slate-900 text-[10px] font-black uppercase">
-                  {item.target === 'semua' ? 'PUBLIK' : 'INTERNAL'}
-                </Text>
+                <Text style={styles.infoLabel}>VISIBILITAS</Text>
+                <Text style={styles.infoValue}>{item.target === 'semua' ? 'PUBLIK' : 'INTERNAL'}</Text>
               </View>
             </View>
           </View>
 
           {/* Body Text */}
-          <Text className="text-slate-600 text-lg leading-[30px] font-medium">
-            {item.isi}
-          </Text>
+          <View style={styles.bodyWrapper}>
+            <Text style={styles.bodyText}>{item.isi}</Text>
+          </View>
         </View>
       </ScrollView>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  heroSection: {
+    height: 380,
+    width: '100%',
+    position: 'relative',
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
+  },
+  placeholderHero: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#F8FAFC',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+  },
+  topActions: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  actionButton: {
+    height: 48,
+    width: 48,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+      }
+    })
+  },
+  contentCard: {
+    flex: 1,
+    marginTop: -40,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+    paddingHorizontal: 28,
+    paddingTop: 36,
+    paddingBottom: 60,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  categoryBadge: {
+    backgroundColor: '#1B5E20',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  categoryText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
+  dateInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dateText: {
+    fontSize: 12,
+    color: '#94A3B8',
+    fontWeight: '700',
+    marginLeft: 8,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: '#1E293B',
+    lineHeight: 34,
+    marginBottom: 30,
+  },
+  infoBar: {
+    flexDirection: 'row',
+    backgroundColor: '#F8FAFC',
+    padding: 20,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    marginBottom: 32,
+  },
+  infoItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  infoIconWrapper: {
+    height: 36,
+    width: 36,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  infoLabel: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#94A3B8',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  infoValue: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#1E293B',
+  },
+  infoDivider: {
+    width: 1,
+    backgroundColor: '#E2E8F0',
+    marginHorizontal: 16,
+  },
+  bodyWrapper: {
+    paddingBottom: 20,
+  },
+  bodyText: {
+    fontSize: 16,
+    color: '#475569',
+    lineHeight: 28,
+    fontWeight: '500',
+  },
+  loaderContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#94A3B8',
+    fontWeight: '600',
+  }
+});

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, StyleSheet, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useProposal, useUpdateProposalStatus } from '@/hooks/useProgram';
 import { useAuthStore } from '@/stores/authStore';
 import { 
@@ -12,9 +13,16 @@ import {
   Edit3, 
   X,
   Wallet,
-  MessageSquare
+  MessageSquare,
+  FileText,
+  ShieldCheck,
+  ChevronRight,
+  TrendingUp,
+  Info
 } from 'lucide-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+
+const { width } = Dimensions.get('window');
 
 export default function ProposalDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -45,7 +53,7 @@ export default function ProposalDetailScreen() {
   const handleUpdate = async () => {
     try {
       await updateStatus.mutateAsync({
-        id,
+        id: id as string,
         ...form,
         tahun_dilaksanakan: form.tahun_dilaksanakan ? parseInt(form.tahun_dilaksanakan) : null
       });
@@ -57,151 +65,153 @@ export default function ProposalDetailScreen() {
   };
 
   if (isLoading) return (
-    <SafeAreaView className="flex-1 bg-white items-center justify-center">
+    <SafeAreaView style={styles.loaderContainer}>
       <ActivityIndicator color="#1B5E20" size="large" />
     </SafeAreaView>
   );
 
   if (!item) return (
-    <SafeAreaView className="flex-1 bg-white items-center justify-center">
-      <Text className="font-bold text-slate-400">Data tidak ditemukan.</Text>
+    <SafeAreaView style={styles.loaderContainer}>
+      <Text style={styles.emptyText}>Data tidak ditemukan.</Text>
     </SafeAreaView>
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F8FAFC]">
-      <ScrollView className="flex-1">
-        {/* Header */}
-        <View className="bg-white px-6 pt-6 pb-10 border-b border-slate-100 rounded-b-[40px] shadow-sm">
-          <View className="flex-row items-center justify-between mb-8">
-            <TouchableOpacity onPress={() => router.back()} className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
-              <ArrowLeft color="#64748B" size={20} />
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Header Section */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <ArrowLeft color="#1B5E20" size={24} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Detail Program</Text>
+          {isDukuh() && !editMode ? (
+            <TouchableOpacity onPress={() => setEditMode(true)} style={styles.editButton}>
+              <Edit3 color="#fff" size={20} />
             </TouchableOpacity>
-            <Text className="text-lg font-black text-slate-900">Detail Program</Text>
-            {isDukuh() && !editMode ? (
-              <TouchableOpacity onPress={() => setEditMode(true)} className="bg-emerald-600 p-3 rounded-2xl">
-                <Edit3 color="white" size={20} />
-              </TouchableOpacity>
-            ) : <View className="w-11" />}
-          </View>
-
-          <View className="bg-slate-900 self-start px-4 py-1.5 rounded-full mb-4">
-            <Text className="text-white text-[9px] font-black uppercase tracking-widest">{item.jenis_program}</Text>
-          </View>
-          <Text className="text-3xl font-black text-slate-900 tracking-tight leading-tight">{item.nama_program}</Text>
-          
-          <View className="flex-row flex-wrap gap-4 mt-6 pt-6 border-t border-slate-50">
-            <InfoItem icon={<MapPin size={14} color="#10B981" />} label={item.lokasi || 'Mandingan'} />
-            <InfoItem icon={<Calendar size={14} color="#3B82F6" />} label={`Tahun ${item.tahun_diusulkan}`} />
-            <InfoItem icon={<Clock size={14} color="#F59E0B" />} label={`RT ${item.rts?.nomor_rt}`} />
-          </View>
+          ) : <View style={{ width: 44 }} />}
         </View>
 
-        <View className="px-6 py-8 space-y-8">
-          {/* Description Section */}
-          <View>
-            <Text className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Deskripsi Program</Text>
-            <View className="bg-white p-8 rounded-[40px] border border-slate-50 shadow-xl shadow-slate-200/30">
-              <Text className="text-slate-600 text-sm leading-6">{item.deskripsi}</Text>
+        {/* Content Area */}
+        <View style={styles.content}>
+          {/* Main Title Card */}
+          <View style={styles.titleCard}>
+            <View style={styles.typeBadge}>
+              <Text style={styles.typeText}>{item.jenis_program?.replace(/_/g, ' ').toUpperCase()}</Text>
+            </View>
+            <Text style={styles.programTitle}>{item.nama_program}</Text>
+            
+            <View style={styles.quickInfo}>
+              <InfoItem icon={<MapPin size={14} color="#1B5E20" />} label={item.lokasi || 'Mandingan'} />
+              <InfoItem icon={<Calendar size={14} color="#3B82F6" />} label={`Tahun ${item.tahun_diusulkan}`} />
+              <InfoItem icon={<TrendingUp size={14} color="#F59E0B" />} label={`RT ${item.rts?.nomor_rt}`} />
             </View>
           </View>
 
-          {/* Execution Info */}
-          {!editMode && (
-            <View>
-              <Text className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Status & Dana</Text>
-              <View className="bg-slate-900 p-8 rounded-[40px] shadow-2xl shadow-slate-900/30">
-                <View className="flex-row items-center justify-between mb-6">
-                  <View>
-                    <Text className="text-white/40 text-[9px] font-black uppercase tracking-widest mb-1">Status Saat Ini</Text>
-                    <Text className="text-white font-bold text-lg">{item.status.toUpperCase()}</Text>
-                  </View>
-                  <StatusBadge status={item.status} />
+          {/* Status Tracker */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>STATUS PELAKSANAAN</Text>
+            <View style={styles.statusCard}>
+              <View style={styles.statusMain}>
+                <View style={styles.statusIconWrapper}>
+                  {item.status === 'selesai' ? <ShieldCheck color="#fff" size={24} /> : <Clock color="#fff" size={24} />}
                 </View>
-                
-                <View className="h-[1px] bg-white/10 mb-6" />
-
-                <View className="flex-row justify-between">
-                  <View className="flex-1 mr-4">
-                    <Text className="text-white/40 text-[9px] font-black uppercase tracking-widest mb-1">Sumber Dana</Text>
-                    <Text className="text-emerald-400 font-bold text-xs">{item.sumber_dana?.toUpperCase().replace('_', ' ') || '-'}</Text>
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-white/40 text-[9px] font-black uppercase tracking-widest mb-1">Pelaksanaan</Text>
-                    <Text className="text-blue-400 font-bold text-xs">{item.tahun_dilaksanakan ? `TAHUN ${item.tahun_dilaksanakan}` : '-'}</Text>
+                <View style={styles.statusInfo}>
+                  <Text style={styles.statusLabel}>TAHAPAN SAAT INI</Text>
+                  <Text style={styles.statusValue}>{item.status.toUpperCase()}</Text>
+                </View>
+              </View>
+              
+              <View style={styles.divider} />
+              
+              <View style={styles.danaRow}>
+                <View style={styles.danaItem}>
+                  <Wallet size={16} color="#1B5E20" />
+                  <View style={styles.danaTextWrapper}>
+                    <Text style={styles.danaLabel}>SUMBER DANA</Text>
+                    <Text style={styles.danaValue}>{item.sumber_dana?.replace(/_/g, ' ').toUpperCase() || 'BELUM DITENTUKAN'}</Text>
                   </View>
                 </View>
               </View>
             </View>
-          )}
+          </View>
 
-          {/* Response Box */}
+          {/* Description */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>DESKRIPSI & LATAR BELAKANG</Text>
+            <View style={styles.descriptionCard}>
+              <Text style={styles.descriptionText}>{item.deskripsi || 'Tidak ada deskripsi tambahan.'}</Text>
+            </View>
+          </View>
+
+          {/* Dukuh Notes */}
           {item.catatan_dukuh && !editMode && (
-             <View>
-              <Text className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Catatan Dukuh</Text>
-              <View className="bg-emerald-50/50 p-6 rounded-[35px] border border-emerald-100">
-                <Text className="text-emerald-900 text-sm leading-relaxed">{item.catatan_dukuh}</Text>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>CATATAN DUKUH</Text>
+              <View style={styles.notesCard}>
+                <MessageSquare size={18} color="#1B5E20" style={{ marginBottom: 8 }} />
+                <Text style={styles.notesText}>{item.catatan_dukuh}</Text>
               </View>
             </View>
           )}
 
-          {/* Edit Mode / Processing */}
+          {/* Edit Mode (Dukuh Only) */}
           {editMode && isDukuh() && (
-            <View className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-2xl space-y-6">
-              <View className="flex-row items-center justify-between mb-2">
-                <Text className="text-xl font-black text-slate-900">Proses Usulan</Text>
-                <TouchableOpacity onPress={() => setEditMode(false)} className="bg-slate-50 p-2 rounded-full">
-                  <X size={16} color="#64748B" />
+            <View style={styles.editSection}>
+              <View style={styles.editHeader}>
+                <Text style={styles.editTitle}>Proses Usulan</Text>
+                <TouchableOpacity onPress={() => setEditMode(false)} style={styles.closeEdit}>
+                  <X size={20} color="#64748B" />
                 </TouchableOpacity>
               </View>
 
-              <View className="space-y-2">
-                <Text className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Update Status</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="py-2">
+              <View style={styles.field}>
+                <Text style={styles.fieldLabel}>STATUS PROGRAM</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipScroll}>
                   {['diusulkan', 'dikaji', 'disetujui', 'dilaksanakan', 'selesai', 'ditolak'].map(s => (
                     <TouchableOpacity 
                       key={s}
                       onPress={() => setForm({...form, status: s})}
-                      className={`mr-2 px-4 py-2 rounded-xl ${form.status === s ? 'bg-emerald-600' : 'bg-slate-50 border border-slate-100'}`}
+                      style={[styles.chip, form.status === s && styles.chipActive]}
                     >
-                      <Text className={`text-[10px] font-black uppercase ${form.status === s ? 'text-white' : 'text-slate-400'}`}>{s}</Text>
+                      <Text style={[styles.chipText, form.status === s && styles.chipTextActive]}>{s.toUpperCase()}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
               </View>
 
-              <View className="space-y-2">
-                <Text className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sumber Dana</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="py-2">
+              <View style={styles.field}>
+                <Text style={styles.fieldLabel}>SUMBER DANA</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipScroll}>
                   {['dana_desa', 'pagu_indikatif', 'swadaya', 'pihak_ketiga', 'apbd'].map(s => (
                     <TouchableOpacity 
                       key={s}
                       onPress={() => setForm({...form, sumber_dana: s})}
-                      className={`mr-2 px-4 py-2 rounded-xl ${form.sumber_dana === s ? 'bg-slate-900' : 'bg-slate-50 border border-slate-100'}`}
+                      style={[styles.chip, form.sumber_dana === s && styles.chipActiveDark]}
                     >
-                      <Text className={`text-[10px] font-black uppercase ${form.sumber_dana === s ? 'text-white' : 'text-slate-400'}`}>{s.replace('_', ' ')}</Text>
+                      <Text style={[styles.chipText, form.sumber_dana === s && styles.chipTextActive]}>{s.replace(/_/g, ' ').toUpperCase()}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
               </View>
 
-              <View className="space-y-2">
-                <Text className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tahun Pelaksanaan</Text>
+              <View style={styles.field}>
+                <Text style={styles.fieldLabel}>TAHUN PELAKSANAAN</Text>
                 <TextInput 
                   placeholder="Contoh: 2026"
-                  keyboardType="number-pad"
-                  className="bg-slate-50 p-4 rounded-xl border border-slate-100 font-bold"
+                  keyboardType="numeric"
+                  style={styles.textInput}
                   value={form.tahun_dilaksanakan}
                   onChangeText={val => setForm({...form, tahun_dilaksanakan: val})}
                 />
               </View>
 
-              <View className="space-y-2">
-                <Text className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Catatan / Feedback</Text>
+              <View style={styles.field}>
+                <Text style={styles.fieldLabel}>TANGGAPAN / CATATAN</Text>
                 <TextInput 
-                  placeholder="Tanggapan untuk Ketua RT..."
+                  placeholder="Berikan feedback untuk usulan ini..."
                   multiline
-                  className="bg-slate-50 p-4 rounded-xl border border-slate-100 font-medium h-24"
+                  style={[styles.textInput, styles.textArea]}
                   textAlignVertical="top"
                   value={form.catatan_dukuh}
                   onChangeText={val => setForm({...form, catatan_dukuh: val})}
@@ -211,14 +221,14 @@ export default function ProposalDetailScreen() {
               <TouchableOpacity 
                 onPress={handleUpdate}
                 disabled={updateStatus.isPending}
-                className="bg-emerald-600 p-5 rounded-3xl items-center shadow-xl shadow-emerald-900/20"
+                style={styles.saveButton}
               >
-                {updateStatus.isPending ? <ActivityIndicator color="white" /> : <Text className="text-white font-black uppercase tracking-widest">Simpan Perubahan</Text>}
+                {updateStatus.isPending ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>SIMPAN PERUBAHAN</Text>}
               </TouchableOpacity>
             </View>
           )}
         </View>
-        <View className="h-20" />
+        <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -226,32 +236,318 @@ export default function ProposalDetailScreen() {
 
 function InfoItem({ icon, label }: { icon: React.ReactNode, label: string }) {
   return (
-    <View className="flex-row items-center bg-slate-50 px-3 py-2 rounded-xl border border-slate-100">
+    <View style={styles.infoItem}>
       {icon}
-      <Text className="text-slate-500 text-[10px] font-bold ml-2">{label}</Text>
+      <Text style={styles.infoText}>{label}</Text>
     </View>
   )
 }
 
-function StatusBadge({ status }: { status: string }) {
-  let color = "text-amber-600";
-  let bg = "bg-amber-50";
-  let icon = <Clock size={10} color="#D97706" />;
-
-  if (['disetujui', 'dilaksanakan'].includes(status)) {
-    color = "text-emerald-600";
-    bg = "bg-emerald-50";
-    icon = <CheckCircle2 size={10} color="#059669" />;
-  } else if (status === 'selesai') {
-    color = "text-blue-600";
-    bg = "bg-blue-50";
-    icon = <Construction size={10} color="#2563EB" />;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    height: 60,
+  },
+  backButton: {
+    height: 44,
+    width: 44,
+    borderRadius: 14,
+    backgroundColor: '#F8FAFC',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#1E293B',
+  },
+  editButton: {
+    height: 44,
+    width: 44,
+    borderRadius: 14,
+    backgroundColor: '#1B5E20',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#1B5E20',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  content: {
+    paddingHorizontal: 24,
+    paddingTop: 20,
+  },
+  titleCard: {
+    marginBottom: 30,
+  },
+  typeBadge: {
+    backgroundColor: 'rgba(27, 94, 32, 0.05)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+    marginBottom: 12,
+  },
+  typeText: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#1B5E20',
+    letterSpacing: 1,
+  },
+  programTitle: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#1E293B',
+    lineHeight: 36,
+    marginBottom: 20,
+  },
+  quickInfo: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  infoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  infoText: {
+    fontSize: 12,
+    color: '#64748B',
+    fontWeight: '700',
+    marginLeft: 8,
+  },
+  section: {
+    marginBottom: 30,
+  },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#94A3B8',
+    letterSpacing: 1.5,
+    marginBottom: 16,
+    marginLeft: 4,
+  },
+  statusCard: {
+    backgroundColor: '#1E293B',
+    borderRadius: 28,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  statusMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  statusIconWrapper: {
+    height: 52,
+    width: 52,
+    borderRadius: 18,
+    backgroundColor: '#1B5E20',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statusInfo: {
+    marginLeft: 16,
+  },
+  statusLabel: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: 'rgba(255,255,255,0.4)',
+    letterSpacing: 1,
+  },
+  statusValue: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#fff',
+    marginTop: 4,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    marginBottom: 20,
+  },
+  danaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  danaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  danaTextWrapper: {
+    marginLeft: 12,
+  },
+  danaLabel: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: 'rgba(255,255,255,0.4)',
+    letterSpacing: 1,
+  },
+  danaValue: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#10B981',
+    marginTop: 2,
+  },
+  descriptionCard: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  descriptionText: {
+    fontSize: 15,
+    color: '#475569',
+    lineHeight: 24,
+    fontWeight: '500',
+  },
+  notesCard: {
+    backgroundColor: '#F0FDF4',
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#DCFCE7',
+  },
+  notesText: {
+    fontSize: 14,
+    color: '#166534',
+    lineHeight: 22,
+    fontWeight: '600',
+  },
+  editSection: {
+    backgroundColor: '#fff',
+    borderRadius: 32,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.1,
+    shadowRadius: 30,
+    elevation: 20,
+  },
+  editHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  editTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#1E293B',
+  },
+  closeEdit: {
+    height: 36,
+    width: 36,
+    borderRadius: 18,
+    backgroundColor: '#F8FAFC',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  field: {
+    marginBottom: 20,
+  },
+  fieldLabel: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#94A3B8',
+    letterSpacing: 1,
+    marginBottom: 10,
+    marginLeft: 4,
+  },
+  chipScroll: {
+    paddingBottom: 4,
+  },
+  chip: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 14,
+    backgroundColor: '#F8FAFC',
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  chipActive: {
+    backgroundColor: '#1B5E20',
+    borderColor: '#1B5E20',
+  },
+  chipActiveDark: {
+    backgroundColor: '#1E293B',
+    borderColor: '#1E293B',
+  },
+  chipText: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#64748B',
+  },
+  chipTextActive: {
+    color: '#fff',
+  },
+  textInput: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    padding: 16,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1E293B',
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  textArea: {
+    height: 100,
+  },
+  saveButton: {
+    height: 64,
+    backgroundColor: '#1B5E20',
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+    shadowColor: '#1B5E20',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
+  loaderContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#94A3B8',
+    fontWeight: '600',
   }
-
-  return (
-    <View className={`flex-row items-center px-3 py-1 rounded-full ${bg}`}>
-      {icon}
-      <Text className={`text-[8px] font-black uppercase tracking-widest ml-1 ${color}`}>{status}</Text>
-    </View>
-  )
-}
+});

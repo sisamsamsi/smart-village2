@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, StyleSheet, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSuratList } from '@/hooks/useSurat';
 import { useAuthStore } from '@/stores/authStore';
 import { 
@@ -11,10 +12,13 @@ import {
   XCircle,
   Search,
   MessageSquare,
-  Calendar
+  Calendar,
+  ChevronRight
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { formatTanggal } from '@/lib/format';
+
+const { width } = Dimensions.get('window');
 
 export default function SuratListScreen() {
   const router = useRouter();
@@ -23,111 +27,118 @@ export default function SuratListScreen() {
     status: activeTab === 'pending' ? 'pending' : undefined 
   });
 
-  // Filter local for 'selesai' tab if we didn't use server filter fully
   const displayedSurat = activeTab === 'pending' 
     ? surat 
     : surat?.filter(s => s.status !== 'pending');
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F8FAFC]">
-      <View className="flex-1">
-        {/* Header Section */}
-        <View className="bg-blue-900 px-6 pt-12 pb-16 rounded-b-[40px] shadow-2xl">
-          <View className="flex-row items-center justify-between mb-6">
-            <TouchableOpacity onPress={() => router.back()} className="bg-white/10 p-3 rounded-2xl border border-white/20">
-              <ArrowLeft color="white" size={20} />
-            </TouchableOpacity>
-            <Text className="text-white text-xl font-black tracking-tight">Layanan Surat</Text>
-            <View className="w-11" />
-          </View>
-          
-          <View className="flex-row justify-between items-end">
-            <View>
-              <Text className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Pengajuan Masuk</Text>
-              <Text className="text-white text-4xl font-black">{displayedSurat?.length || 0}</Text>
-            </View>
-            <TouchableOpacity 
-              onPress={() => router.push('/surat/tambah')}
-              className="bg-white p-4 rounded-3xl shadow-xl shadow-black/20"
-            >
-              <Plus color="#1E3A8A" size={24} />
-            </TouchableOpacity>
-          </View>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Header Section */}
+      <View style={styles.header}>
+        <View style={styles.headerTop}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <ArrowLeft color="#1B5E20" size={20} />
+          </TouchableOpacity>
+          <Text style={styles.title}>Layanan Surat</Text>
+          <View style={{ width: 40 }} />
         </View>
+        <Text style={styles.subtitle}>Kelola pengajuan surat keterangan warga</Text>
+      </View>
 
-        {/* Tab Switcher */}
-        <View className="flex-row mx-6 -mt-8 bg-white p-2 rounded-[30px] shadow-xl border border-slate-50">
+      {/* Summary Area */}
+      <View style={styles.summarySection}>
+        <View style={styles.summaryCard}>
+          <View>
+            <Text style={styles.summaryLabel}>TOTAL PENGAJUAN</Text>
+            <Text style={styles.summaryValue}>{displayedSurat?.length || 0}</Text>
+          </View>
+          <TouchableOpacity 
+            onPress={() => router.push('/surat/tambah')}
+            style={styles.addButton}
+          >
+            <Plus color="white" size={24} />
+            <Text style={styles.addButtonText}>Baru</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Tab Switcher */}
+      <View style={styles.tabSection}>
+        <View style={styles.tabContainer}>
           <TouchableOpacity 
             onPress={() => setActiveTab('pending')}
-            className={`flex-1 py-4 rounded-[25px] items-center ${activeTab === 'pending' ? 'bg-blue-600 shadow-lg shadow-blue-900/20' : 'bg-transparent'}`}
+            style={[styles.tab, activeTab === 'pending' && styles.tabActive]}
           >
-            <Text className={`text-[10px] font-black uppercase tracking-widest ${activeTab === 'pending' ? 'text-white' : 'text-slate-400'}`}>Antrean</Text>
+            <Text style={[styles.tabText, activeTab === 'pending' && styles.tabTextActive]}>ANTREAN</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             onPress={() => setActiveTab('selesai')}
-            className={`flex-1 py-4 rounded-[25px] items-center ${activeTab === 'selesai' ? 'bg-blue-600 shadow-lg shadow-blue-900/20' : 'bg-transparent'}`}
+            style={[styles.tab, activeTab === 'selesai' && styles.tabActive]}
           >
-            <Text className={`text-[10px] font-black uppercase tracking-widest ${activeTab === 'selesai' ? 'text-white' : 'text-slate-400'}`}>Selesai</Text>
+            <Text style={[styles.tabText, activeTab === 'selesai' && styles.tabTextActive]}>SELESAI</Text>
           </TouchableOpacity>
         </View>
-
-        {/* List Section */}
-        <ScrollView 
-          className="flex-1 px-6 mt-6"
-          refreshControl={<RefreshControl refreshing={false} onRefresh={refetch} />}
-        >
-          {isLoading ? (
-            <View className="py-20">
-              <ActivityIndicator color="#1E3A8A" size="large" />
-            </View>
-          ) : displayedSurat?.length === 0 ? (
-            <View className="py-20 items-center">
-              <View className="bg-slate-100 p-8 rounded-full mb-4">
-                <FileText size={40} color="#CBD5E1" />
-              </View>
-              <Text className="text-slate-900 font-bold text-lg">Tidak Ada Pengajuan</Text>
-              <Text className="text-slate-400 text-xs text-center mt-2 px-10">
-                Pengajuan surat dari warga akan muncul di sini.
-              </Text>
-            </View>
-          ) : (
-            <View className="pb-10">
-              {displayedSurat?.map((item) => (
-                <SuratCard key={item.id} item={item} onPress={() => router.push(`/surat/${item.id}`)} />
-              ))}
-            </View>
-          )}
-        </ScrollView>
       </View>
+
+      {/* List Section */}
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.listContainer}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={false} onRefresh={refetch} tintColor="#1B5E20" />}
+      >
+        {isLoading ? (
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator color="#1B5E20" size="large" />
+          </View>
+        ) : displayedSurat?.length === 0 ? (
+          <View style={styles.emptyState}>
+            <View style={styles.emptyIconWrapper}>
+              <FileText size={48} color="#E2E8F0" />
+            </View>
+            <Text style={styles.emptyText}>Tidak Ada Pengajuan</Text>
+            <Text style={styles.emptySubtext}>
+              Pengajuan surat dari warga akan muncul di sini.
+            </Text>
+          </View>
+        ) : (
+          <View style={{ paddingBottom: 40 }}>
+            {displayedSurat?.map((item) => (
+              <SuratCard 
+                key={item.id} 
+                item={item} 
+                onPress={() => router.push(`/surat/${item.id}`)} 
+              />
+            ))}
+          </View>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 function SuratCard({ item, onPress }: { item: any, onPress: () => void }) {
   return (
-    <TouchableOpacity 
-      onPress={onPress}
-      className="bg-white p-6 rounded-[35px] border border-slate-100 shadow-xl shadow-slate-200/40 mb-4"
-    >
-      <View className="flex-row justify-between items-start mb-4">
-        <View className="bg-blue-50 px-3 py-1.5 rounded-xl self-start border border-blue-100/50">
-          <Text className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{item.jenis_surat?.replace('_', ' ')}</Text>
+    <TouchableOpacity onPress={onPress} style={styles.card}>
+      <View style={styles.cardHeader}>
+        <View style={styles.typeBadge}>
+          <Text style={styles.typeText}>{item.jenis_surat?.replace(/_/g, ' ')}</Text>
         </View>
         <StatusBadge status={item.status} />
       </View>
 
-      <Text className="text-slate-900 text-lg font-black tracking-tight leading-6 mb-1">{item.wargas?.nama_lengkap}</Text>
-      <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-4">NIK: {item.wargas?.nik}</Text>
+      <Text style={styles.cardTitle}>{item.wargas?.nama_lengkap}</Text>
+      <Text style={styles.cardSubtitle}>NIK: {item.wargas?.nik}</Text>
       
-      <View className="h-[1px] bg-slate-50 mb-4" />
+      <View style={styles.divider} />
       
-      <View className="flex-row justify-between items-center">
-        <View className="flex-row items-center">
-          <Calendar size={12} color="#64748B" />
-          <Text className="text-slate-500 text-[10px] ml-1.5 font-bold">{formatTanggal(item.created_at)}</Text>
+      <View style={styles.cardFooter}>
+        <View style={styles.dateInfo}>
+          <Calendar size={14} color="#94A3B8" />
+          <Text style={styles.dateText}>{formatTanggal(item.created_at)}</Text>
         </View>
-        <View className="bg-slate-900 px-3 py-1 rounded-full">
-          <Text className="text-white text-[8px] font-black uppercase tracking-widest">RT {item.wargas?.rts?.nomor_rt}</Text>
+        <View style={styles.rtBadge}>
+          <Text style={styles.rtText}>RT {item.wargas?.rts?.nomor_rt}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -135,24 +146,264 @@ function SuratCard({ item, onPress }: { item: any, onPress: () => void }) {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  let color = "text-amber-600";
-  let bg = "bg-amber-50";
-  let icon = <Clock size={10} color="#D97706" />;
+  let color = "#D97706";
+  let bgColor = "#FFFBEB";
+  let icon = <Clock size={12} color="#D97706" />;
+  let label = status;
 
   if (status === 'approved' || status === 'selesai') {
-    color = "text-emerald-600";
-    bg = "bg-emerald-50";
-    icon = <CheckCircle2 size={10} color="#059669" />;
+    color = "#059669";
+    bgColor = "#ECFDF5";
+    icon = <CheckCircle2 size={12} color="#059669" />;
+    label = 'Selesai';
   } else if (status === 'rejected') {
-    color = "text-rose-600";
-    bg = "bg-rose-50";
-    icon = <XCircle size={10} color="#E11D48" />;
+    color = "#DC2626";
+    bgColor = "#FEF2F2";
+    icon = <XCircle size={12} color="#DC2626" />;
+    label = 'Ditolak';
   }
 
   return (
-    <View className={`flex-row items-center px-3 py-1.5 rounded-full ${bg}`}>
+    <View style={[styles.statusBadge, { backgroundColor: bgColor }]}>
       {icon}
-      <Text className={`text-[8px] font-black uppercase tracking-widest ml-1 ${color}`}>{status}</Text>
+      <Text style={[styles.statusText, { color }]}>{label.toUpperCase()}</Text>
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+  },
+  header: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 20,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  backButton: {
+    height: 40,
+    width: 40,
+    borderRadius: 12,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#1E293B',
+  },
+  subtitle: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 8,
+  },
+  summarySection: {
+    paddingHorizontal: 24,
+    marginTop: -10,
+    zIndex: 10,
+  },
+  summaryCard: {
+    backgroundColor: '#1B5E20',
+    borderRadius: 24,
+    padding: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: '#1B5E20',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+  summaryLabel: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
+  summaryValue: {
+    color: '#fff',
+    fontSize: 32,
+    fontWeight: '900',
+    marginTop: 2,
+  },
+  addButton: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  addButtonText: {
+    color: '#fff',
+    fontWeight: '800',
+    marginLeft: 8,
+    fontSize: 14,
+  },
+  tabSection: {
+    paddingHorizontal: 24,
+    marginTop: 24,
+    marginBottom: 10,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    padding: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 12,
+  },
+  tabActive: {
+    backgroundColor: '#F1F5F9',
+  },
+  tabText: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#94A3B8',
+    letterSpacing: 1,
+  },
+  tabTextActive: {
+    color: '#1B5E20',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  listContainer: {
+    padding: 24,
+    paddingTop: 10,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  typeBadge: {
+    backgroundColor: '#F0F9FF',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  typeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#0369A1',
+    textTransform: 'uppercase',
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  statusText: {
+    fontSize: 9,
+    fontWeight: '900',
+    marginLeft: 4,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1E293B',
+  },
+  cardSubtitle: {
+    fontSize: 11,
+    color: '#94A3B8',
+    fontWeight: '600',
+    marginTop: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#F8FAFC',
+    marginVertical: 16,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dateInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dateText: {
+    fontSize: 11,
+    color: '#64748B',
+    marginLeft: 6,
+    fontWeight: '600',
+  },
+  rtBadge: {
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  rtText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#475569',
+  },
+  loaderContainer: {
+    paddingVertical: 40,
+    alignItems: 'center',
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyIconWrapper: {
+    height: 80,
+    width: 80,
+    borderRadius: 40,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#475569',
+  },
+  emptySubtext: {
+    fontSize: 13,
+    color: '#94A3B8',
+    marginTop: 8,
+    textAlign: 'center',
+    paddingHorizontal: 40,
+  }
+});

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, StyleSheet, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSuratDetail, useUpdateSuratStatus } from '@/hooks/useSurat';
 import { useAuthStore } from '@/stores/authStore';
 import { 
@@ -14,11 +15,15 @@ import {
   User,
   Info,
   ShieldCheck,
-  Smartphone
+  Smartphone,
+  ChevronRight,
+  Stamp
 } from 'lucide-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { formatTanggal } from '@/lib/format';
 import { generateSuratPDF, bagikanPDF } from '@/lib/pdf';
+
+const { width } = Dimensions.get('window');
 
 export default function SuratDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -42,11 +47,10 @@ export default function SuratDetailScreen() {
           onPress: async () => {
             setProcessing(true);
             try {
-              // 1. Update status di database
               const nomorSurat = `${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}/RT-${profile?.rt_id?.slice(0,2)}/${new Date().getFullYear()}`;
               
               await updateStatus.mutateAsync({
-                id,
+                id: id as string,
                 status: 'approved',
                 nomor_surat: nomorSurat,
                 tanggal_surat: new Date().toISOString().split('T')[0]
@@ -90,14 +94,14 @@ export default function SuratDetailScreen() {
   };
 
   if (isLoading) return (
-    <SafeAreaView className="flex-1 bg-white items-center justify-center">
-      <ActivityIndicator color="#1E3A8A" size="large" />
+    <SafeAreaView style={styles.loaderContainer}>
+      <ActivityIndicator color="#1B5E20" size="large" />
     </SafeAreaView>
   );
 
   if (!item) return (
-    <SafeAreaView className="flex-1 bg-white items-center justify-center">
-      <Text className="font-bold text-slate-400">Data tidak ditemukan.</Text>
+    <SafeAreaView style={styles.loaderContainer}>
+      <Text style={styles.emptyText}>Data tidak ditemukan.</Text>
     </SafeAreaView>
   );
 
@@ -105,103 +109,369 @@ export default function SuratDetailScreen() {
   const isApproved = item.status === 'approved' || item.status === 'selesai';
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F8FAFC]">
-      <ScrollView className="flex-1">
-        {/* Header */}
-        <View className="bg-white px-6 pt-6 pb-10 border-b border-slate-100 rounded-b-[40px] shadow-sm">
-          <View className="flex-row items-center justify-between mb-8">
-            <TouchableOpacity onPress={() => router.back()} className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
-              <ArrowLeft color="#64748B" size={20} />
-            </TouchableOpacity>
-            <Text className="text-lg font-black text-slate-900">Verifikasi Surat</Text>
-            <View className="w-11" />
-          </View>
-
-          <View className="bg-blue-50 self-start px-4 py-1.5 rounded-full mb-4 border border-blue-100/50">
-            <Text className="text-blue-600 text-[9px] font-black uppercase tracking-widest">{item.jenis_surat?.replace('_', ' ')}</Text>
-          </View>
-          <Text className="text-3xl font-black text-slate-900 tracking-tight leading-tight mb-2">{item.wargas?.nama_lengkap}</Text>
-          <Text className="text-slate-400 text-xs font-bold uppercase tracking-widest">NIK: {item.wargas?.nik}</Text>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Header Section */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <ArrowLeft color="#1B5E20" size={24} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Verifikasi Layanan</Text>
+          <View style={{ width: 44 }} />
         </View>
 
-        <View className="px-6 py-8 space-y-8">
-          {/* Detail Info */}
-          <View>
-            <Text className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Detail Pengajuan</Text>
-            <View className="bg-white p-8 rounded-[40px] border border-slate-50 shadow-xl shadow-slate-200/30 space-y-6">
-              <DetailRow label="Keperluan" value={item.keperluan} icon={<Info size={16} color="#64748B" />} />
-              <DetailRow label="Tanggal Pengajuan" value={formatTanggal(item.created_at)} icon={<Calendar size={16} color="#64748B" />} />
-              <DetailRow label="Diajukan Via" value={item.diajukan_via === 'pwa' ? 'Portal Warga (PWA)' : 'Input RT'} icon={<Smartphone size={16} color="#64748B" />} />
+        {/* Profile Card */}
+        <View style={styles.profileSection}>
+          <View style={styles.profileCard}>
+            <View style={styles.avatarCircle}>
+              <User color="#1B5E20" size={32} />
             </View>
-          </View>
-
-          {/* Status Section */}
-          <View>
-            <Text className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Status & Tindakan</Text>
-            <View className={`p-8 rounded-[40px] shadow-2xl ${isApproved ? 'bg-emerald-600 shadow-emerald-900/30' : isPending ? 'bg-slate-900 shadow-slate-900/30' : 'bg-rose-600 shadow-rose-900/30'}`}>
-              <View className="flex-row items-center justify-between mb-6">
-                <View>
-                  <Text className="text-white/40 text-[9px] font-black uppercase tracking-widest mb-1">Status Pengajuan</Text>
-                  <Text className="text-white font-bold text-lg">{item.status.toUpperCase()}</Text>
-                </View>
-                <View className="bg-white/10 p-3 rounded-2xl">
-                  {isApproved ? <ShieldCheck color="white" size={24} /> : <Clock color="white" size={24} />}
-                </View>
+            <View style={styles.profileInfo}>
+              <Text style={styles.wargaName}>{item.wargas?.nama_lengkap}</Text>
+              <View style={styles.nikBadge}>
+                <CreditCard size={12} color="#64748B" />
+                <Text style={styles.nikText}>NIK: {item.wargas?.nik}</Text>
               </View>
-
-              {isApproved && item.nomor_surat && (
-                <View className="bg-white/10 p-4 rounded-2xl mb-6">
-                   <Text className="text-white/40 text-[9px] font-black uppercase tracking-widest mb-1">Nomor Surat</Text>
-                   <Text className="text-white font-black text-base">{item.nomor_surat}</Text>
-                </View>
-              )}
-
-              {isPending ? (
-                <TouchableOpacity 
-                  onPress={handleApprove}
-                  disabled={processing}
-                  className="bg-white p-5 rounded-3xl items-center"
-                >
-                  {processing ? <ActivityIndicator color="#1E293B" /> : (
-                    <View className="flex-row items-center">
-                      <CheckCircle2 size={18} color="#1E293B" />
-                      <Text className="text-slate-900 font-black uppercase tracking-widest ml-3">Approve Surat</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              ) : isApproved && (
-                <TouchableOpacity 
-                  onPress={handlePrint}
-                  disabled={processing}
-                  className="bg-white p-5 rounded-3xl items-center"
-                >
-                  {processing ? <ActivityIndicator color="#1E293B" /> : (
-                    <View className="flex-row items-center">
-                      <Printer size={18} color="#1E293B" />
-                      <Text className="text-slate-900 font-black uppercase tracking-widest ml-3">Cetak & Bagikan</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              )}
             </View>
           </View>
         </View>
-        <View className="h-20" />
+
+        {/* Content Area */}
+        <View style={styles.content}>
+          {/* Status Banner */}
+          <View style={[styles.statusBanner, isApproved ? styles.statusApproved : isPending ? styles.statusPending : styles.statusRejected]}>
+            <View style={styles.bannerInfo}>
+              <Text style={styles.bannerLabel}>STATUS PENGAJUAN</Text>
+              <Text style={styles.bannerValue}>{item.status.toUpperCase()}</Text>
+            </View>
+            <View style={styles.bannerIconWrapper}>
+              {isApproved ? <ShieldCheck color="#fff" size={28} /> : <Clock color="#fff" size={28} />}
+            </View>
+          </View>
+
+          {/* Details */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>DETAIL SURAT</Text>
+            <View style={styles.detailBox}>
+              <DetailRow 
+                label="Jenis Layanan" 
+                value={item.jenis_surat?.replace(/_/g, ' ')} 
+                icon={<FileText size={16} color="#1B5E20" />} 
+              />
+              <DetailRow 
+                label="Keperluan" 
+                value={item.keperluan} 
+                icon={<Info size={16} color="#1B5E20" />} 
+              />
+              <DetailRow 
+                label="Diajukan Pada" 
+                value={formatTanggal(item.created_at)} 
+                icon={<Calendar size={16} color="#1B5E20" />} 
+              />
+              <DetailRow 
+                label="Metode Pengajuan" 
+                value={item.diajukan_via === 'pwa' ? 'Portal Warga' : 'Layanan RT'} 
+                icon={<Smartphone size={16} color="#1B5E20" />} 
+              />
+              {isApproved && item.nomor_surat && (
+                <DetailRow 
+                  label="Nomor Surat" 
+                  value={item.nomor_surat} 
+                  icon={<ShieldCheck size={16} color="#1B5E20" />} 
+                  isLast
+                />
+              )}
+            </View>
+          </View>
+
+          {/* Action Area */}
+          <View style={styles.actionArea}>
+            {isPending ? (
+              <TouchableOpacity 
+                style={styles.approveButton}
+                onPress={handleApprove}
+                disabled={processing}
+              >
+                {processing ? <ActivityIndicator color="#fff" /> : (
+                  <>
+                    <CheckCircle2 color="#fff" size={20} />
+                    <Text style={styles.approveButtonText}>Approve Sekarang</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            ) : isApproved && (
+              <TouchableOpacity 
+                style={styles.printButton}
+                onPress={handlePrint}
+                disabled={processing}
+              >
+                {processing ? <ActivityIndicator color="#fff" /> : (
+                  <>
+                    <Printer color="#fff" size={20} />
+                    <Text style={styles.printButtonText}>Cetak & Bagikan PDF</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
+            
+            {isPending && (
+              <TouchableOpacity style={styles.rejectButton}>
+                <Text style={styles.rejectButtonText}>Tolak Pengajuan</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+        <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function DetailRow({ label, value, icon }: { label: string, value: string, icon: React.ReactNode }) {
+function DetailRow({ label, value, icon, isLast }: { label: string, value: string, icon: React.ReactNode, isLast?: boolean }) {
   return (
-    <View className="flex-row items-start">
-      <View className="bg-slate-50 p-2.5 rounded-xl mr-4 border border-slate-100">
-        {icon}
-      </View>
-      <View className="flex-1">
-        <Text className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</Text>
-        <Text className="text-slate-700 font-bold text-sm leading-5">{value || '-'}</Text>
+    <View style={[styles.detailRow, isLast && { borderBottomWidth: 0 }]}>
+      <View style={styles.rowIcon}>{icon}</View>
+      <View style={styles.rowText}>
+        <Text style={styles.rowLabel}>{label}</Text>
+        <Text style={styles.rowValue}>{value || '-'}</Text>
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    height: 60,
+  },
+  backButton: {
+    height: 44,
+    width: 44,
+    borderRadius: 14,
+    backgroundColor: '#F8FAFC',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#1E293B',
+  },
+  profileSection: {
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+  },
+  profileCard: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 24,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  avatarCircle: {
+    height: 56,
+    width: 56,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  profileInfo: {
+    marginLeft: 16,
+    flex: 1,
+  },
+  wargaName: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#1E293B',
+  },
+  nikBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  nikText: {
+    fontSize: 12,
+    color: '#64748B',
+    marginLeft: 6,
+    fontWeight: '600',
+  },
+  content: {
+    paddingHorizontal: 24,
+  },
+  statusBanner: {
+    borderRadius: 28,
+    padding: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 5,
+  },
+  statusApproved: {
+    backgroundColor: '#1B5E20',
+  },
+  statusPending: {
+    backgroundColor: '#1E293B',
+  },
+  statusRejected: {
+    backgroundColor: '#BE123C',
+  },
+  bannerInfo: {
+    flex: 1,
+  },
+  bannerLabel: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: 'rgba(255,255,255,0.6)',
+    letterSpacing: 1,
+  },
+  bannerValue: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#fff',
+    marginTop: 4,
+  },
+  bannerIconWrapper: {
+    height: 56,
+    width: 56,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  section: {
+    marginBottom: 30,
+  },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#94A3B8',
+    letterSpacing: 1.5,
+    marginBottom: 16,
+    marginLeft: 4,
+  },
+  detailBox: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 4,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  detailRow: {
+    flexDirection: 'row',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F8FAFC',
+  },
+  rowIcon: {
+    height: 36,
+    width: 36,
+    borderRadius: 10,
+    backgroundColor: '#F8FAFC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  rowText: {
+    flex: 1,
+  },
+  rowLabel: {
+    fontSize: 11,
+    color: '#94A3B8',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  rowValue: {
+    fontSize: 14,
+    color: '#1E293B',
+    fontWeight: '700',
+    marginTop: 2,
+    lineHeight: 20,
+  },
+  actionArea: {
+    gap: 12,
+  },
+  approveButton: {
+    height: 64,
+    backgroundColor: '#1B5E20',
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#1B5E20',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+  approveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '900',
+    marginLeft: 10,
+  },
+  printButton: {
+    height: 64,
+    backgroundColor: '#1B5E20',
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#1B5E20',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+  printButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '900',
+    marginLeft: 10,
+  },
+  rejectButton: {
+    height: 60,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rejectButtonText: {
+    color: '#BE123C',
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  loaderContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#94A3B8',
+    fontWeight: '600',
+  }
+});

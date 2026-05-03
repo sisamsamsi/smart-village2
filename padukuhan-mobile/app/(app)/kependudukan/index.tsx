@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, TextInput, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, FlatList, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
+import { Search, User, ChevronRight, Plus, MapPin, Filter, X } from 'lucide-react-native';
+
+const { width } = Dimensions.get('window');
 
 type WargaListItem = {
   id: string;
@@ -49,54 +52,66 @@ export default function KependudukanListScreen() {
 
   const renderItem = ({ item }: { item: WargaListItem }) => (
     <TouchableOpacity
-      className="mx-6 mb-3 flex-row items-center justify-between rounded-2xl bg-white p-4 shadow-sm"
+      style={styles.card}
       onPress={() => router.push(`/kependudukan/${item.id}`)}
     >
-      <View className="flex-1">
-        <Text className="text-base font-bold text-slate-800">{item.nama_lengkap}</Text>
-        <Text className="text-xs text-slate-500 mt-1">NIK: {item.nik}</Text>
-        <View className="mt-2 flex-row items-center">
-          <View className="rounded-full bg-blue-50 px-2 py-0.5 mr-2">
-            <Text className="text-[10px] font-bold text-blue-600">RT {rtNomor(item.rts)}</Text>
+      <View style={styles.cardIconWrapper}>
+        <User size={24} color="#1B5E20" />
+      </View>
+      <View style={styles.cardContent}>
+        <Text style={styles.cardName}>{item.nama_lengkap}</Text>
+        <Text style={styles.cardNik}>NIK: {item.nik || '-'}</Text>
+        <View style={styles.cardFooter}>
+          <View style={styles.rtBadge}>
+            <MapPin size={10} color="#1B5E20" style={{ marginRight: 4 }} />
+            <Text style={styles.rtText}>RT {rtNomor(item.rts)}</Text>
           </View>
-          <Text className="text-[10px] text-slate-400 capitalize">{item.status_warga}</Text>
+          <View style={[styles.statusBadge, { backgroundColor: item.status_warga === 'tetap' ? '#ECFDF5' : '#F1F5F9' }]}>
+            <Text style={[styles.statusText, { color: item.status_warga === 'tetap' ? '#059669' : '#64748B' }]}>
+              {item.status_warga || 'Warga'}
+            </Text>
+          </View>
         </View>
       </View>
-      <Text className="text-xl text-slate-300">›</Text>
+      <ChevronRight size={20} color="#CBD5E1" />
     </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
-      <View className="px-6 py-4">
-        <Text className="text-2xl font-bold text-slate-800">Kependudukan</Text>
-        <Text className="text-slate-500 text-sm mt-1">Kelola data penduduk Padukuhan Mandingan</Text>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.title}>Kependudukan</Text>
+        <Text style={styles.subtitle}>Kelola data penduduk Padukuhan Mandingan</Text>
       </View>
 
-      <View className="px-6 mb-4">
-        <View className="h-12 flex-row items-center rounded-xl bg-white px-4 shadow-sm border border-slate-100">
-          <Text className="mr-2">🔍</Text>
+      {/* Search Bar */}
+      <View style={styles.searchWrapper}>
+        <View style={styles.searchBar}>
+          <Search size={20} color="#94A3B8" style={{ marginRight: 10 }} />
           <TextInput
             placeholder="Cari nama atau NIK..."
-            className="flex-1 text-slate-800 h-full"
+            style={styles.searchInput}
             value={search}
             onChangeText={setSearch}
+            placeholderTextColor="#94A3B8"
           />
           {search.length > 0 && (
             <TouchableOpacity onPress={() => setSearch('')}>
-              <Text className="text-slate-400">✕</Text>
+              <X size={18} color="#94A3B8" />
             </TouchableOpacity>
           )}
         </View>
       </View>
 
-      <View className="px-6 mb-6">
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <FilterChip label="Semua" active={!filterRT} onPress={() => setFilterRT(null)} />
+      {/* Filter RT */}
+      <View style={styles.filterSection}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+          <FilterChip label="Semua RT" active={!filterRT} onPress={() => setFilterRT(null)} />
           {[1, 2, 3, 4, 5, 6].map((rt) => (
             <FilterChip
               key={rt}
-              label={`RT ${rt}`}
+              label={`RT 0${rt}`}
               active={filterRT === rt.toString()}
               onPress={() => setFilterRT(rt.toString())}
             />
@@ -104,19 +119,25 @@ export default function KependudukanListScreen() {
         </ScrollView>
       </View>
 
+      {/* List Area */}
       {isLoading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#2563eb" />
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color="#1B5E20" />
         </View>
       ) : (
         <FlatList
           data={wargas}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingBottom: 20 }}
+          contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            <View className="mt-20 items-center justify-center">
-              <Text className="text-slate-400 text-base">Tidak ada data warga ditemukan</Text>
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIconWrapper}>
+                <User size={48} color="#E2E8F0" />
+              </View>
+              <Text style={styles.emptyText}>Tidak ada data warga ditemukan</Text>
+              <Text style={styles.emptySubtext}>Coba gunakan kata kunci atau filter RT yang lain</Text>
             </View>
           }
           onRefresh={refetch}
@@ -124,11 +145,12 @@ export default function KependudukanListScreen() {
         />
       )}
 
+      {/* FAB */}
       <TouchableOpacity
-        className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-full bg-blue-600 shadow-xl"
+        style={styles.fab}
         onPress={() => router.push('/kependudukan/tambah')}
       >
-        <Text className="text-white text-3xl font-bold">+</Text>
+        <Plus size={24} color="#fff" />
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -138,9 +160,199 @@ function FilterChip({ label, active, onPress }: { label: string; active: boolean
   return (
     <TouchableOpacity
       onPress={onPress}
-      className={`mr-2 rounded-full px-4 py-2 ${active ? 'bg-blue-600' : 'bg-white border border-slate-200'}`}
+      style={[styles.chip, active && styles.chipActive]}
     >
-      <Text className={`text-sm font-semibold ${active ? 'text-white' : 'text-slate-600'}`}>{label}</Text>
+      <Text style={[styles.chipText, active && styles.chipTextActive]}>{label}</Text>
     </TouchableOpacity>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+  },
+  header: {
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 24,
+    backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#1E293B',
+    letterSpacing: -0.5,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#64748B',
+    marginTop: 4,
+  },
+  searchWrapper: {
+    paddingHorizontal: 24,
+    backgroundColor: '#fff',
+    paddingBottom: 16,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    height: 52,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: '#1E293B',
+    fontWeight: '500',
+  },
+  filterSection: {
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+    paddingBottom: 16,
+  },
+  filterScroll: {
+    paddingHorizontal: 24,
+  },
+  chip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: '#F8FAFC',
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  chipActive: {
+    backgroundColor: '#1B5E20',
+    borderColor: '#1B5E20',
+  },
+  chipText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  chipTextActive: {
+    color: '#fff',
+  },
+  listContainer: {
+    padding: 24,
+    paddingBottom: 100,
+  },
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#F8FAFC',
+  },
+  cardIconWrapper: {
+    height: 48,
+    width: 48,
+    borderRadius: 14,
+    backgroundColor: 'rgba(27, 94, 32, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  cardContent: {
+    flex: 1,
+  },
+  cardName: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1E293B',
+  },
+  cardNik: {
+    fontSize: 12,
+    color: '#94A3B8',
+    marginTop: 2,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  rtBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0F9FF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  rtText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#0369A1',
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  statusText: {
+    fontSize: 10,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  loaderContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 60,
+  },
+  emptyIconWrapper: {
+    height: 80,
+    width: 80,
+    borderRadius: 40,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#475569',
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#94A3B8',
+    marginTop: 4,
+    textAlign: 'center',
+    paddingHorizontal: 40,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    height: 60,
+    width: 60,
+    borderRadius: 30,
+    backgroundColor: '#1B5E20',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#1B5E20',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  }
+});

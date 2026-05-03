@@ -1,9 +1,12 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ArrowLeft, User, CreditCard, Calendar, MapPin, Briefcase, Heart, Users, Printer, Edit2, Shield } from 'lucide-react-native';
+
+const { width } = Dimensions.get('window');
 
 type WargaDetail = {
   nama_lengkap: string;
@@ -47,18 +50,18 @@ export default function WargaDetailScreen() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-slate-50">
-        <ActivityIndicator size="large" color="#2563eb" />
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#1B5E20" />
       </View>
     );
   }
 
   if (!warga) {
     return (
-      <View className="flex-1 items-center justify-center bg-slate-50 p-6">
-        <Text className="text-slate-500">Data warga tidak ditemukan</Text>
-        <TouchableOpacity className="mt-4 rounded-xl bg-blue-600 px-6 py-3" onPress={() => router.back()}>
-          <Text className="text-white font-bold">Kembali</Text>
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>Data warga tidak ditemukan</Text>
+        <TouchableOpacity style={styles.backButtonLarge} onPress={() => router.back()}>
+          <Text style={styles.backButtonLargeText}>Kembali</Text>
         </TouchableOpacity>
       </View>
     );
@@ -67,48 +70,64 @@ export default function WargaDetailScreen() {
   const noKk = warga.kk?.no_kk ?? warga.rumah_tanggas?.no_kk;
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <ScrollView className="flex-1">
-        <View className="bg-slate-50 px-6 py-8 border-b border-slate-100">
-          <TouchableOpacity onPress={() => router.back()} className="mb-4">
-            <Text className="text-blue-600 font-bold">← Kembali</Text>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Header Profile */}
+        <View style={styles.profileHeader}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <ArrowLeft color="#fff" size={24} />
           </TouchableOpacity>
-          <View className="flex-row items-center">
-            <View className="h-16 w-16 items-center justify-center rounded-2xl bg-blue-100 mr-4">
-              <Text className="text-2xl">{warga.jenis_kelamin === 'L' ? '👨' : '👩'}</Text>
+          
+          <View style={styles.avatarWrapper}>
+            <View style={styles.avatarContainer}>
+              <User size={60} color="#1B5E20" />
             </View>
-            <View className="flex-1">
-              <Text className="text-2xl font-bold text-slate-800">{warga.nama_lengkap}</Text>
-              <Text className="text-slate-500">{warga.nik}</Text>
+            <View style={styles.genderBadge}>
+              <Text style={styles.genderIcon}>{warga.jenis_kelamin === 'L' ? '♂️' : '♀️'}</Text>
             </View>
+          </View>
+          
+          <Text style={styles.profileName}>{warga.nama_lengkap}</Text>
+          <View style={styles.nikBadge}>
+            <CreditCard size={14} color="rgba(255,255,255,0.7)" style={{ marginRight: 6 }} />
+            <Text style={styles.nikText}>{warga.nik || 'NIK Belum Terdaftar'}</Text>
           </View>
         </View>
 
-        <View className="p-6">
-          <Section title="Informasi Pribadi">
-            <InfoRow label="Tempat, Tgl Lahir" value={`${warga.tempat_lahir}, ${warga.tanggal_lahir}`} />
+        {/* Content Area */}
+        <View style={styles.content}>
+          <Section title="IDENTITAS DIRI" icon={<User size={16} color="#1B5E20" />}>
+            <InfoRow label="Tempat Lahir" value={warga.tempat_lahir ?? '-'} />
+            <InfoRow label="Tanggal Lahir" value={warga.tanggal_lahir ?? '-'} />
             <InfoRow label="Jenis Kelamin" value={warga.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'} />
-            <InfoRow label="Agama" value={warga.agama ?? ''} />
-            <InfoRow label="Pekerjaan" value={warga.pekerjaan ?? ''} />
-            <InfoRow label="Status" value={warga.status_perkawinan?.replace('_', ' ') ?? ''} />
+            <InfoRow label="Agama" value={warga.agama ?? '-'} />
           </Section>
 
-          <Section title="Kependudukan">
-            <InfoRow label="Nomor KK" value={noKk || '-'} />
-            <InfoRow label="Hubungan Keluarga" value={warga.hubungan_keluarga?.replace('_', ' ') ?? '-'} />
-            <InfoRow label="RT" value={`RT ${warga.rts?.nomor_rt ?? '-'}`} />
+          <Section title="DATA SOSIAL" icon={<Briefcase size={16} color="#1B5E20" />}>
+            <InfoRow label="Pekerjaan" value={warga.pekerjaan ?? '-'} />
+            <InfoRow label="Status Perkawinan" value={warga.status_perkawinan?.replace(/_/g, ' ') ?? '-'} />
             <InfoRow label="Status Warga" value={warga.status_warga ?? '-'} />
           </Section>
 
-          <View className="mt-8 flex-row justify-between">
+          <Section title="KEPENDUDUKAN" icon={<Shield size={16} color="#1B5E20" />}>
+            <InfoRow label="Nomor Kartu Keluarga" value={noKk || '-'} />
+            <InfoRow label="Hubungan Keluarga" value={warga.hubungan_keluarga?.replace(/_/g, ' ') ?? '-'} />
+            <InfoRow label="Wilayah RT" value={`RT 0${warga.rts?.nomor_rt ?? '-'}`} />
+          </Section>
+
+          {/* Action Buttons */}
+          <View style={styles.actionSection}>
             <TouchableOpacity
-              className="flex-1 mr-2 rounded-2xl border border-blue-600 py-4 items-center"
+              style={styles.editButton}
               onPress={() => router.push(`/kependudukan/${wargaId}/edit`)}
             >
-              <Text className="text-blue-600 font-bold">Edit Data</Text>
+              <Edit2 size={18} color="#1B5E20" style={{ marginRight: 8 }} />
+              <Text style={styles.editButtonText}>Perbarui Data</Text>
             </TouchableOpacity>
-            <TouchableOpacity className="flex-1 ml-2 rounded-2xl bg-blue-600 py-4 items-center">
-              <Text className="text-white font-bold">Cetak Surat</Text>
+            
+            <TouchableOpacity style={styles.printButton}>
+              <Printer size={18} color="#fff" style={{ marginRight: 8 }} />
+              <Text style={styles.printButtonText}>Cetak Keterangan</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -117,20 +136,245 @@ export default function WargaDetailScreen() {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <View className="mb-8">
-      <Text className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">{title}</Text>
-      <View className="rounded-3xl border border-slate-100 bg-slate-50/30 p-4">{children}</View>
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <View style={styles.sectionIconWrapper}>{icon}</View>
+        <Text style={styles.sectionTitle}>{title}</Text>
+      </View>
+      <View style={styles.sectionContent}>
+        {children}
+      </View>
     </View>
   );
 }
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <View className="flex-row justify-between py-2 border-b border-slate-50 last:border-0">
-      <Text className="text-slate-500 flex-1">{label}</Text>
-      <Text className="text-slate-800 font-semibold flex-1 text-right capitalize">{value || '-'}</Text>
+    <View style={styles.infoRow}>
+      <Text style={styles.infoLabel}>{label}</Text>
+      <Text style={styles.infoValue}>{value || '-'}</Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  profileHeader: {
+    backgroundColor: '#1B5E20',
+    paddingTop: 20,
+    paddingBottom: 40,
+    alignItems: 'center',
+    borderBottomLeftRadius: 50,
+    borderBottomRightRadius: 50,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 20,
+    left: 24,
+    height: 44,
+    width: 44,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarWrapper: {
+    position: 'relative',
+    marginBottom: 20,
+  },
+  avatarContainer: {
+    height: 110,
+    width: 110,
+    borderRadius: 40,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 15,
+    elevation: 10,
+  },
+  genderBadge: {
+    position: 'absolute',
+    bottom: -5,
+    right: -5,
+    height: 36,
+    width: 36,
+    borderRadius: 18,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 3,
+    borderColor: '#1B5E20',
+  },
+  genderIcon: {
+    fontSize: 14,
+  },
+  profileName: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#fff',
+    textAlign: 'center',
+    paddingHorizontal: 40,
+  },
+  nikBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  nikText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
+  content: {
+    padding: 24,
+    marginTop: -20,
+  },
+  section: {
+    backgroundColor: '#fff',
+    borderRadius: 32,
+    padding: 24,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  sectionIconWrapper: {
+    height: 32,
+    width: 32,
+    borderRadius: 10,
+    backgroundColor: 'rgba(27, 94, 32, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#1B5E20',
+    letterSpacing: 1.5,
+  },
+  sectionContent: {
+    gap: 16,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F8FAFC',
+    paddingBottom: 12,
+  },
+  infoLabel: {
+    fontSize: 13,
+    color: '#94A3B8',
+    fontWeight: '600',
+  },
+  infoValue: {
+    fontSize: 14,
+    color: '#1E293B',
+    fontWeight: '800',
+    textAlign: 'right',
+    flex: 1,
+    marginLeft: 20,
+  },
+  actionSection: {
+    flexDirection: 'row',
+    marginTop: 10,
+    gap: 12,
+    paddingBottom: 40,
+  },
+  editButton: {
+    flex: 1,
+    height: 60,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#1B5E20',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  editButtonText: {
+    color: '#1B5E20',
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  printButton: {
+    flex: 1,
+    height: 60,
+    borderRadius: 20,
+    backgroundColor: '#1B5E20',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#1B5E20',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+  printButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  loaderContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F8FAFC',
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#64748B',
+    fontWeight: '600',
+    marginBottom: 20,
+  },
+  backButtonLarge: {
+    backgroundColor: '#1B5E20',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 16,
+  },
+  backButtonLargeText: {
+    color: '#fff',
+    fontWeight: '800',
+  }
+});
