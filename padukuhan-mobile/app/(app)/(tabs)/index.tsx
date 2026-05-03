@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Dimensions, Platform } from 'react-native';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { useAuthStore } from '@/stores/authStore';
 import { supabase } from '@/lib/supabase';
@@ -64,22 +64,22 @@ export default function DashboardScreen() {
             <MenuCard 
               title="Data Warga" 
               icon={<Users size={24} color="#1B5E20" />} 
-              onPress={() => router.push('/kependudukan')}
+              onPress={() => router.push('/warga' as any)}
             />
             <MenuCard 
               title="Pembangunan" 
               icon={<Construction size={24} color="#1B5E20" />} 
-              onPress={() => router.push('/program')}
+              onPress={() => router.push('/program' as any)}
             />
             <MenuCard 
               title="Mutasi Warga" 
               icon={<ArrowRightLeft size={24} color="#1B5E20" />} 
-              onPress={() => router.push('/mutasi')}
+              onPress={() => router.push('/mutasi' as any)}
             />
             <MenuCard 
               title="Layanan Surat" 
               icon={<FileText size={24} color="#1B5E20" />} 
-              onPress={() => router.push('/surat')}
+              onPress={() => router.push('/surat' as any)}
             />
             <MenuCard 
               title="Kegiatan PKK" 
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: '#1B5E20',
     paddingHorizontal: 24,
-    paddingTop: 30,
+    paddingTop: Platform.OS === 'android' ? 50 : 30,
     paddingBottom: 80,
     borderBottomLeftRadius: 50,
     borderBottomRightRadius: 50,

@@ -166,14 +166,14 @@ export default function AddSuratScreen() {
               <View style={styles.field}>
                 <Text style={styles.fieldLabel}>JENIS LAYANAN SURAT</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.templateScroll}>
-                  {templates?.map((t: any) => (
+                  {(templates || []).map((t: any) => (
                     <TouchableOpacity 
                       key={t.id}
                       onPress={() => setForm({...form, jenis_surat: t.jenis_surat})}
                       style={[styles.templateChip, form.jenis_surat === t.jenis_surat && styles.templateChipActive]}
                     >
                       <Text style={[styles.templateText, form.jenis_surat === t.jenis_surat && styles.templateTextActive]}>
-                        {t.judul.toUpperCase()}
+                        {(t.judul || t.jenis_surat || '').toUpperCase()}
                       </Text>
                     </TouchableOpacity>
                   ))}

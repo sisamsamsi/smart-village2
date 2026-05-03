@@ -69,7 +69,7 @@ export default function NewProposalScreen() {
                   {isDukuh() ? 'Inisiatif Dukuh' : 'Aspirasi Warga'}
                 </Text>
                 <Text style={styles.heroDescription}>
-                  Sampaikan ide pembangunan atau kegiatan untuk kemajuan Mandingan Lor.
+                  Sampaikan ide pembangunan atau kegiatan untuk kemajuan Padukuhan Mandingan.
                 </Text>
               </View>
             </View>

@@ -1,10 +1,9 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, User, CreditCard, Calendar, MapPin, Briefcase, Heart, Users, Printer, Edit2, Shield } from 'lucide-react-native';
+import { ArrowLeft, User, CreditCard, Calendar, MapPin, Briefcase, Heart, Users, Printer, Edit2, Shield, XCircle } from 'lucide-react-native';
+import { useWargaDetail } from '@/hooks/useKependudukan';
 
 const { width } = Dimensions.get('window');
 
@@ -28,25 +27,7 @@ export default function WargaDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const wargaId = Array.isArray(id) ? id[0] : id;
-
-  const { data: warga, isLoading } = useQuery({
-    queryKey: ['warga', wargaId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('wargas')
-        .select(`
-          *,
-          rts(nomor_rt),
-          kk:rumah_tanggas(*)
-        `)
-        .eq('id', wargaId)
-        .single();
-
-      if (error) throw error;
-      return data as WargaDetail;
-    },
-    enabled: !!wargaId,
-  });
+  const { data: warga, isLoading, error } = useWargaDetail(wargaId as string);
 
   if (isLoading) {
     return (
@@ -56,25 +37,26 @@ export default function WargaDetailScreen() {
     );
   }
 
-  if (!warga) {
+  if (error || !warga) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>Data warga tidak ditemukan</Text>
-        <TouchableOpacity style={styles.backButtonLarge} onPress={() => router.back()}>
+        <XCircle color="#EF4444" size={48} style={{ marginBottom: 16 }} />
+        <Text style={styles.emptyText}>{error ? "Terjadi kesalahan memuat data." : "Data warga tidak ditemukan"}</Text>
+        <TouchableOpacity style={styles.backButtonLarge} onPress={() => router.canGoBack() ? router.back() : router.replace('/' as any)}>
           <Text style={styles.backButtonLargeText}>Kembali</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
-  const noKk = warga.kk?.no_kk ?? warga.rumah_tanggas?.no_kk;
+  const noKk = (warga as any).rumah_tanggas?.no_kk || (warga as any).kk?.no_kk;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Header Profile */}
         <View style={styles.profileHeader}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/' as any)} style={styles.backButton}>
             <ArrowLeft color="#fff" size={24} />
           </TouchableOpacity>
           
@@ -83,36 +65,36 @@ export default function WargaDetailScreen() {
               <User size={60} color="#1B5E20" />
             </View>
             <View style={styles.genderBadge}>
-              <Text style={styles.genderIcon}>{warga.jenis_kelamin === 'L' ? '♂️' : '♀️'}</Text>
+              <Text style={styles.genderIcon}>{(warga as any).jenis_kelamin === 'L' ? '♂️' : '♀️'}</Text>
             </View>
           </View>
           
-          <Text style={styles.profileName}>{warga.nama_lengkap}</Text>
+          <Text style={styles.profileName}>{(warga as any).nama_lengkap}</Text>
           <View style={styles.nikBadge}>
             <CreditCard size={14} color="rgba(255,255,255,0.7)" style={{ marginRight: 6 }} />
-            <Text style={styles.nikText}>{warga.nik || 'NIK Belum Terdaftar'}</Text>
+            <Text style={styles.nikText}>{(warga as any).nik || 'NIK Belum Terdaftar'}</Text>
           </View>
         </View>
 
         {/* Content Area */}
         <View style={styles.content}>
           <Section title="IDENTITAS DIRI" icon={<User size={16} color="#1B5E20" />}>
-            <InfoRow label="Tempat Lahir" value={warga.tempat_lahir ?? '-'} />
-            <InfoRow label="Tanggal Lahir" value={warga.tanggal_lahir ?? '-'} />
-            <InfoRow label="Jenis Kelamin" value={warga.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'} />
-            <InfoRow label="Agama" value={warga.agama ?? '-'} />
+            <InfoRow label="Tempat Lahir" value={(warga as any).tempat_lahir ?? '-'} />
+            <InfoRow label="Tanggal Lahir" value={(warga as any).tanggal_lahir ?? '-'} />
+            <InfoRow label="Jenis Kelamin" value={(warga as any).jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'} />
+            <InfoRow label="Agama" value={(warga as any).agama ?? '-'} />
           </Section>
 
           <Section title="DATA SOSIAL" icon={<Briefcase size={16} color="#1B5E20" />}>
-            <InfoRow label="Pekerjaan" value={warga.pekerjaan ?? '-'} />
-            <InfoRow label="Status Perkawinan" value={warga.status_perkawinan?.replace(/_/g, ' ') ?? '-'} />
-            <InfoRow label="Status Warga" value={warga.status_warga ?? '-'} />
+            <InfoRow label="Pekerjaan" value={(warga as any).pekerjaan ?? '-'} />
+            <InfoRow label="Status Perkawinan" value={(warga as any).status_perkawinan?.replace(/_/g, ' ') ?? '-'} />
+            <InfoRow label="Status Warga" value={(warga as any).status_warga ?? '-'} />
           </Section>
 
           <Section title="KEPENDUDUKAN" icon={<Shield size={16} color="#1B5E20" />}>
             <InfoRow label="Nomor Kartu Keluarga" value={noKk || '-'} />
-            <InfoRow label="Hubungan Keluarga" value={warga.hubungan_keluarga?.replace(/_/g, ' ') ?? '-'} />
-            <InfoRow label="Wilayah RT" value={`RT 0${warga.rts?.nomor_rt ?? '-'}`} />
+            <InfoRow label="Hubungan Keluarga" value={(warga as any).hubungan_keluarga?.replace(/_/g, ' ') ?? '-'} />
+            <InfoRow label="Wilayah RT" value={`RT 0${(warga as any).rts?.nomor_rt ?? '-'}`} />
           </Section>
 
           {/* Action Buttons */}

@@ -17,7 +17,8 @@ import {
   ShieldCheck,
   Smartphone,
   ChevronRight,
-  Stamp
+  Stamp,
+  CreditCard
 } from 'lucide-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { formatTanggal } from '@/lib/format';
@@ -26,16 +27,17 @@ import { generateSuratPDF, bagikanPDF } from '@/lib/pdf';
 const { width } = Dimensions.get('window');
 
 export default function SuratDetailScreen() {
-  const { id } = useLocalSearchParams();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { data: item, isLoading, refetch } = useSuratDetail(id as string);
+  const suratId = Array.isArray(id) ? id[0] : id;
+  const { data: item, isLoading, error, refetch } = useSuratDetail(suratId as string);
   const updateStatus = useUpdateSuratStatus();
   const { profile } = useAuthStore();
 
   const [processing, setProcessing] = useState(false);
 
   const handleApprove = async () => {
-    if (processing) return;
+    if (processing || !suratId) return;
     
     Alert.alert(
       "Konfirmasi Persetujuan",
@@ -47,10 +49,10 @@ export default function SuratDetailScreen() {
           onPress: async () => {
             setProcessing(true);
             try {
-              const nomorSurat = `${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}/RT-${profile?.rt_id?.slice(0,2)}/${new Date().getFullYear()}`;
+              const nomorSurat = `${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}/RT-${profile?.rt_id?.slice(0,2) || '00'}/${new Date().getFullYear()}`;
               
               await updateStatus.mutateAsync({
-                id: id as string,
+                id: suratId as string,
                 status: 'approved',
                 nomor_surat: nomorSurat,
                 tanggal_surat: new Date().toISOString().split('T')[0]
@@ -75,9 +77,9 @@ export default function SuratDetailScreen() {
     try {
       setProcessing(true);
       const uri = await generateSuratPDF({
-        warga: item.wargas,
+        warga: item.wargas || item.warga, // Support both plural and singular relation names
         rt: {
-          nomor_rt: item.wargas?.rts?.nomor_rt,
+          nomor_rt: (item.wargas || item.warga)?.rts?.nomor_rt,
           nama_lengkap: profile?.nama_lengkap
         },
         keperluan: item.keperluan || 'Keperluan administrasi',
@@ -99,21 +101,27 @@ export default function SuratDetailScreen() {
     </SafeAreaView>
   );
 
-  if (!item) return (
+  if (error || !item) return (
     <SafeAreaView style={styles.loaderContainer}>
-      <Text style={styles.emptyText}>Data tidak ditemukan.</Text>
+      <XCircle color="#EF4444" size={48} style={{ marginBottom: 16 }} />
+      <Text style={styles.emptyText}>{error ? "Terjadi kesalahan memuat data." : "Data tidak ditemukan."}</Text>
+      <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/' as any)} style={{ marginTop: 20 }}>
+        <Text style={{ color: '#1B5E20', fontWeight: '800' }}>Kembali</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 
-  const isPending = item.status === 'pending';
-  const isApproved = item.status === 'approved' || item.status === 'selesai';
+  const status = item.status?.toLowerCase() || 'pending';
+  const isPending = status === 'pending';
+  const isApproved = status === 'approved' || status === 'selesai';
+  const wargaData = item.wargas || item.warga;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Header Section */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/' as any)} style={styles.backButton}>
             <ArrowLeft color="#1B5E20" size={24} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Verifikasi Layanan</Text>
@@ -127,10 +135,10 @@ export default function SuratDetailScreen() {
               <User color="#1B5E20" size={32} />
             </View>
             <View style={styles.profileInfo}>
-              <Text style={styles.wargaName}>{item.wargas?.nama_lengkap}</Text>
+              <Text style={styles.wargaName}>{wargaData?.nama_lengkap || 'Warga Tidak Diketahui'}</Text>
               <View style={styles.nikBadge}>
                 <CreditCard size={12} color="#64748B" />
-                <Text style={styles.nikText}>NIK: {item.wargas?.nik}</Text>
+                <Text style={styles.nikText}>NIK: {wargaData?.nik || '-'}</Text>
               </View>
             </View>
           </View>
@@ -142,7 +150,7 @@ export default function SuratDetailScreen() {
           <View style={[styles.statusBanner, isApproved ? styles.statusApproved : isPending ? styles.statusPending : styles.statusRejected]}>
             <View style={styles.bannerInfo}>
               <Text style={styles.bannerLabel}>STATUS PENGAJUAN</Text>
-              <Text style={styles.bannerValue}>{item.status.toUpperCase()}</Text>
+              <Text style={styles.bannerValue}>{status.toUpperCase()}</Text>
             </View>
             <View style={styles.bannerIconWrapper}>
               {isApproved ? <ShieldCheck color="#fff" size={28} /> : <Clock color="#fff" size={28} />}

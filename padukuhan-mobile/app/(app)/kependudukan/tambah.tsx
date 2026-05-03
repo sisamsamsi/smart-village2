@@ -38,7 +38,11 @@ export default function TambahWargaScreen() {
 
       Alert.alert('Sukses', 'Data warga berhasil ditambahkan');
       queryClient.invalidateQueries({ queryKey: ['wargas'] });
-      router.back();
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace('/warga' as any);
+      }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Gagal menyimpan';
       Alert.alert('Gagal', message);
@@ -55,7 +59,7 @@ export default function TambahWargaScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
+          <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/warga' as any)} style={styles.closeButton}>
             <X color="#64748B" size={24} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Tambah Warga</Text>

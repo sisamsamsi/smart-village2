@@ -286,8 +286,8 @@ def migrate_pkk_partisipasi():
 def main():
     try:
         sync_rts_and_dasawismas()
-        # migrate_kk()      # Skip as data already exists
-        # migrate_wargas()  # Skip as data already exists
+        migrate_kk()      
+        migrate_wargas()  
         migrate_pkk_partisipasi()
         print("\n" + "="*30)
         print("PKK DATA RECOVERY COMPLETED!")

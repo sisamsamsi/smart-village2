@@ -15,6 +15,7 @@ import {
   Wallet,
   MessageSquare,
   FileText,
+  XCircle,
   ShieldCheck,
   ChevronRight,
   TrendingUp,
@@ -25,9 +26,10 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 const { width } = Dimensions.get('window');
 
 export default function ProposalDetailScreen() {
-  const { id } = useLocalSearchParams();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { data: item, isLoading } = useProposal(id as string);
+  const proposalId = Array.isArray(id) ? id[0] : id;
+  const { data: item, isLoading, error } = useProposal(proposalId as string);
   const updateStatus = useUpdateProposalStatus();
   const isDukuh = useAuthStore((s) => s.isDukuh);
 
@@ -70,9 +72,13 @@ export default function ProposalDetailScreen() {
     </SafeAreaView>
   );
 
-  if (!item) return (
+  if (error || !item) return (
     <SafeAreaView style={styles.loaderContainer}>
-      <Text style={styles.emptyText}>Data tidak ditemukan.</Text>
+      <XCircle color="#EF4444" size={48} style={{ marginBottom: 16 }} />
+      <Text style={styles.emptyText}>{error ? "Terjadi kesalahan memuat data." : "Data usulan tidak ditemukan."}</Text>
+      <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 20 }}>
+        <Text style={{ color: '#1B5E20', fontWeight: '800' }}>Kembali</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 
@@ -118,7 +124,7 @@ export default function ProposalDetailScreen() {
                 </View>
                 <View style={styles.statusInfo}>
                   <Text style={styles.statusLabel}>TAHAPAN SAAT INI</Text>
-                  <Text style={styles.statusValue}>{item.status.toUpperCase()}</Text>
+                  <Text style={styles.statusValue}>{(item?.status || 'diusulkan').toUpperCase()}</Text>
                 </View>
               </View>
               

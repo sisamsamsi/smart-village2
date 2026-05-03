@@ -56,15 +56,21 @@ export const useSuratDetail = (id: string) => {
   return useQuery({
     queryKey: suratKeys.detail(id),
     queryFn: async () => {
+      console.log('Fetching surat detail for ID:', id);
       const { data, error } = await supabase
         .from('surat_pengajuan')
         .select(`
           *,
-          wargas (*, rts(*))
+          wargas (*, rts:rt_id(nomor_rt)),
+          warga:warga_id (*, rts:rt_id(nomor_rt))
         `)
         .eq('id', id)
         .single()
-      if (error) throw error
+      
+      if (error) {
+        console.error('Error fetching surat detail:', error);
+        throw error;
+      }
       return data
     },
     enabled: !!id
