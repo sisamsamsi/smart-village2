@@ -84,6 +84,7 @@ export default function DashboardScreen() {
             <MenuCard 
               title="Kegiatan PKK" 
               icon={<Home size={24} color="#1B5E20" />} 
+              onPress={() => router.push('/pkk' as any)}
             />
             <MenuCard 
               title="Pengumuman" 
