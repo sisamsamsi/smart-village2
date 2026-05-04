@@ -17,7 +17,7 @@ export function useWargasList() {
       const { profile: p, isDukuh, isKetuaRT, isKader } = useAuthStore.getState()
       let q = supabase
         .from('wargas')
-        .select('id, nama_lengkap, nik, status_warga, rt_id, rts(nomor_rt)')
+        .select('id, nama_lengkap, nik, status_warga, rt_id, rts(nomor_rt), rumah_tanggas(no_kk)')
         .order('nama_lengkap', { ascending: true })
         .limit(200)
 

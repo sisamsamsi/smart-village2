@@ -4,6 +4,7 @@ import { Home, Users, ClipboardList, FileText, LayoutTemplate, Megaphone, Calend
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import SidebarClient from './SidebarClient'
+import SidebarNav from './SidebarNav'
 import MobileNav from './MobileNav'
 import { AuthStoreHydrator } from '@/components/dashboard/AuthStoreHydrator'
 import type { UserProfile } from '@/types/auth'
@@ -37,25 +38,24 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           </div>
         </div>
         
-        <div className="flex-1 overflow-y-auto py-8">
-          <nav className="space-y-1.5 px-4">
-            <SidebarItem href="/" icon={<Home size={20} />} label="Beranda" />
-            <div className="pt-4 pb-2 px-4 text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Kependudukan</div>
-            <SidebarItem href="/kependudukan" icon={<Users size={20} />} label="Data Warga" />
-            <SidebarItem href="/pkk" icon={<ClipboardList size={20} />} label="PKK & Dasawisma" />
-            <div className="pt-4 pb-2 px-4 text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Layanan</div>
-            <SidebarItem href="/surat" icon={<FileText size={20} />} label="Layanan Surat" />
-            <SidebarItem href="/program" icon={<LayoutTemplate size={20} />} label="Pembangunan" />
-            <div className="pt-4 pb-2 px-4 text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Informasi</div>
-            <SidebarItem href="/pengumuman" icon={<Megaphone size={20} />} label="Pengumuman" />
-            <SidebarItem href="/kegiatan" icon={<Calendar size={20} />} label="Agenda Kegiatan" />
-            <SidebarItem href="/keamanan" icon={<Shield size={20} />} label="Keamanan" />
-            <SidebarItem href="/masukan" icon={<MessageSquare size={20} />} label="Masukan Warga" />
-          </nav>
+        <div className="flex-1 overflow-y-auto py-6">
+          <SidebarNav items={[
+            { href: '/', icon: <Home size={20} />, label: 'Beranda' },
+            { href: '/kependudukan', icon: <Users size={20} />, label: 'Data Warga', category: 'Kependudukan' },
+            { href: '/pkk', icon: <ClipboardList size={20} />, label: 'PKK & Dasawisma' },
+            { href: '/surat', icon: <FileText size={20} />, label: 'Layanan Surat', category: 'Layanan' },
+            { href: '/program', icon: <LayoutTemplate size={20} />, label: 'Pembangunan' },
+            { href: '/pengumuman', icon: <Megaphone size={20} />, label: 'Pengumuman', category: 'Informasi' },
+            { href: '/kegiatan', icon: <Calendar size={20} />, label: 'Agenda Kegiatan' },
+            { href: '/keamanan', icon: <Shield size={20} />, label: 'Keamanan' },
+            { href: '/masukan', icon: <MessageSquare size={20} />, label: 'Masukan Warga' },
+          ]} />
         </div>
         
         <div className="p-6 border-t border-border/40 bg-slate-50/50 dark:bg-slate-800/20">
-          <SidebarItem href="/pengaturan" icon={<Settings size={20} />} label="Pengaturan" />
+          <SidebarNav items={[
+            { href: '/pengaturan', icon: <Settings size={20} />, label: 'Pengaturan' },
+          ]} />
         </div>
       </aside>
 
@@ -101,14 +101,3 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   )
 }
 
-function SidebarItem({ href, icon, label }: { href: string, icon: ReactNode, label: string }) {
-  return (
-    <Link 
-      href={href}
-      className="group flex items-center gap-3 rounded-xl px-4 py-2.5 text-slate-600 transition-all hover:bg-primary/5 hover:text-primary dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-50"
-    >
-      <span className="text-slate-400 group-hover:text-primary transition-colors">{icon}</span>
-      <span className="text-sm font-semibold">{label}</span>
-    </Link>
-  )
-}
