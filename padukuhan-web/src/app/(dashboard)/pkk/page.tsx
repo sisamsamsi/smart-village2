@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useDasawismaList, usePkkPartisipasi, useDasawismaWarga } from '@/hooks/usePkkData'
+import { useDasawismaList, usePkkPartisipasi, useDasawismaWarga, useUpdatePkkPartisipasi } from '@/hooks/usePkkData'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Loader2, ClipboardList, Filter, Download, Users, Check, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { toast } from 'sonner'
 import { 
   Table, 
   TableBody, 
@@ -19,11 +20,31 @@ export default function PkkPage() {
   const [selectedDw, setSelectedDw] = useState<string | null>(null)
   const [tahun, setTahun] = useState(2025)
   const { data: dws, isLoading: loadingDw } = useDasawismaList()
+  const { mutate: updatePartisipasi } = useUpdatePkkPartisipasi()
   
   // Ambil SEMUA warga di dasawisma tersebut
   const { data: allWarga, isLoading: loadingWarga } = useDasawismaWarga(selectedDw || undefined)
   // Ambil data partisipasi yang sudah ada
   const { data: pkkRecords, isLoading: loadingPkk } = usePkkPartisipasi(selectedDw || undefined, tahun)
+
+  const handleToggle = (wargaId: string, field: string, value: boolean) => {
+    if (!selectedDw) return
+    
+    updatePartisipasi({
+      warga_id: wargaId,
+      dasawisma_id: selectedDw,
+      tahun: tahun,
+      field,
+      value
+    }, {
+      onSuccess: () => {
+        toast.success('Status partisipasi diperbarui')
+      },
+      onError: (err: any) => {
+        toast.error('Gagal memperbarui: ' + err.message)
+      }
+    })
+  }
 
   // Gabungkan Data: Setiap warga harus muncul, jika ada record PKK-nya tampilkan, jika tidak tampilkan default false
   const combinedData = useMemo(() => {
@@ -182,14 +203,46 @@ export default function PkkPage() {
                             {row.hasRecord ? 'Data Terisi' : 'Belum Terisi'}
                           </p>
                         </TableCell>
-                        <StatusCell active={row.penghayatan_pancasila} hasRecord={row.hasRecord} />
-                        <StatusCell active={row.gotong_royong} hasRecord={row.hasRecord} />
-                        <StatusCell active={row.pendidikan_keterampilan} hasRecord={row.hasRecord} />
-                        <StatusCell active={row.pengembangan_koperasi} hasRecord={row.hasRecord} />
-                        <StatusCell active={row.pangan} hasRecord={row.hasRecord} />
-                        <StatusCell active={row.sandang} hasRecord={row.hasRecord} />
-                        <StatusCell active={row.kesehatan} hasRecord={row.hasRecord} />
-                        <StatusCell active={row.perencanaan_sehat} hasRecord={row.hasRecord} />
+                        <StatusCell 
+                          active={row.penghayatan_pancasila} 
+                          hasRecord={row.hasRecord} 
+                          onClick={() => handleToggle(row.id, 'penghayatan_pancasila', !row.penghayatan_pancasila)}
+                        />
+                        <StatusCell 
+                          active={row.gotong_royong} 
+                          hasRecord={row.hasRecord} 
+                          onClick={() => handleToggle(row.id, 'gotong_royong', !row.gotong_royong)}
+                        />
+                        <StatusCell 
+                          active={row.pendidikan_keterampilan} 
+                          hasRecord={row.hasRecord} 
+                          onClick={() => handleToggle(row.id, 'pendidikan_keterampilan', !row.pendidikan_keterampilan)}
+                        />
+                        <StatusCell 
+                          active={row.pengembangan_koperasi} 
+                          hasRecord={row.hasRecord} 
+                          onClick={() => handleToggle(row.id, 'pengembangan_koperasi', !row.pengembangan_koperasi)}
+                        />
+                        <StatusCell 
+                          active={row.pangan} 
+                          hasRecord={row.hasRecord} 
+                          onClick={() => handleToggle(row.id, 'pangan', !row.pangan)}
+                        />
+                        <StatusCell 
+                          active={row.sandang} 
+                          hasRecord={row.hasRecord} 
+                          onClick={() => handleToggle(row.id, 'sandang', !row.sandang)}
+                        />
+                        <StatusCell 
+                          active={row.kesehatan} 
+                          hasRecord={row.hasRecord} 
+                          onClick={() => handleToggle(row.id, 'kesehatan', !row.kesehatan)}
+                        />
+                        <StatusCell 
+                          active={row.perencanaan_sehat} 
+                          hasRecord={row.hasRecord} 
+                          onClick={() => handleToggle(row.id, 'perencanaan_sehat', !row.perencanaan_sehat)}
+                        />
                       </TableRow>
                     ))}
                   </TableBody>
@@ -203,22 +256,24 @@ export default function PkkPage() {
   )
 }
 
-function StatusCell({ active, hasRecord }: { active: boolean, hasRecord: boolean }) {
+function StatusCell({ active, hasRecord, onClick }: { active: boolean, hasRecord: boolean, onClick: () => void }) {
   return (
-    <TableCell className="text-center">
-      <div className={`mx-auto h-8 w-8 rounded-xl flex items-center justify-center border transition-all ${
+    <TableCell className="text-center p-0">
+      <button 
+        onClick={onClick}
+        className={`mx-auto h-10 w-10 rounded-xl flex items-center justify-center border transition-all hover:scale-110 active:scale-95 ${
         active 
         ? 'bg-emerald-500 border-emerald-500 shadow-lg shadow-emerald-500/20' 
         : hasRecord 
-          ? 'border-rose-100 bg-rose-50 text-rose-500 dark:bg-rose-900/20 dark:border-rose-900/30'
-          : 'border-slate-100 bg-slate-50 text-slate-400 dark:bg-slate-800 dark:border-slate-700'
+          ? 'border-rose-100 bg-rose-50 text-rose-500 dark:bg-rose-900/20 dark:border-rose-900/30 hover:bg-rose-100'
+          : 'border-slate-100 bg-slate-50 text-slate-400 dark:bg-slate-800 dark:border-slate-700 hover:bg-slate-100'
       }`}>
         {active ? (
-          <Check className="h-4 w-4 text-white stroke-[4]" />
+          <Check className="h-5 w-5 text-white stroke-[4]" />
         ) : (
-          <X className={`h-3.5 w-3.5 stroke-[3] ${!hasRecord && 'opacity-30'}`} />
+          <X className={`h-4 w-4 stroke-[3] ${!hasRecord && 'opacity-30'}`} />
         )}
-      </div>
+      </button>
     </TableCell>
   )
 }

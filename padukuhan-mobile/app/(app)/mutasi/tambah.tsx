@@ -16,17 +16,19 @@ import {
   X,
   CreditCard,
   MapPin,
-  FileText
+  FileText,
+  LogIn
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
-type MutationType = 'kelahiran' | 'kematian' | 'pindah_keluar' | 'pindah_masuk';
+type MutationType = 'kelahiran' | 'kematian' | 'pindah_keluar' | 'pindah_datang';
 
 export default function AddMutasiScreen() {
   const router = useRouter();
   const createMutasi = useCreateMutasi();
   const [activeTab, setActiveTab] = useState<MutationType>('kelahiran');
+  const [isSatuKk, setIsSatuKk] = useState(false);
   
   const [wargaSearch, setWargaSearch] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -58,7 +60,7 @@ export default function AddMutasiScreen() {
     setSearching(true);
     const { data, error } = await supabase
       .from('wargas')
-      .select('id, nama_lengkap, nik, rts(nomor_rt)')
+      .select('id, nama_lengkap, nik, rts(nomor_rt), hubungan_keluarga')
       .ilike('nama_lengkap', `%${text}%`)
       .eq('status_warga', 'aktif')
       .limit(5);
@@ -74,6 +76,8 @@ export default function AddMutasiScreen() {
     setForm({ ...form, warga_id: warga.id });
     setWargaSearch('');
     setSearchResults([]);
+    // Reset toggle 1 KK jika pilih warga baru
+    setIsSatuKk(false);
   };
 
   const handleSubmit = async () => {
@@ -82,18 +86,17 @@ export default function AddMutasiScreen() {
       return;
     }
 
-    if (activeTab !== 'kelahiran' && !form.warga_id) {
+    if (activeTab !== 'kelahiran' && activeTab !== 'pindah_datang' && !form.warga_id) {
       Alert.alert('Eror', 'Silakan cari dan pilih warga terlebih dahulu.');
       return;
     }
 
-    if (activeTab === 'kelahiran' && !form.nama_bayi) {
-      Alert.alert('Eror', 'Silakan isi nama bayi.');
-      return;
-    }
-
     try {
-      await createMutasi.mutateAsync({ ...form, jenis_mutasi: activeTab });
+      await createMutasi.mutateAsync({ 
+        ...form, 
+        jenis_mutasi: activeTab,
+        is_satu_kk: isSatuKk
+      });
       Alert.alert('Berhasil', 'Data mutasi berhasil disimpan.');
       router.back();
     } catch (err: any) {
@@ -134,9 +137,15 @@ export default function AddMutasiScreen() {
               />
               <TabButton 
                 active={activeTab === 'pindah_keluar'} 
-                label="Pindah" 
+                label="Keluar" 
                 icon={<ArrowRightLeft size={16} color={activeTab === 'pindah_keluar' ? '#fff' : '#64748B'} />}
                 onPress={() => setActiveTab('pindah_keluar')} 
+              />
+              <TabButton 
+                active={activeTab === 'pindah_datang'} 
+                label="Datang" 
+                icon={<LogIn size={16} color={activeTab === 'pindah_datang' ? '#fff' : '#64748B'} />}
+                onPress={() => setActiveTab('pindah_datang')} 
               />
             </View>
 
@@ -157,6 +166,13 @@ export default function AddMutasiScreen() {
                       <TouchableOpacity onPress={() => setSelectedWarga(null)} style={styles.removeWarga}>
                         <X size={16} color="#64748B" />
                       </TouchableOpacity>
+                    </View>
+                  ) : activeTab === 'pindah_datang' ? (
+                    <View style={styles.infoBoxBlue}>
+                      <Info size={20} color="#1D4ED8" />
+                      <Text style={styles.infoTextBlue}>
+                        Untuk pendatang baru, silakan gunakan menu <Text style={{fontWeight:'900'}}>"Tambah Warga"</Text> agar NIK & No KK terekam lengkap di database.
+                      </Text>
                     </View>
                   ) : (
                     <View style={styles.searchContainer}>
@@ -193,6 +209,20 @@ export default function AddMutasiScreen() {
                     </View>
                   )}
                 </View>
+              )}
+
+              {activeTab === 'pindah_keluar' && selectedWarga && (
+                <TouchableOpacity 
+                  onPress={() => setIsSatuKk(!isSatuKk)}
+                  style={[styles.kkToggle, isSatuKk && styles.kkToggleActive]}
+                >
+                  <View style={[styles.checkbox, isSatuKk && styles.checkboxActive]}>
+                    {isSatuKk && <CheckCircle2 size={14} color="#fff" />}
+                  </View>
+                  <Text style={[styles.kkToggleText, isSatuKk && styles.kkToggleTextActive]}>
+                    Mutasi seluruh anggota keluarga (1 KK)
+                  </Text>
+                </TouchableOpacity>
               )}
 
               {/* Common Fields */}
@@ -594,6 +624,55 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     marginLeft: 12,
     letterSpacing: 1,
+  },
+  infoBoxBlue: {
+    flexDirection: 'row',
+    padding: 16,
+    backgroundColor: '#EFF6FF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+    gap: 12,
+  },
+  infoTextBlue: {
+    flex: 1,
+    fontSize: 13,
+    color: '#1E40AF',
+    lineHeight: 18,
+  },
+  kkToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#FFFBEB',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#FEF3C7',
+    gap: 12,
+  },
+  kkToggleActive: {
+    backgroundColor: '#FEF3C7',
+    borderColor: '#F59E0B',
+  },
+  checkbox: {
+    height: 22,
+    width: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#F59E0B',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxActive: {
+    backgroundColor: '#F59E0B',
+  },
+  kkToggleText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#92400E',
+  },
+  kkToggleTextActive: {
+    fontWeight: '900',
   },
   loaderContainer: {
     flex: 1,

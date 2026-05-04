@@ -4,44 +4,54 @@ import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, User, CreditCard, MapPin, Calendar, Briefcase, Users, X, Check } from 'lucide-react-native';
+import { ArrowLeft, User, CreditCard, MapPin, Calendar, Briefcase, Users, X, Check, Search, Info } from 'lucide-react-native';
+import { useTambahWarga, useRTs, useKKs } from '@/hooks/useKependudukan';
 
 export default function TambahWargaScreen() {
   const router = useRouter();
-  const queryClient = useQueryClient();
+  const { mutateAsync: tambahWarga } = useTambahWarga();
+  const { data: rts } = useRTs();
+  const { data: kkList } = useKKs();
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
     nama_lengkap: '',
     nik: '',
     tempat_lahir: 'Bantul',
-    tanggal_lahir: '2000-01-01',
+    tanggal_lahir: new Date().toISOString().split('T')[0],
     jenis_kelamin: 'L',
-    agama: 'Islam',
-    pekerjaan: 'Buruh',
-    status_perkawinan: 'belum_kawin',
-    hubungan_keluarga: 'anak',
-    rt_id: '1',
+    agama: 'ISLAM',
+    pekerjaan: '',
+    status_kawin: 'BELUM KAWIN',
+    hubungan_keluarga: 'ANAK',
+    rt_id: '',
+    rumah_tangga_id: '',
+    is_new_kk: false,
+    no_kk_baru: '',
+    nama_kepala_keluarga_baru: '',
+    pendidikan: 'SD/SEDERAJAT'
   });
 
   const handleSubmit = async () => {
-    if (!form.nama_lengkap || !form.nik) {
-      Alert.alert('Error', 'Nama dan NIK wajib diisi');
+    if (!form.nama_lengkap || !form.nik || !form.rt_id) {
+      Alert.alert('Error', 'Nama, NIK, dan RT wajib diisi');
+      return;
+    }
+
+    if (!form.is_new_kk && !form.rumah_tangga_id) {
+      Alert.alert('Error', 'Silakan pilih No KK atau gunakan opsi KK Baru');
       return;
     }
 
     setLoading(true);
     try {
-      const { error } = await supabase.from('wargas').insert([form]);
-
-      if (error) throw error;
+      await tambahWarga(form);
 
       Alert.alert('Sukses', 'Data warga berhasil ditambahkan');
-      queryClient.invalidateQueries({ queryKey: ['wargas'] });
       if (router.canGoBack()) {
         router.back();
       } else {
-        router.replace('/warga' as any);
+        router.replace('/(app)/(tabs)/kependudukan' as any);
       }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Gagal menyimpan';
@@ -98,6 +108,85 @@ export default function TambahWargaScreen() {
               maxLength={16}
             />
 
+            {/* RT Selection */}
+            <View style={styles.field}>
+              <Text style={styles.label}>Pilih RT</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                {rts?.map((rt: any) => (
+                  <TouchableOpacity 
+                    key={rt.id}
+                    onPress={() => setForm({ ...form, rt_id: rt.id })}
+                    style={[styles.miniBadge, form.rt_id === rt.id && styles.miniBadgeActive]}
+                  >
+                    <Text style={[styles.miniBadgeText, form.rt_id === rt.id && styles.miniBadgeTextActive]}>RT {rt.nomor_rt}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+
+            {/* KK Toggle */}
+            <View style={styles.field}>
+              <Text style={styles.label}>Opsi Kartu Keluarga (KK)</Text>
+              <View style={styles.toggleContainer}>
+                <TouchableOpacity 
+                  onPress={() => setForm({ ...form, is_new_kk: false })}
+                  style={[styles.toggleBtn, !form.is_new_kk && styles.toggleBtnActive]}
+                >
+                  <Text style={[styles.toggleBtnText, !form.is_new_kk && styles.toggleBtnTextActive]}>KK Terdaftar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  onPress={() => setForm({ ...form, is_new_kk: true })}
+                  style={[styles.toggleBtn, form.is_new_kk && styles.toggleBtnActive]}
+                >
+                  <Text style={[styles.toggleBtnText, form.is_new_kk && styles.toggleBtnTextActive]}>KK Baru</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {!form.is_new_kk ? (
+              <View style={styles.field}>
+                <Text style={styles.label}>Pilih Kartu Keluarga (KK)</Text>
+                <View style={styles.searchContainer}>
+                  <Search size={18} color="#94A3B8" style={{ position: 'absolute', left: 16, top: 18, zIndex: 1 }} />
+                  <TextInput 
+                    style={[styles.input, { paddingLeft: 48, backgroundColor: '#F8FAFC', borderRadius: 18, height: 56, borderWidth: 1, borderColor: '#E2E8F0' }]}
+                    placeholder="Cari No KK atau Nama Kepala Keluarga..."
+                    onChangeText={(text) => {
+                      // Simple search logic could be added here
+                    }}
+                  />
+                  <ScrollView style={{ maxHeight: 200, marginTop: 8 }} nestedScrollEnabled>
+                    {kkList?.map((kk: any) => (
+                      <TouchableOpacity 
+                        key={kk.id}
+                        onPress={() => setForm({ ...form, rumah_tangga_id: kk.id })}
+                        style={[styles.kkItem, form.rumah_tangga_id === kk.id && styles.kkItemActive]}
+                      >
+                        <Text style={[styles.kkItemText, form.rumah_tangga_id === kk.id && styles.kkItemTextActive]}>{kk.no_kk}</Text>
+                        <Text style={styles.kkItemSub}>{kk.nama_kepala_keluarga}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              </View>
+            ) : (
+              <View style={styles.newKkBox}>
+                <InputGroup
+                  label="No. KK Baru"
+                  value={form.no_kk_baru}
+                  onChangeText={(v) => setForm({ ...form, no_kk_baru: v })}
+                  placeholder="Masukkan 16 digit No KK"
+                  keyboardType="numeric"
+                />
+                <InputGroup
+                  label="Nama Kepala Keluarga (Baru)"
+                  value={form.nama_kepala_keluarga_baru}
+                  onChangeText={(v) => setForm({ ...form, nama_kepala_keluarga_baru: v })}
+                  placeholder="Sesuai nama di KK"
+                />
+              </View>
+            )}
+
             <View style={styles.row}>
               <View style={styles.half}>
                 <Text style={styles.label}>Jenis Kelamin</Text>
@@ -116,32 +205,71 @@ export default function TambahWargaScreen() {
                   </TouchableOpacity>
                 </View>
               </View>
+            </View>
+
+            <View style={styles.row}>
+              <View style={styles.half}>
+                <InputGroup 
+                  label="Tempat Lahir" 
+                  value={form.tempat_lahir} 
+                  onChangeText={(v) => setForm({ ...form, tempat_lahir: v })} 
+                  placeholder="Bantul"
+                />
+              </View>
               <View style={styles.half}>
                 <InputGroup
-                  label="Nomor RT"
-                  value={form.rt_id}
-                  onChangeText={(v) => setForm({ ...form, rt_id: v })}
-                  placeholder="1-6"
-                  keyboardType="numeric"
+                  label="Tanggal Lahir"
+                  value={form.tanggal_lahir}
+                  onChangeText={(v) => setForm({ ...form, tanggal_lahir: v })}
+                  placeholder="YYYY-MM-DD"
                 />
               </View>
             </View>
 
-            <InputGroup 
-              label="Tempat Lahir" 
-              icon={<MapPin size={18} color="#94A3B8" />}
-              value={form.tempat_lahir} 
-              onChangeText={(v) => setForm({ ...form, tempat_lahir: v })} 
-              placeholder="Contoh: Bantul"
-            />
+            <View style={styles.field}>
+              <Text style={styles.label}>Agama</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                {['ISLAM', 'KRISTEN', 'KATHOLIK', 'HINDU', 'BUDHA', 'KONGHUCU'].map((a) => (
+                  <TouchableOpacity 
+                    key={a}
+                    onPress={() => setForm({ ...form, agama: a })}
+                    style={[styles.miniBadge, form.agama === a && styles.miniBadgeActive]}
+                  >
+                    <Text style={[styles.miniBadgeText, form.agama === a && styles.miniBadgeTextActive]}>{a}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
 
-            <InputGroup
-              label="Tanggal Lahir"
-              icon={<Calendar size={18} color="#94A3B8" />}
-              value={form.tanggal_lahir}
-              onChangeText={(v) => setForm({ ...form, tanggal_lahir: v })}
-              placeholder="YYYY-MM-DD"
-            />
+            <View style={styles.field}>
+              <Text style={styles.label}>Pendidikan</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                {['SD/SEDERAJAT', 'SMP/SEDERAJAT', 'SMA/SEDERAJAT', 'DIPLOMA IV/STRATA I', 'STRATA II'].map((p) => (
+                  <TouchableOpacity 
+                    key={p}
+                    onPress={() => setForm({ ...form, pendidikan: p })}
+                    style={[styles.miniBadge, form.pendidikan === p && styles.miniBadgeActive]}
+                  >
+                    <Text style={[styles.miniBadgeText, form.pendidikan === p && styles.miniBadgeTextActive]}>{p}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Status Kawin</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                {['BELUM KAWIN', 'KAWIN', 'CERAI HIDUP', 'CERAI MATI'].map((s) => (
+                  <TouchableOpacity 
+                    key={s}
+                    onPress={() => setForm({ ...form, status_kawin: s })}
+                    style={[styles.miniBadge, form.status_kawin === s && styles.miniBadgeActive]}
+                  >
+                    <Text style={[styles.miniBadgeText, form.status_kawin === s && styles.miniBadgeTextActive]}>{s}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
 
             <InputGroup 
               label="Pekerjaan" 
@@ -161,7 +289,7 @@ export default function TambahWargaScreen() {
               ) : (
                 <>
                   <Check color="#fff" size={20} style={{ marginRight: 8 }} />
-                  <Text style={styles.submitButtonText}>Simpan Data</Text>
+                  <Text style={styles.submitButtonText}>Daftarkan Warga</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -360,5 +488,89 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '900',
+  },
+  miniBadge: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  miniBadgeActive: {
+    backgroundColor: '#1B5E20',
+    borderColor: '#1B5E20',
+  },
+  miniBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  miniBadgeTextActive: {
+    color: '#fff',
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#F1F5F9',
+    padding: 4,
+    borderRadius: 16,
+  },
+  toggleBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  toggleBtnActive: {
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  toggleBtnText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#64748B',
+  },
+  toggleBtnTextActive: {
+    color: '#1B5E20',
+  },
+  searchContainer: {
+    backgroundColor: '#fff',
+  },
+  kkItem: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  kkItemActive: {
+    backgroundColor: '#F0FDF4',
+  },
+  kkItemText: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#1E293B',
+  },
+  kkItemTextActive: {
+    color: '#1B5E20',
+  },
+  kkItemSub: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  newKkBox: {
+    backgroundColor: '#F8FAFC',
+    padding: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    gap: 16,
+  },
+  field: {
+    gap: 10,
   }
 });

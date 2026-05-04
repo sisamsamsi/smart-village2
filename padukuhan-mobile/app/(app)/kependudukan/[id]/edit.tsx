@@ -47,9 +47,10 @@ export default function EditWargaScreen() {
     jenis_kelamin: 'L',
     tempat_lahir: '',
     tanggal_lahir: '',
-    agama: '',
+    agama: 'ISLAM',
     pekerjaan: '',
-    status_perkawinan: '',
+    status_kawin: 'BELUM KAWIN',
+    pendidikan: 'SD/SEDERAJAT',
     status_dalam_keluarga: '',
     status_warga: '',
     status_kehamilan: false,
@@ -64,9 +65,10 @@ export default function EditWargaScreen() {
         jenis_kelamin: warga.jenis_kelamin || 'L',
         tempat_lahir: warga.tempat_lahir || '',
         tanggal_lahir: warga.tanggal_lahir || '',
-        agama: warga.agama || '',
+        agama: warga.agama || 'ISLAM',
         pekerjaan: warga.pekerjaan || '',
-        status_perkawinan: warga.status_perkawinan || '',
+        status_kawin: warga.status_kawin || 'BELUM KAWIN',
+        pendidikan: warga.pendidikan || 'SD/SEDERAJAT',
         status_dalam_keluarga: warga.status_dalam_keluarga || '',
         status_warga: warga.status_warga || '',
         status_kehamilan: warga.status_kehamilan || false,
@@ -192,7 +194,7 @@ export default function EditWargaScreen() {
                 </View>
               </View>
 
-              {/* Pekerjaan & Agama */}
+              {/* Pekerjaan */}
               <View style={styles.field}>
                 <Text style={styles.fieldLabel}>PEKERJAAN</Text>
                 <View style={styles.inputWrapper}>
@@ -206,17 +208,52 @@ export default function EditWargaScreen() {
                 </View>
               </View>
 
+              {/* Pendidikan */}
+              <View style={styles.field}>
+                <Text style={styles.fieldLabel}>PENDIDIKAN TERAKHIR</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                  {['SD/SEDERAJAT', 'SMP/SEDERAJAT', 'SMA/SEDERAJAT', 'DIPLOMA IV/STRATA I', 'STRATA II'].map((p) => (
+                    <TouchableOpacity 
+                      key={p}
+                      onPress={() => setForm({ ...form, pendidikan: p })}
+                      style={[styles.miniBadge, form.pendidikan === p && styles.miniBadgeActive]}
+                    >
+                      <Text style={[styles.miniBadgeText, form.pendidikan === p && styles.miniBadgeTextActive]}>{p}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+
+              {/* Agama */}
+              <View style={styles.field}>
+                <Text style={styles.fieldLabel}>AGAMA</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                  {['ISLAM', 'KRISTEN', 'KATHOLIK', 'HINDU', 'BUDHA', 'KONGHUCU'].map((a) => (
+                    <TouchableOpacity 
+                      key={a}
+                      onPress={() => setForm({ ...form, agama: a })}
+                      style={[styles.miniBadge, form.agama === a && styles.miniBadgeActive]}
+                    >
+                      <Text style={[styles.miniBadgeText, form.agama === a && styles.miniBadgeTextActive]}>{a}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+
+              {/* Status Kawin */}
               <View style={styles.field}>
                 <Text style={styles.fieldLabel}>STATUS PERKAWINAN</Text>
-                <View style={styles.inputWrapper}>
-                  <Heart size={20} color="#94A3B8" style={{ marginLeft: 16 }} />
-                  <TextInput
-                    placeholder="Contoh: Kawin"
-                    style={styles.input}
-                    value={form.status_perkawinan}
-                    onChangeText={(val) => setForm({...form, status_perkawinan: val})}
-                  />
-                </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                  {['BELUM KAWIN', 'KAWIN', 'CERAI HIDUP', 'CERAI MATI'].map((s) => (
+                    <TouchableOpacity 
+                      key={s}
+                      onPress={() => setForm({ ...form, status_kawin: s })}
+                      style={[styles.miniBadge, form.status_kawin === s && styles.miniBadgeActive]}
+                    >
+                      <Text style={[styles.miniBadgeText, form.status_kawin === s && styles.miniBadgeTextActive]}>{s}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
               </View>
 
               <View style={styles.field}>
@@ -450,6 +487,26 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
   },
   toggleBtnTextActive: {
+    color: '#fff',
+  },
+  miniBadge: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  miniBadgeActive: {
+    backgroundColor: '#1B5E20',
+    borderColor: '#1B5E20',
+  },
+  miniBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  miniBadgeTextActive: {
     color: '#fff',
   }
 });

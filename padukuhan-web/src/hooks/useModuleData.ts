@@ -47,3 +47,27 @@ export function useMasukanWarga() {
     },
   })
 }
+
+export function useRtList() {
+  const supabase = createClient()
+  return useQuery({
+    queryKey: ['rts'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('rts').select('*').order('nomor_rt')
+      if (error) throw error
+      return data
+    }
+  })
+}
+
+export function useKkList() {
+  const supabase = createClient()
+  return useQuery({
+    queryKey: ['kk_list'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('rumah_tanggas').select('id, no_kk, nama_kepala_keluarga').order('no_kk')
+      if (error) throw error
+      return data
+    }
+  })
+}

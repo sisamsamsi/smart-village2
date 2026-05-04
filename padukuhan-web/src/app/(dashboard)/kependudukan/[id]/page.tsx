@@ -67,7 +67,9 @@ export default async function WargaDetailPage({ params }: PageProps) {
           </div>
         </div>
         <div className="flex gap-3">
-           <Button variant="outline" className="rounded-2xl border-slate-200 font-bold">Edit Data</Button>
+           <Link href={`/kependudukan/${warga.id}/edit`}>
+             <Button variant="outline" className="rounded-2xl border-slate-200 font-bold">Edit Data</Button>
+           </Link>
            <Button className="rounded-2xl font-bold">Cetak Biodata</Button>
         </div>
       </div>

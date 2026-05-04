@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -34,5 +34,68 @@ export function useWargasList() {
       return data
     },
     enabled: canQuery,
+  })
+}
+
+export function useTambahWarga() {
+  const supabase = createClient()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data: any) => {
+      let rumahTanggaId = data.rumah_tangga_id
+
+      // Jika user memilih buat KK baru
+      if (data.is_new_kk && data.no_kk_baru) {
+        const { data: newKk, error: kkError } = await supabase
+          .from('rumah_tanggas')
+          .insert([{
+            no_kk: data.no_kk_baru,
+            nama_kepala_keluarga: data.nama_kepala_keluarga_baru || data.nama_lengkap,
+            rt_id: data.rt_id
+          }])
+          .select()
+          .single()
+        
+        if (kkError) throw kkError
+        rumahTanggaId = newKk.id
+      }
+
+      // Hapus field bantuan sebelum insert ke wargas
+      const { is_new_kk, no_kk_baru, nama_kepala_keluarga_baru, ...wargaData } = data
+      
+      const { error } = await supabase
+        .from('wargas')
+        .insert([{
+          ...wargaData,
+          rumah_tangga_id: rumahTanggaId
+        }])
+
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wargas'] })
+      queryClient.invalidateQueries({ queryKey: ['kk_list'] })
+    }
+  })
+}
+
+export function useUpdateWarga() {
+  const supabase = createClient()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string, data: any }) => {
+      const { error } = await supabase
+        .from('wargas')
+        .update(data)
+        .eq('id', id)
+
+      if (error) throw error
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['wargas'] })
+      queryClient.invalidateQueries({ queryKey: ['warga', variables.id] })
+    }
   })
 }

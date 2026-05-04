@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 
 export function useDasawismaList() {
@@ -79,5 +79,39 @@ export function usePkkPartisipasi(dasawismaId?: string, tahun: number = new Date
       return data
     },
     enabled: !!dasawismaId,
+  })
+}
+
+export function useUpdatePkkPartisipasi() {
+  const queryClient = useQueryClient()
+  const supabase = createClient()
+
+  return useMutation({
+    mutationFn: async (payload: {
+      warga_id: string
+      dasawisma_id: string
+      tahun: number
+      field: string
+      value: boolean
+    }) => {
+      // Kita gunakan upsert: jika data tahun & warga tersebut belum ada, buat baru.
+      const { data, error } = await supabase
+        .from('pkk_partisipasi')
+        .upsert({
+          warga_id: payload.warga_id,
+          dasawisma_id: payload.dasawisma_id,
+          tahun: payload.tahun,
+          [payload.field]: payload.value
+        }, { 
+          onConflict: 'warga_id,tahun' // Pastikan constraint ini ada di DB
+        })
+        .select()
+
+      if (error) throw error
+      return data
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['pkk_partisipasi', variables.dasawisma_id, variables.tahun] })
+    }
   })
 }
