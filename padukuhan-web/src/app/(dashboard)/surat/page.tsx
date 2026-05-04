@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useSuratList, useUpdateSuratStatus } from '@/hooks/useSurat'
+import { useSuratList } from '@/hooks/useSurat'
 import { useAuthStore } from '@/stores/authStore'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -22,13 +22,19 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { PaginationControls } from '@/components/ui/pagination'
+import { Input } from '@/components/ui/input'
+
+const ITEMS_PER_PAGE = 10
 
 export default function SuratDashboardPage() {
   const profile = useAuthStore((s) => s.profile)
   const isDukuh = useAuthStore((s) => s.isDukuh)
   const isKetuaRT = useAuthStore((s) => s.isKetuaRT)
   
-  // Use profile?.rt_id only if ketua_rt
+  const [searchTerm, setSearchTerm] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  
   const rtFilter = isKetuaRT() ? (profile?.rt_id || undefined) : undefined
   const { data: pengajuan, isLoading } = useSuratList(rtFilter)
 
@@ -39,7 +45,7 @@ export default function SuratDashboardPage() {
   if (!canAccessList) {
     return (
       <div className="p-6 md:p-8">
-        <Card className="border-rose-100 bg-rose-50/30">
+        <Card className="border-rose-100 bg-rose-50 text-rose-700">
           <CardHeader>
             <CardTitle className="flex items-center text-rose-700">
               <AlertCircle className="mr-2 h-5 w-5" />
@@ -57,14 +63,14 @@ export default function SuratDashboardPage() {
   return (
     <div className="p-8">
       {/* Header Section */}
-      <div className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-center gap-5">
-          <div className="flex h-16 w-16 items-center justify-center rounded-[2rem] bg-emerald-600 shadow-2xl shadow-emerald-600/30 text-white">
-            <FileText className="h-8 w-8" />
+      <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
+            <FileText className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white">Administrasi Surat</h1>
-            <p className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em] mt-1">
+            <h1 className="text-[28px] font-semibold tracking-tight text-foreground">Administrasi Surat</h1>
+            <p className="text-sm text-muted-foreground mt-1">
               {isDukuh() 
                 ? 'Layanan Mandingan Sejahtera' 
                 : `Wilayah RT ${profile.rts?.nomor_rt || ''}`}
@@ -73,8 +79,8 @@ export default function SuratDashboardPage() {
         </div>
         <div className="flex items-center gap-4">
           <Link href="/surat/baru">
-            <Button className="h-14 px-8 rounded-2xl font-black bg-emerald-600 shadow-xl shadow-emerald-600/20 transition-transform hover:scale-105 active:scale-95 hover:bg-emerald-700">
-              <Plus className="mr-2 h-5 w-5" />
+            <Button size="default" className="bg-emerald-600 hover:bg-emerald-700 font-medium">
+              <Plus className="mr-2 h-4 w-4" />
               Buat Surat (RT)
             </Button>
           </Link>
@@ -82,51 +88,77 @@ export default function SuratDashboardPage() {
       </div>
 
       {/* Main Content with Tabs */}
-      <Tabs defaultValue="semua" className="w-full space-y-8">
-        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <TabsList className="bg-slate-100 p-1.5 rounded-2xl h-14 dark:bg-slate-900">
-            <TabsTrigger value="semua" className="rounded-xl px-8 h-full font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm">Semua</TabsTrigger>
-            <TabsTrigger value="pending" className="rounded-xl px-8 h-full font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm">Antrean</TabsTrigger>
-            <TabsTrigger value="selesai" className="rounded-xl px-8 h-full font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm">Selesai</TabsTrigger>
+      <Tabs defaultValue="semua" className="w-full space-y-6" onValueChange={() => setCurrentPage(1)}>
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-card p-2 border border-border rounded-lg">
+          <TabsList className="bg-transparent space-x-2">
+            <TabsTrigger value="semua" className="rounded-md px-6 h-9 font-medium text-xs data-[state=active]:bg-secondary data-[state=active]:shadow-none">Semua</TabsTrigger>
+            <TabsTrigger value="pending" className="rounded-md px-6 h-9 font-medium text-xs data-[state=active]:bg-secondary data-[state=active]:shadow-none">Antrean</TabsTrigger>
+            <TabsTrigger value="selesai" className="rounded-md px-6 h-9 font-medium text-xs data-[state=active]:bg-secondary data-[state=active]:shadow-none">Selesai</TabsTrigger>
           </TabsList>
           
-          <div className="flex items-center gap-3">
-            <div className="relative flex-1 md:w-80">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input 
-                type="text" 
+          <div className="flex items-center gap-2 pr-2">
+            <div className="relative w-full md:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+              <Input 
                 placeholder="Cari NIK atau Nama..."
-                className="h-14 w-full rounded-2xl border-none bg-white shadow-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-emerald-500/50 pl-12 pr-4 text-sm font-medium"
+                className="pl-9 h-9 text-sm"
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value)
+                  setCurrentPage(1)
+                }}
               />
             </div>
-            <Button variant="outline" size="icon" className="h-14 w-14 rounded-2xl border-2 border-slate-200 bg-white shadow-sm">
-              <Filter className="h-5 w-5" />
+            <Button variant="outline" size="icon" className="h-9 w-9 border-border">
+              <Filter className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
-        {['semua', 'pending', 'selesai'].map((tab) => (
-          <TabsContent key={tab} value={tab} className="mt-0 outline-none">
-            {isLoading ? (
-              <div className="flex h-64 items-center justify-center rounded-[3rem] border-2 border-dashed border-slate-200 bg-slate-50/50">
-                <div className="flex flex-col items-center gap-3">
-                  <Loader2 className="h-10 w-10 animate-spin text-emerald-500" />
-                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Sinkronisasi Data...</p>
+        {['semua', 'pending', 'selesai'].map((tab) => {
+          const filtered = (pengajuan || []).filter(item => {
+            const matchesTab = tab === 'semua' || item.status === tab
+            const searchLower = searchTerm.toLowerCase()
+            const matchesSearch = item.wargas?.nama_lengkap?.toLowerCase().includes(searchLower) || 
+                                  item.wargas?.nik?.includes(searchTerm)
+            return matchesTab && matchesSearch
+          })
+
+          const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE)
+          const paginatedData = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+
+          return (
+            <TabsContent key={tab} value={tab} className="mt-0 outline-none space-y-4">
+              {isLoading ? (
+                <div className="flex h-48 items-center justify-center rounded-lg border border-border bg-card">
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+                    <p className="text-xs text-muted-foreground">Sinkronisasi Data...</p>
+                  </div>
                 </div>
-              </div>
-            ) : !pengajuan?.length ? (
-              <EmptyState isKetuaRT={isKetuaRT()} />
-            ) : (
-              <div className="grid gap-4">
-                {pengajuan
-                  .filter(item => tab === 'semua' || item.status === tab)
-                  .map((item) => (
-                    <SuratCard key={item.id} item={item} />
-                  ))}
-              </div>
-            )}
-          </TabsContent>
-        ))}
+              ) : !filtered.length ? (
+                <EmptyState isKetuaRT={isKetuaRT()} />
+              ) : (
+                <>
+                  <div className="grid gap-3">
+                    {paginatedData.map((item) => (
+                      <SuratCard key={item.id} item={item} />
+                    ))}
+                  </div>
+                  {totalPages > 1 && (
+                    <Card className="border-border shadow-sm p-1">
+                      <PaginationControls 
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={setCurrentPage}
+                      />
+                    </Card>
+                  )}
+                </>
+              )}
+            </TabsContent>
+          )
+        })}
       </Tabs>
     </div>
   )
@@ -134,29 +166,29 @@ export default function SuratDashboardPage() {
 
 function SuratCard({ item }: { item: any }) {
   return (
-    <Card className="group relative overflow-hidden border-none shadow-sm ring-1 ring-slate-100 transition-all hover:shadow-xl hover:shadow-emerald-200/30 hover:ring-emerald-200/50 rounded-3xl bg-white">
-      <div className="flex flex-col p-6 sm:flex-row sm:items-center sm:gap-8">
+    <Card className="group relative overflow-hidden border-border shadow-sm transition-colors hover:border-emerald-200 bg-card rounded-lg">
+      <div className="flex flex-col p-4 sm:flex-row sm:items-center sm:gap-6">
         {/* Type Icon */}
-        <div className="mb-4 flex h-20 w-20 shrink-0 items-center justify-center rounded-[2rem] bg-emerald-50 text-emerald-600 transition-all group-hover:scale-110 group-hover:rotate-3 sm:mb-0">
-          <FileText className="h-10 w-10" />
+        <div className="hidden sm:flex h-12 w-12 shrink-0 items-center justify-center rounded bg-emerald-50 text-emerald-600">
+          <FileText className="h-6 w-6" />
         </div>
 
         {/* Main Info */}
-        <div className="flex-1 space-y-2">
-          <div className="flex flex-wrap items-center gap-3">
-            <h3 className="text-xl font-black capitalize text-slate-900 group-hover:text-emerald-600 transition-colors">
+        <div className="flex-1 min-w-0 space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-base font-semibold capitalize text-foreground truncate">
               {item.jenis_surat.replace(/_/g, ' ')}
             </h3>
             <StatusBadge status={item.status} />
           </div>
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
-            <span className="text-slate-900">{item.wargas?.nama_lengkap}</span>
-            <span className="flex items-center gap-1.5">
-              <Hash size={14} className="text-slate-300" />
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+            <span className="font-medium text-foreground">{item.wargas?.nama_lengkap}</span>
+            <span className="flex items-center gap-1">
+              <Hash size={12} className="opacity-50" />
               {item.wargas?.nik}
             </span>
-            <span className="flex items-center gap-1.5">
-              <Clock size={14} className="text-slate-300" />
+            <span className="flex items-center gap-1">
+              <Clock size={12} className="opacity-50" />
               {new Date(item.created_at).toLocaleDateString('id-ID', {
                 day: 'numeric',
                 month: 'short',
@@ -164,22 +196,22 @@ function SuratCard({ item }: { item: any }) {
               })}
             </span>
           </div>
-          <p className="mt-3 line-clamp-1 text-sm font-medium text-slate-500 italic">
+          <p className="mt-2 text-sm text-muted-foreground italic truncate">
             "{item.keperluan || 'Tanpa keterangan keperluan'}"
           </p>
         </div>
 
         {/* Actions */}
-        <div className="mt-6 flex items-center justify-between border-t border-slate-50 pt-6 sm:mt-0 sm:border-none sm:pt-0">
-          <div className="flex flex-col text-left sm:text-right sm:mr-8">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Nomor Surat</span>
-            <span className="text-sm font-black text-slate-700">
+        <div className="mt-4 flex items-center justify-between border-t border-border pt-4 sm:mt-0 sm:border-none sm:pt-0">
+          <div className="flex flex-col text-left sm:text-right sm:mr-4">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Nomor Surat</span>
+            <span className="text-sm font-semibold text-foreground">
               {item.nomor_surat || '— Draf —'}
             </span>
           </div>
           <Link href={`/surat/${item.id}`}>
-            <Button variant="ghost" size="icon" className="h-14 w-14 rounded-2xl bg-slate-50 text-slate-400 hover:bg-emerald-600 hover:text-white transition-all">
-              <ChevronRight className="h-6 w-6" />
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded text-muted-foreground hover:bg-emerald-50 hover:text-emerald-600">
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </Link>
         </div>
@@ -190,22 +222,22 @@ function SuratCard({ item }: { item: any }) {
 
 function EmptyState({ isKetuaRT }: { isKetuaRT: boolean }) {
   return (
-    <Card className="border-dashed border-slate-200 bg-white/30 py-16 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/30">
+    <Card className="border-dashed border-border bg-card/50 py-16">
       <CardContent className="flex flex-col items-center justify-center text-center">
-        <div className="mb-4 rounded-full bg-slate-100 p-4 dark:bg-slate-800">
-          <Inbox className="h-8 w-8 text-slate-400" />
+        <div className="mb-4 rounded-full bg-muted p-4">
+          <Inbox className="h-6 w-6 text-muted-foreground" />
         </div>
-        <CardTitle className="mb-2 text-xl font-bold text-slate-700 dark:text-slate-300">
+        <CardTitle className="mb-1 text-lg font-semibold text-foreground">
           Tidak Ada Pengajuan
         </CardTitle>
-        <CardDescription className="max-w-xs text-slate-500">
+        <CardDescription className="max-w-xs text-sm">
           {isKetuaRT 
-            ? 'Belum ada warga yang mengajukan surat atau Anda belum membuat draf surat baru.' 
-            : 'Belum ada data pengajuan surat masuk untuk diproses.'}
+            ? 'Belum ada warga yang mengajukan surat.' 
+            : 'Belum ada data pengajuan surat masuk.'}
         </CardDescription>
         {isKetuaRT && (
-          <Link href="/surat/baru" className="mt-6">
-            <Button variant="outline" className="rounded-xl border-emerald-200 text-emerald-600 hover:bg-emerald-50">
+          <Link href="/surat/baru" className="mt-4">
+            <Button variant="outline" size="sm" className="text-emerald-600 border-emerald-200">
               Buat Surat Sekarang
             </Button>
           </Link>
@@ -219,29 +251,29 @@ function StatusBadge({ status }: { status: string }) {
   switch (status) {
     case 'pending':
       return (
-        <Badge variant="secondary" className="border-amber-100 bg-amber-50 text-amber-600 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-400">
-          <Clock className="mr-1 h-3 w-3" /> Antrean
+        <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none font-medium h-5 text-[10px]">
+          Antrean
         </Badge>
       )
     case 'diproses':
       return (
-        <Badge variant="secondary" className="border-blue-100 bg-blue-50 text-blue-600 dark:border-blue-900/50 dark:bg-blue-900/20 dark:text-blue-400">
-          <Loader2 className="mr-1 h-3 w-3 animate-spin" /> Diproses
+        <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-none font-medium h-5 text-[10px]">
+          Diproses
         </Badge>
       )
     case 'selesai':
       return (
-        <Badge variant="secondary" className="border-emerald-100 bg-emerald-50 text-emerald-600 dark:border-emerald-900/50 dark:bg-emerald-900/20 dark:text-emerald-400">
-          <CheckCircle2 className="mr-1 h-3 w-3" /> Selesai
+        <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none font-medium h-5 text-[10px]">
+          Selesai
         </Badge>
       )
     case 'ditolak':
       return (
-        <Badge variant="secondary" className="border-rose-100 bg-rose-50 text-rose-600 dark:border-rose-900/50 dark:bg-rose-900/20 dark:text-rose-400">
-          <XCircle className="mr-1 h-3 w-3" /> Ditolak
+        <Badge variant="secondary" className="bg-rose-100 text-rose-700 hover:bg-rose-100 border-none font-medium h-5 text-[10px]">
+          Ditolak
         </Badge>
       )
     default:
-      return <Badge variant="outline">{status}</Badge>
+      return <Badge variant="outline" className="h-5 text-[10px]">{status}</Badge>
   }
 }

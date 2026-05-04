@@ -13,10 +13,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { 
   Loader2, 
   ArrowLeft, 
-  Send, 
-  User, 
   FileText, 
-  Info,
   CheckCircle2,
   AlertCircle
 } from 'lucide-react'
@@ -103,48 +100,48 @@ export default function SuratBaruRtPage() {
   if (!mounted) return null
 
   return (
-    <div className="min-h-full bg-slate-50/50 py-12 dark:bg-slate-950/50">
-      <div className="mx-auto max-w-2xl px-4">
-        <Link href="/surat" className="mb-6 flex items-center text-sm font-medium text-slate-500 hover:text-slate-900">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Kembali ke Daftar
+    <div className="p-6 md:p-8 max-w-2xl mx-auto space-y-6">
+      <div className="flex items-center gap-4 border-b border-border pb-6">
+        <Link href="/surat">
+          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
         </Link>
+        <div>
+          <h1 className="text-[28px] font-semibold tracking-tight text-foreground">Buat Surat Baru</h1>
+          <p className="text-sm text-muted-foreground mt-1">Input permohonan surat warga secara luring</p>
+        </div>
+      </div>
 
-        <Card className="border-none bg-white/70 shadow-xl backdrop-blur-md dark:bg-slate-900/70">
-          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="rounded-2xl bg-emerald-600 p-2.5 text-white shadow-lg shadow-emerald-600/20">
-                <FileText className="h-6 w-6" />
+      <Card className="border border-border shadow-sm rounded-lg overflow-hidden bg-card">
+        {!isKetuaRT() ? (
+          <CardContent className="p-12 text-center">
+            <AlertCircle className="mx-auto mb-4 h-12 w-12 text-rose-500" />
+            <h3 className="text-lg font-semibold text-foreground">Akses Dibatasi</h3>
+            <p className="text-sm text-muted-foreground mt-2">Hanya Ketua RT yang dapat menginput pengajuan surat baru di wilayahnya.</p>
+          </CardContent>
+        ) : (
+          <>
+            <CardHeader className="bg-muted/30 border-b border-border p-6">
+              <div className="flex items-center gap-3">
+                <div className="text-emerald-600">
+                  <FileText className="h-5 w-5" />
+                </div>
+                <CardTitle className="text-xl font-semibold tracking-tight">Form Pengajuan Surat</CardTitle>
               </div>
-              <div>
-                <CardTitle className="text-2xl font-bold">Buat Surat Baru</CardTitle>
-                <CardDescription>Input permohonan surat warga secara langsung (Luring).</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-8">
-            {!isKetuaRT() ? (
-              <div className="rounded-2xl bg-rose-50 p-6 text-center dark:bg-rose-900/10">
-                <AlertCircle className="mx-auto mb-4 h-12 w-12 text-rose-500" />
-                <h3 className="text-lg font-bold text-rose-700">Akses Dibatasi</h3>
-                <p className="text-sm text-rose-600">Hanya Ketua RT yang dapat menginput pengajuan surat baru di wilayahnya.</p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-8">
-                {/* Warga Selection */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-emerald-600" />
-                    <Label className="text-sm font-bold uppercase tracking-wider text-slate-400">Pilih Warga</Label>
-                  </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-2">
+                  <Label>Pilih Warga</Label>
                   {loadingWarga ? (
-                    <div className="flex h-12 items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-800">
-                      <Loader2 className="h-5 w-5 animate-spin text-emerald-500" />
+                    <div className="flex h-10 items-center justify-center rounded-md border border-input bg-muted/20">
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                     </div>
                   ) : (
                     <select
-                      id="warga_id"
                       required
-                      className="flex h-12 w-full rounded-xl border border-slate-200 bg-white/50 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-800 dark:bg-slate-900/50"
+                      className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
                       value={wargaId}
                       onChange={(e) => setWargaId(e.target.value)}
                     >
@@ -158,13 +155,11 @@ export default function SuratBaruRtPage() {
                   )}
                 </div>
 
-                {/* Surat Details */}
                 <div className="grid gap-6 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label className="text-sm font-bold uppercase tracking-wider text-slate-400">Jenis Surat</Label>
+                    <Label>Jenis Surat</Label>
                     <select
-                      id="jenis_surat"
-                      className="flex h-12 w-full rounded-xl border border-slate-200 bg-white/50 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-800 dark:bg-slate-900/50"
+                      className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
                       value={form.jenis_surat}
                       onChange={(e) =>
                         setForm({ ...form, jenis_surat: e.target.value as 'pengantar_rt' | 'domisili' })
@@ -177,10 +172,9 @@ export default function SuratBaruRtPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-sm font-bold uppercase tracking-wider text-slate-400">Keperluan</Label>
+                    <Label>Keperluan</Label>
                     <Input
                       placeholder="Contoh: Pengurusan KTP"
-                      className="h-12 rounded-xl border-slate-200 bg-white/50 focus-visible:ring-emerald-500/20 dark:bg-slate-900/50"
                       value={form.keperluan}
                       onChange={(e) => setForm({ ...form, keperluan: e.target.value })}
                       required
@@ -189,44 +183,47 @@ export default function SuratBaruRtPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-bold uppercase tracking-wider text-slate-400">Keterangan Tambahan (Opsional)</Label>
+                  <Label>Keterangan Tambahan (Opsional)</Label>
                   <Textarea
                     placeholder="Catatan untuk arsip atau proses selanjutnya..."
-                    className="min-h-[120px] rounded-xl border-slate-200 bg-white/50 focus-visible:ring-emerald-500/20 dark:bg-slate-900/50"
+                    className="min-h-[100px] resize-y"
                     value={form.keterangan_tambahan}
                     onChange={(e) => setForm({ ...form, keterangan_tambahan: e.target.value })}
                   />
                 </div>
 
                 {error && (
-                  <div className="flex items-center gap-2 rounded-xl bg-rose-50 p-4 text-sm text-rose-600 dark:bg-rose-900/10">
-                    <AlertCircle className="h-4 w-4" />
+                  <div className="flex items-center gap-2 rounded-md bg-rose-50 p-3 text-sm text-rose-600 border border-rose-100">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
                     {error}
                   </div>
                 )}
 
-                <Button 
-                  type="submit" 
-                  className="w-full h-14 rounded-2xl bg-emerald-600 text-lg font-bold shadow-lg shadow-emerald-600/20 hover:bg-emerald-700"
-                  disabled={loading || loadingWarga}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Menyimpan...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="mr-2 h-5 w-5" />
-                      Simpan & Terbitkan
-                    </>
-                  )}
-                </Button>
+                <div className="pt-2">
+                  <Button 
+                    type="submit" 
+                    size="lg"
+                    className="w-full text-base font-semibold bg-emerald-600 hover:bg-emerald-700"
+                    disabled={loading || loadingWarga}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Menyimpan...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="mr-2 h-5 w-5" />
+                        Simpan & Terbitkan
+                      </>
+                    )}
+                  </Button>
+                </div>
               </form>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </>
+        )}
+      </Card>
     </div>
   )
 }

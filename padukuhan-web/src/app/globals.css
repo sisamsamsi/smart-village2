@@ -1,36 +1,42 @@
 @import "tailwindcss";
 
 :root {
-  /* UI Colors from Blueprint */
-  --background: #F8FAFC;
-  --foreground: #0F172A;
+  /* UI Colors from Blueprint 60:30:10 */
+  --background: #FFFFFF;     /* Primary White */
+  --foreground: #212529;     /* Text Primary */
   
-  --primary: #1B5E20;
+  --primary: #1971C2;        /* Blue 700 */
   --primary-foreground: #FFFFFF;
   
-  --secondary: #2E7D32;
-  --secondary-foreground: #FFFFFF;
+  --secondary: #F1F3F5;      /* Light Gray */
+  --secondary-foreground: #495057; /* Text Secondary */
   
-  --accent: #F9A825;
-  --accent-foreground: #1E293B;
+  --accent: #E7F5FF;         /* Blue 50 */
+  --accent-foreground: #1971C2;
+  
+  --success: #2F9E44;        /* Green 700 */
+  --success-foreground: #FFFFFF;
   
   --card: #FFFFFF;
-  --card-foreground: #0F172A;
+  --card-foreground: #212529;
   
   --popover: #FFFFFF;
-  --popover-foreground: #0F172A;
+  --popover-foreground: #212529;
   
-  --muted: #F1F5F9;
-  --muted-foreground: #64748B;
+  --muted: #F8F9FA;          /* Off-White */
+  --muted-foreground: #868E96; /* Text Tertiary */
   
-  --destructive: #C62828;
+  --destructive: #E03131;    /* Error */
   --destructive-foreground: #FFFFFF;
   
-  --border: #E2E8F0;
-  --input: #E2E8F0;
-  --ring: #1B5E20;
+  --warning: #F08C00;        /* Warning */
+  --warning-foreground: #FFFFFF;
+  
+  --border: #DEE2E6;         /* Border */
+  --input: #DEE2E6;
+  --ring: #339AF0;           /* Blue 500 */
 
-  --radius: 1rem;
+  --radius: 0.5rem;          /* 8px */
 }
 
 @theme inline {
@@ -42,6 +48,10 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-muted: var(--muted);
@@ -52,9 +62,9 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 12px);
-  --radius-3xl: calc(var(--radius) + 20px);
+  --radius-sm: calc(var(--radius) - 2px); /* 6px */
+  --radius-md: var(--radius); /* 8px */
+  --radius-lg: calc(var(--radius) + 2px); /* 10px */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -73,7 +83,7 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), sans-serif;
+  font-family: var(--font-inter), sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 

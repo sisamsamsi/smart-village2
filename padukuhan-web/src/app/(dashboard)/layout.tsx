@@ -27,14 +27,14 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
       {/* Sidebar (Desktop) */}
-      <aside className="hidden w-72 flex-col border-r border-border/50 bg-white dark:bg-slate-900 md:flex print:hidden">
-        <div className="flex h-20 items-center px-8 border-b border-border/40">
-          <div className="h-10 w-10 rounded-2xl bg-primary flex items-center justify-center mr-3 shadow-lg shadow-primary/20">
-            <Home className="h-6 w-6 text-white" />
+      <aside className="hidden w-[240px] flex-col border-r border-border bg-white dark:bg-slate-900 md:flex print:hidden">
+        <div className="flex h-[52px] items-center px-4 border-b border-border">
+          <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center mr-3">
+            <Home className="h-5 w-5 text-white" />
           </div>
           <div>
-            <span className="text-xl font-black tracking-tighter block leading-none">MANDINGAN</span>
-            <span className="text-[10px] text-muted-foreground font-bold tracking-[0.2em] uppercase">Smart Village</span>
+            <span className="text-[16px] font-semibold text-foreground tracking-tight block leading-none">MANDINGAN</span>
+            <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">Smart Village</span>
           </div>
         </div>
         
@@ -61,8 +61,8 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Topbar - Glassmorphism */}
-        <header className="flex h-20 items-center justify-between px-4 sm:px-8 glass sticky top-0 z-30 print:hidden">
+        {/* Topbar */}
+        <header className="flex h-[52px] items-center justify-between px-4 sm:px-6 bg-white border-b border-border sticky top-0 z-30 print:hidden">
           <div className="flex items-center md:hidden">
             <MobileNav />
           </div>
@@ -75,14 +75,14 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             
             <div className="flex items-center gap-4 pl-4 border-l border-border/60">
               <div className="hidden sm:block text-right">
-                <p className="text-sm font-bold text-slate-800 dark:text-slate-100 leading-none mb-1">
+                <p className="text-sm font-semibold text-foreground leading-none mb-1">
                   {profile?.nama_lengkap || session.user.email}
                 </p>
-                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
+                <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
                   {profile?.role?.replace('_', ' ') || 'Admin'}
                 </p>
               </div>
-              <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold shadow-md">
+              <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center text-white font-medium text-sm">
                 {profile?.nama_lengkap?.[0] || 'A'}
               </div>
               <SidebarClient />
@@ -92,7 +92,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
         <main className="flex-1 overflow-y-auto bg-background/50">
           <AuthStoreHydrator serverProfile={serverProfile} />
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-[960px] mx-auto p-6 xl:p-8">
             {children}
           </div>
         </main>

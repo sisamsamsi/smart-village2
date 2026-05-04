@@ -2,12 +2,15 @@
 
 import { useAuthStore } from '@/stores/authStore'
 import { useWargasList } from '@/hooks/useWargasList'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, Users } from 'lucide-react'
+import { Loader2, Users, Search, Filter, MoreHorizontal } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { useState, useMemo } from 'react'
+import { Input } from '@/components/ui/input'
+import { PaginationControls } from '@/components/ui/pagination'
 
 type RtsJoin = { nomor_rt: number } | { nomor_rt: number }[] | null
 
@@ -17,50 +20,64 @@ function nomorRtLabel(rts: RtsJoin): string {
   return String(rts.nomor_rt)
 }
 
-import { useState } from 'react'
-import { Input } from '@/components/ui/input'
-import { Search, Filter, MoreHorizontal, User } from 'lucide-react'
+const ITEMS_PER_PAGE = 10
 
 export function KependudukanClient() {
-  const { data, isLoading, isError, error } = useWargasList()
+  const { data, isLoading } = useWargasList()
   const profile = useAuthStore((s) => s.profile)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRt, setSelectedRt] = useState<string>('all')
+  const [currentPage, setCurrentPage] = useState(1)
 
-  if (!profile) return <p className="text-muted-foreground">Memuat profil…</p>
-  if (isLoading) return <div className="flex items-center justify-center py-24"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+  // Reset page when filters change
+  const handleSearchChange = (val: string) => {
+    setSearchTerm(val)
+    setCurrentPage(1)
+  }
+  const handleRtChange = (val: string) => {
+    setSelectedRt(val)
+    setCurrentPage(1)
+  }
 
-  const filteredData = data?.filter(warga => {
-    const matchesSearch = warga.nama_lengkap.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         warga.nik?.includes(searchTerm)
-    const rtNum = nomorRtLabel(warga.rts as RtsJoin)
-    const matchesRt = selectedRt === 'all' || rtNum === selectedRt
-    return matchesSearch && matchesRt
-  })
+  const filteredData = useMemo(() => {
+    return data?.filter(warga => {
+      const matchesSearch = warga.nama_lengkap.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                           warga.nik?.includes(searchTerm)
+      const rtNum = nomorRtLabel(warga.rts as RtsJoin)
+      const matchesRt = selectedRt === 'all' || rtNum === selectedRt
+      return matchesSearch && matchesRt
+    }) || []
+  }, [data, searchTerm, selectedRt])
+
+  const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE)
+  const paginatedData = filteredData.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
 
   const rtList = Array.from(new Set(data?.map(w => nomorRtLabel(w.rts as RtsJoin)) || [])).sort()
+
+  if (!profile) return <p className="text-muted-foreground text-sm">Memuat profil…</p>
+  if (isLoading) return <div className="flex items-center justify-center py-24"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
 
   return (
     <div className="p-8">
       {/* Header Section */}
-      <div className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-center gap-5">
-          <div className="flex h-16 w-16 items-center justify-center rounded-[2rem] bg-primary shadow-2xl shadow-primary/30 text-white">
-            <Users className="h-8 w-8" />
+      <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Users className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-4xl font-black tracking-tight">Kependudukan</h1>
-            <p className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em] mt-1">Padukuhan Mandingan</p>
+            <h1 className="text-[28px] font-semibold tracking-tight">Kependudukan</h1>
+            <p className="text-sm font-medium text-muted-foreground mt-1">Daftar warga Padukuhan Mandingan</p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <Link href="/kependudukan/mutasi">
-            <Button className="h-14 px-8 rounded-2xl font-black shadow-xl shadow-primary/20 transition-transform hover:scale-105 active:scale-95">
+            <Button size="default" variant="secondary" className="font-medium">
               Catat Mutasi
             </Button>
           </Link>
           <Link href="/kependudukan/tambah">
-            <Button variant="outline" className="h-14 px-8 rounded-2xl font-black border-2 border-slate-200 transition-all hover:border-primary/30 hover:bg-primary/5">
+            <Button size="default" className="font-medium">
               Tambah Warga
             </Button>
           </Link>
@@ -68,22 +85,22 @@ export function KependudukanClient() {
       </div>
 
       {/* Filters & Search */}
-      <div className="mb-8 grid gap-4 md:grid-cols-4">
+      <div className="mb-6 grid gap-4 md:grid-cols-4">
         <div className="md:col-span-2 relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
           <Input 
             placeholder="Cari nama atau NIK..." 
-            className="h-14 pl-12 rounded-2xl border-none bg-white shadow-sm ring-1 ring-slate-200 focus-visible:ring-primary/50 font-medium"
+            className="pl-9 bg-background"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
           />
         </div>
         <div className="relative">
-          <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
           <select 
-            className="w-full h-14 pl-12 pr-4 rounded-2xl border-none bg-white shadow-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary/50 font-bold text-sm appearance-none cursor-pointer"
+            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
             value={selectedRt}
-            onChange={(e) => setSelectedRt(e.target.value)}
+            onChange={(e) => handleRtChange(e.target.value)}
           >
             <option value="all">Semua Wilayah RT</option>
             {rtList.map(rt => (
@@ -92,67 +109,73 @@ export function KependudukanClient() {
           </select>
         </div>
         <div className="flex items-center justify-end">
-           <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
-             Total: <span className="text-slate-900">{filteredData?.length ?? 0}</span> Warga
+           <p className="text-sm text-muted-foreground">
+             Total: <span className="font-medium text-foreground">{filteredData.length}</span> Warga
            </p>
         </div>
       </div>
 
       {/* Citizens List */}
-      <div className="grid gap-4">
-        {filteredData?.length === 0 ? (
-          <div className="py-20 text-center rounded-[3rem] bg-slate-50 border-2 border-dashed border-slate-200">
-            <Users className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-            <p className="text-slate-500 font-bold">Warga tidak ditemukan.</p>
+      <Card className="overflow-hidden border-border bg-card">
+        {filteredData.length === 0 ? (
+          <div className="py-24 text-center">
+            <Users className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+            <p className="text-muted-foreground font-medium text-sm">Warga tidak ditemukan.</p>
           </div>
         ) : (
-          filteredData?.map((row) => (
-            <Link key={row.id} href={`/kependudukan/${row.id}`}>
-              <Card className="group border-none shadow-sm ring-1 ring-slate-100 transition-all hover:shadow-xl hover:shadow-slate-200/50 hover:ring-primary/20 rounded-3xl overflow-hidden">
-                <CardContent className="flex items-center gap-6 p-5">
+          <div className="divide-y divide-border">
+            {paginatedData.map((row) => (
+              <Link key={row.id} href={`/kependudukan/${row.id}`} className="block transition-colors hover:bg-muted/50">
+                <div className="flex items-center gap-4 p-4">
                   {/* Avatar */}
-                  <div className="relative">
-                    <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-slate-500 font-black text-xl group-hover:from-primary/10 group-hover:to-primary/20 group-hover:text-primary transition-all duration-500">
+                  <div className="relative flex-shrink-0">
+                    <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground font-semibold text-sm">
                       {row.nama_lengkap?.[0]}
                     </div>
                     {row.status_warga === 'aktif' && (
-                      <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-emerald-500 border-4 border-white"></div>
+                      <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-background"></div>
                     )}
                   </div>
 
                   {/* Info */}
-                  <div className="flex-1">
-                    <h3 className="text-lg font-black text-slate-900 tracking-tight leading-none mb-1 group-hover:text-primary transition-colors">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-semibold text-foreground truncate mb-0.5">
                       {row.nama_lengkap}
                     </h3>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">NIK: {row.nik ?? '—'}</span>
-                      <span className="h-1 w-1 rounded-full bg-slate-300"></span>
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">KK: {(row.rumah_tanggas as any)?.[0]?.no_kk ?? (row.rumah_tanggas as any)?.no_kk ?? '—'}</span>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground truncate">
+                      <span>NIK: {row.nik ?? '—'}</span>
+                      <span className="h-1 w-1 rounded-full bg-muted-foreground/30"></span>
+                      <span>KK: {(row.rumah_tanggas as any)?.[0]?.no_kk ?? (row.rumah_tanggas as any)?.no_kk ?? '—'}</span>
                     </div>
                   </div>
 
                   {/* Badges */}
-                  <div className="hidden sm:flex items-center gap-3 pr-4">
-                    <div className="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest border border-transparent group-hover:border-slate-200 transition-all">
+                  <div className="hidden sm:flex items-center gap-3">
+                    <div className="text-xs font-medium text-muted-foreground px-2 py-1 rounded bg-secondary">
                       RT {nomorRtLabel(row.rts as RtsJoin)}
                     </div>
-                    <Badge className={cn(
-                      "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border-none shadow-none",
-                      row.status_warga === 'aktif' ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"
-                    )}>
+                    <Badge variant={row.status_warga === 'aktif' ? 'success' : 'secondary'} size="sm">
                       {row.status_warga ?? '—'}
                     </Badge>
-                    <div className="h-10 w-10 flex items-center justify-center rounded-xl text-slate-300 group-hover:text-slate-900 transition-colors">
-                       <MoreHorizontal size={20} />
+                    <div className="h-8 w-8 flex items-center justify-center text-muted-foreground rounded hover:bg-secondary">
+                       <MoreHorizontal size={16} />
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))
+                </div>
+              </Link>
+            ))}
+          </div>
         )}
-      </div>
+        
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <PaginationControls 
+            currentPage={currentPage} 
+            totalPages={totalPages} 
+            onPageChange={setCurrentPage} 
+          />
+        )}
+      </Card>
     </div>
   )
 }

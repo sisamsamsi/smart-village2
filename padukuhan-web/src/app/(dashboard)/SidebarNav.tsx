@@ -15,42 +15,35 @@ export default function SidebarNav({ items }: { items: { href: string, icon: Rea
   const pathname = usePathname()
 
   return (
-    <nav className="space-y-1.5 px-4">
+    <nav className="space-y-1 px-4">
       {items.map((item, idx) => {
         const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
         
         return (
           <div key={item.href}>
             {item.category && (
-              <div className="pt-6 pb-2 px-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">
+              <div className="pt-4 pb-1.5 px-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
                 {item.category}
               </div>
             )}
             <Link 
               href={item.href}
               className={cn(
-                "group relative flex items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-300",
+                "group relative flex items-center gap-2 rounded-md px-3 py-2 h-9 transition-all duration-150",
                 isActive 
-                  ? "bg-primary text-white shadow-lg shadow-primary/20" 
-                  : "text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+                  ? "bg-accent text-primary font-medium" 
+                  : "text-secondary-foreground font-normal hover:bg-secondary"
               )}
             >
               <span className={cn(
-                "transition-colors duration-300",
-                isActive ? "text-white" : "text-slate-400 group-hover:text-primary"
+                "transition-colors duration-150",
+                isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
               )}>
                 {item.icon}
               </span>
-              <span className={cn(
-                "text-sm font-bold tracking-tight",
-                isActive ? "text-white" : "group-hover:text-slate-900 dark:group-hover:text-slate-100"
-              )}>
+              <span className="text-sm">
                 {item.label}
               </span>
-              
-              {isActive && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-white rounded-r-full" />
-              )}
             </Link>
           </div>
         )

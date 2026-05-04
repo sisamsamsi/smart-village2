@@ -1,11 +1,16 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Megaphone, ArrowLeft, Send, Image as ImageIcon, Target, Globe, Shield } from 'lucide-react'
+import { Megaphone, ArrowLeft, Send, Image as ImageIcon, Target, Globe, Shield, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCreateAnnouncement } from '@/hooks/useAnnouncements'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 
 export default function NewAnnouncementPage() {
   const router = useRouter()
@@ -39,95 +44,96 @@ export default function NewAnnouncementPage() {
   }
 
   return (
-    <div className="p-4 sm:p-8 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <Link 
-          href="/pengumuman"
-          className="h-12 w-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary/20 transition-all shadow-sm"
-        >
-          <ArrowLeft size={20} />
+    <div className="p-6 md:p-8 max-w-4xl mx-auto space-y-6">
+      <div className="flex items-center gap-4 border-b border-border pb-6">
+        <Link href="/pengumuman">
+          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900">Buat Pengumuman</h1>
-          <p className="text-slate-500">Terbitkan informasi penting untuk warga Mandingan</p>
+          <h1 className="text-[28px] font-semibold tracking-tight text-foreground">Buat Pengumuman</h1>
+          <p className="text-sm text-muted-foreground mt-1">Terbitkan informasi penting untuk seluruh warga</p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="bg-white p-8 sm:p-10 rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40 space-y-8">
-          {/* Judul */}
-          <div className="space-y-3">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] ml-1">Judul Pengumuman</label>
-            <input 
-              type="text"
-              placeholder="Contoh: Kerja Bakti Massal Minggu Ini"
-              className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none font-bold text-xl text-slate-900"
-              value={form.judul}
-              onChange={(e) => setForm({...form, judul: e.target.value})}
-              required
-            />
-          </div>
-
-          {/* Isi */}
-          <div className="space-y-3">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] ml-1">Isi Pengumuman</label>
-            <textarea 
-              placeholder="Tuliskan detail pengumuman di sini..."
-              rows={6}
-              className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none font-medium text-slate-700"
-              value={form.isi}
-              onChange={(e) => setForm({...form, isi: e.target.value})}
-              required
-            />
-          </div>
-
-          {/* Image URL (Temporary until storage is setup) */}
-          <div className="space-y-3">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-              <ImageIcon size={12} /> URL Gambar (Opsional)
-            </label>
-            <input 
-              type="url"
-              placeholder="https://example.com/image.jpg"
-              className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none font-medium text-slate-500"
-              value={form.foto_url}
-              onChange={(e) => setForm({...form, foto_url: e.target.value})}
-            />
-          </div>
-
-          {/* Target */}
-          <div className="space-y-3">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] ml-1">Target Penerima</label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <TargetOption 
-                active={form.target === 'semua'}
-                onClick={() => setForm({...form, target: 'semua'})}
-                icon={<Globe size={20} />}
-                label="Semua Warga"
-                description="Tampil di PWA publik dan dashboard semua RT"
-              />
-              <TargetOption 
-                active={form.target === 'rt_tertentu'}
-                onClick={() => setForm({...form, target: 'rt_tertentu'})}
-                icon={<Shield size={20} />}
-                label="RT Tertentu"
-                description="Hanya tampil untuk wilayah RT yang dipilih"
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <Card className="border border-border shadow-sm rounded-lg bg-card overflow-hidden">
+          <CardHeader className="bg-muted/30 border-b border-border p-6">
+            <div className="flex items-center gap-3">
+              <div className="text-primary">
+                <Megaphone className="h-5 w-5" />
+              </div>
+              <CardTitle className="text-xl font-semibold tracking-tight">Form Pengumuman</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6 space-y-6">
+            <div className="space-y-2">
+              <Label>Judul Pengumuman</Label>
+              <Input 
+                placeholder="Contoh: Kerja Bakti Massal Minggu Ini"
+                className="text-lg font-semibold h-11"
+                value={form.judul}
+                onChange={(e) => setForm({...form, judul: e.target.value})}
+                required
               />
             </div>
-          </div>
-        </div>
 
-        {/* Action Button */}
-        <div className="flex justify-end pt-4">
-          <button 
+            <div className="space-y-2">
+              <Label>Isi Pengumuman</Label>
+              <Textarea 
+                placeholder="Tuliskan detail pengumuman di sini..."
+                className="min-h-[150px] resize-y"
+                value={form.isi}
+                onChange={(e) => setForm({...form, isi: e.target.value})}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <ImageIcon className="h-3 w-3" /> URL Gambar (Opsional)
+              </Label>
+              <Input 
+                type="url"
+                placeholder="https://example.com/image.jpg"
+                value={form.foto_url}
+                onChange={(e) => setForm({...form, foto_url: e.target.value})}
+              />
+            </div>
+
+            <div className="space-y-3">
+              <Label>Target Penerima</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <TargetOption 
+                  active={form.target === 'semua'}
+                  onClick={() => setForm({...form, target: 'semua'})}
+                  icon={<Globe size={18} />}
+                  label="Semua Warga"
+                  description="Tampil di PWA publik dan dashboard semua wilayah."
+                />
+                <TargetOption 
+                  active={form.target === 'rt_tertentu'}
+                  onClick={() => setForm({...form, target: 'rt_tertentu'})}
+                  icon={<Shield size={18} />}
+                  label="RT Tertentu"
+                  description="Hanya tampil untuk wilayah RT yang dipilih."
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-end pt-2">
+          <Button 
             type="submit"
+            size="lg"
             disabled={loading}
-            className="inline-flex items-center justify-center gap-3 bg-primary text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-primary/30 hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50"
+            className="px-8 font-semibold gap-2"
           >
-            {loading ? <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={20} />}
-            <span>Terbitkan Sekarang</span>
-          </button>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            Terbitkan Sekarang
+          </Button>
         </div>
       </form>
     </div>
@@ -139,13 +145,13 @@ function TargetOption({ active, onClick, icon, label, description }: { active: b
     <button
       type="button"
       onClick={onClick}
-      className={`p-6 rounded-[28px] border text-left transition-all ${active ? 'bg-primary/5 border-primary shadow-sm' : 'bg-slate-50 border-transparent hover:bg-slate-100'}`}
+      className={`p-4 rounded-lg border text-left transition-all ${active ? 'bg-primary/5 border-primary shadow-sm' : 'bg-muted/50 border-border hover:bg-muted'}`}
     >
-      <div className={`h-10 w-10 rounded-xl flex items-center justify-center mb-4 ${active ? 'bg-primary text-white' : 'bg-white text-slate-400'}`}>
+      <div className={`h-8 w-8 rounded-md flex items-center justify-center mb-3 ${active ? 'bg-primary text-white' : 'bg-background text-muted-foreground border border-border'}`}>
         {icon}
       </div>
-      <p className={`font-bold ${active ? 'text-primary' : 'text-slate-900'}`}>{label}</p>
-      <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">{description}</p>
+      <p className={`text-sm font-semibold ${active ? 'text-primary' : 'text-foreground'}`}>{label}</p>
+      <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">{description}</p>
     </button>
   )
 }

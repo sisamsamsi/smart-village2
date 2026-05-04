@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTambahWarga } from '@/hooks/useWargasList'
 import { useRtList, useKkList } from '@/hooks/useModuleData'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,12 +12,9 @@ import {
   ArrowLeft, 
   UserPlus, 
   Loader2,
-  AlertCircle,
   CreditCard,
   Home,
-  Briefcase,
-  GraduationCap,
-  Users
+  Briefcase
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -77,93 +74,89 @@ export default function TambahWargaPage() {
   }
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
-      <div className="mb-10 flex items-center gap-6">
+    <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-6">
+      <div className="flex items-center gap-4 border-b border-border pb-6">
         <Link href="/kependudukan">
-          <Button variant="outline" size="icon" className="h-14 w-14 rounded-2xl border-slate-200 hover:bg-primary/5 hover:text-primary transition-all">
-            <ArrowLeft className="h-6 w-6" />
+          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
         <div>
-          <h1 className="text-4xl font-black tracking-tight">Tambah Warga</h1>
-          <p className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em] mt-1">Registrasi Penduduk Baru & Pendatang</p>
+          <h1 className="text-[28px] font-semibold tracking-tight text-foreground">Tambah Warga</h1>
+          <p className="text-sm text-muted-foreground mt-1">Registrasi Penduduk Baru & Pendatang</p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="grid gap-8 lg:grid-cols-3">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Form Left Side */}
-          <div className="lg:col-span-2 space-y-8">
-            <Card className="border-none shadow-2xl shadow-slate-200/50 rounded-[2.5rem] overflow-hidden">
-              <div className="p-8 border-b border-slate-100 flex items-center gap-4 bg-slate-50/50">
-                <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                  <CreditCard size={20} />
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="shadow-sm">
+              <div className="px-6 py-4 border-b border-border flex items-center gap-3 bg-muted/30">
+                <div className="text-primary">
+                  <CreditCard size={18} />
                 </div>
-                <h3 className="font-black tracking-tight">Identitas Utama</h3>
+                <h3 className="font-semibold text-foreground">Identitas Utama</h3>
               </div>
-              <CardContent className="p-8 grid gap-6 sm:grid-cols-2">
-                <div className="space-y-2.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Nama Lengkap</Label>
+              <CardContent className="p-6 grid gap-5 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Nama Lengkap</Label>
                   <Input 
-                    className="h-14 rounded-2xl bg-slate-50 border-none focus-visible:ring-primary/20 font-bold px-6"
                     placeholder="Sesuai KTP"
                     value={formData.nama_lengkap}
                     onChange={(e) => setFormData({...formData, nama_lengkap: e.target.value})}
                     required
                   />
                 </div>
-                <div className="space-y-2.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">NIK (16 Digit)</Label>
+                <div className="space-y-2">
+                  <Label>NIK (16 Digit)</Label>
                   <Input 
-                    className="h-14 rounded-2xl bg-slate-50 border-none focus-visible:ring-primary/20 font-bold px-6"
                     placeholder="3402..."
                     value={formData.nik}
                     onChange={(e) => setFormData({...formData, nik: e.target.value})}
                     required
                   />
                 </div>
-                <div className="space-y-2.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Tempat Lahir</Label>
+                <div className="space-y-2">
+                  <Label>Tempat Lahir</Label>
                   <Input 
-                    className="h-14 rounded-2xl bg-slate-50 border-none focus-visible:ring-primary/20 font-bold px-6"
                     placeholder="Kota/Kab"
                     value={formData.tempat_lahir}
                     onChange={(e) => setFormData({...formData, tempat_lahir: e.target.value})}
                   />
                 </div>
-                <div className="space-y-2.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Tanggal Lahir</Label>
+                <div className="space-y-2">
+                  <Label>Tanggal Lahir</Label>
                   <Input 
                     type="date"
-                    className="h-14 rounded-2xl bg-slate-50 border-none focus-visible:ring-primary/20 font-bold px-6"
                     value={formData.tanggal_lahir}
                     onChange={(e) => setFormData({...formData, tanggal_lahir: e.target.value})}
                     required
                   />
                 </div>
-                <div className="space-y-2.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Jenis Kelamin</Label>
-                  <div className="grid grid-cols-2 gap-3 p-1.5 bg-slate-100 rounded-2xl">
+                <div className="space-y-2">
+                  <Label>Jenis Kelamin</Label>
+                  <div className="flex bg-muted/50 p-1 rounded-md">
                     <button
                       type="button"
                       onClick={() => setFormData({...formData, jenis_kelamin: 'L'})}
-                      className={`h-11 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${formData.jenis_kelamin === 'L' ? 'bg-white shadow-md text-primary' : 'text-slate-400'}`}
+                      className={`flex-1 h-8 rounded-sm text-sm font-medium transition-colors ${formData.jenis_kelamin === 'L' ? 'bg-background shadow-sm text-primary' : 'text-muted-foreground hover:bg-muted'}`}
                     >
                       Laki-laki
                     </button>
                     <button
                       type="button"
                       onClick={() => setFormData({...formData, jenis_kelamin: 'P'})}
-                      className={`h-11 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${formData.jenis_kelamin === 'P' ? 'bg-white shadow-md text-primary' : 'text-slate-400'}`}
+                      className={`flex-1 h-8 rounded-sm text-sm font-medium transition-colors ${formData.jenis_kelamin === 'P' ? 'bg-background shadow-sm text-primary' : 'text-muted-foreground hover:bg-muted'}`}
                     >
                       Perempuan
                     </button>
                   </div>
                 </div>
-                <div className="space-y-2.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Agama</Label>
+                <div className="space-y-2">
+                  <Label>Agama</Label>
                   <select 
-                    className="w-full h-14 px-6 rounded-2xl border-none bg-slate-50 font-bold text-sm appearance-none cursor-pointer focus:ring-2 focus:ring-primary/20"
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
                     value={formData.agama} 
                     onChange={(e) => setFormData({...formData, agama: e.target.value})}
                   >
@@ -175,18 +168,18 @@ export default function TambahWargaPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-2xl shadow-slate-200/50 rounded-[2.5rem] overflow-hidden">
-              <div className="p-8 border-b border-slate-100 flex items-center gap-4 bg-slate-50/50">
-                <div className="h-10 w-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center">
-                  <Briefcase size={20} />
+            <Card className="shadow-sm">
+              <div className="px-6 py-4 border-b border-border flex items-center gap-3 bg-muted/30">
+                <div className="text-orange-600">
+                  <Briefcase size={18} />
                 </div>
-                <h3 className="font-black tracking-tight">Pekerjaan & Pendidikan</h3>
+                <h3 className="font-semibold text-foreground">Pekerjaan & Pendidikan</h3>
               </div>
-              <CardContent className="p-8 grid gap-6 sm:grid-cols-2">
-                <div className="space-y-2.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Pendidikan Terakhir</Label>
+              <CardContent className="p-6 grid gap-5 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Pendidikan Terakhir</Label>
                   <select 
-                    className="w-full h-14 px-6 rounded-2xl border-none bg-slate-50 font-bold text-sm appearance-none cursor-pointer focus:ring-2 focus:ring-primary/20"
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
                     value={formData.pendidikan} 
                     onChange={(e) => setFormData({...formData, pendidikan: e.target.value})}
                   >
@@ -195,19 +188,18 @@ export default function TambahWargaPage() {
                     ))}
                   </select>
                 </div>
-                <div className="space-y-2.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Pekerjaan</Label>
+                <div className="space-y-2">
+                  <Label>Pekerjaan</Label>
                   <Input 
-                    className="h-14 rounded-2xl bg-slate-50 border-none focus-visible:ring-primary/20 font-bold px-6"
                     placeholder="Contoh: Petani"
                     value={formData.pekerjaan}
                     onChange={(e) => setFormData({...formData, pekerjaan: e.target.value})}
                   />
                 </div>
-                <div className="space-y-2.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Status Perkawinan</Label>
+                <div className="space-y-2">
+                  <Label>Status Perkawinan</Label>
                   <select 
-                    className="w-full h-14 px-6 rounded-2xl border-none bg-slate-50 font-bold text-sm appearance-none cursor-pointer focus:ring-2 focus:ring-primary/20"
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
                     value={formData.status_kawin} 
                     onChange={(e) => setFormData({...formData, status_kawin: e.target.value})}
                   >
@@ -221,19 +213,19 @@ export default function TambahWargaPage() {
           </div>
 
           {/* Right Side - Family Information */}
-          <div className="space-y-8">
-            <Card className="border-none shadow-2xl shadow-slate-200/50 rounded-[2.5rem] overflow-hidden bg-white">
-              <div className="p-8 border-b border-slate-100 flex items-center gap-4 bg-slate-50/50">
-                <div className="h-10 w-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                  <Home size={20} />
+          <div className="space-y-6">
+            <Card className="shadow-sm">
+              <div className="px-6 py-4 border-b border-border flex items-center gap-3 bg-muted/30">
+                <div className="text-emerald-600">
+                  <Home size={18} />
                 </div>
-                <h3 className="font-black tracking-tight">Keluarga & Wilayah</h3>
+                <h3 className="font-semibold text-foreground">Keluarga & Wilayah</h3>
               </div>
-              <CardContent className="p-8 space-y-6">
-                <div className="space-y-2.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Wilayah RT</Label>
+              <CardContent className="p-6 space-y-5">
+                <div className="space-y-2">
+                  <Label>Wilayah RT</Label>
                   <select 
-                    className="w-full h-14 px-6 rounded-2xl border-none bg-slate-50 font-bold text-sm appearance-none cursor-pointer focus:ring-2 focus:ring-primary/20"
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
                     value={formData.rt_id} 
                     onChange={(e) => setFormData({...formData, rt_id: e.target.value})}
                     required
@@ -245,20 +237,20 @@ export default function TambahWargaPage() {
                   </select>
                 </div>
 
-                <div className="space-y-2.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Opsi Kartu Keluarga</Label>
-                  <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
+                <div className="space-y-2">
+                  <Label>Opsi Kartu Keluarga</Label>
+                  <div className="flex bg-muted/50 p-1 rounded-md">
                     <button
                       type="button"
                       onClick={() => setFormData({...formData, is_new_kk: false})}
-                      className={`h-10 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${!formData.is_new_kk ? 'bg-white shadow-sm text-primary' : 'text-slate-400'}`}
+                      className={`flex-1 h-8 rounded-sm text-sm font-medium transition-colors ${!formData.is_new_kk ? 'bg-background shadow-sm text-primary' : 'text-muted-foreground hover:bg-muted'}`}
                     >
                       Terdaftar
                     </button>
                     <button
                       type="button"
                       onClick={() => setFormData({...formData, is_new_kk: true})}
-                      className={`h-10 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${formData.is_new_kk ? 'bg-white shadow-sm text-primary' : 'text-slate-400'}`}
+                      className={`flex-1 h-8 rounded-sm text-sm font-medium transition-colors ${formData.is_new_kk ? 'bg-background shadow-sm text-primary' : 'text-muted-foreground hover:bg-muted'}`}
                     >
                       KK Baru
                     </button>
@@ -266,10 +258,10 @@ export default function TambahWargaPage() {
                 </div>
 
                 {!formData.is_new_kk ? (
-                  <div className="space-y-2.5">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Pilih Nomor KK</Label>
+                  <div className="space-y-2">
+                    <Label>Pilih Nomor KK</Label>
                     <select 
-                      className="w-full h-14 px-6 rounded-2xl border-none bg-slate-50 font-bold text-sm appearance-none cursor-pointer focus:ring-2 focus:ring-primary/20"
+                      className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
                       value={formData.rumah_tangga_id} 
                       onChange={(e) => setFormData({...formData, rumah_tangga_id: e.target.value})}
                       required={!formData.is_new_kk}
@@ -282,20 +274,18 @@ export default function TambahWargaPage() {
                   </div>
                 ) : (
                   <>
-                    <div className="space-y-2.5">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">No. KK Baru</Label>
+                    <div className="space-y-2">
+                      <Label>No. KK Baru</Label>
                       <Input 
-                        className="h-14 rounded-2xl bg-white border-2 border-primary/20 focus-visible:ring-primary/20 font-bold px-6"
                         placeholder="16 Digit"
                         value={formData.no_kk_baru}
                         onChange={(e) => setFormData({...formData, no_kk_baru: e.target.value})}
                         required={formData.is_new_kk}
                       />
                     </div>
-                    <div className="space-y-2.5">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Kepala Keluarga</Label>
+                    <div className="space-y-2">
+                      <Label>Kepala Keluarga</Label>
                       <Input 
-                        className="h-14 rounded-2xl bg-white border-2 border-primary/20 focus-visible:ring-primary/20 font-bold px-6"
                         placeholder="Nama Lengkap"
                         value={formData.nama_kepala_keluarga_baru}
                         onChange={(e) => setFormData({...formData, nama_kepala_keluarga_baru: e.target.value})}
@@ -305,10 +295,10 @@ export default function TambahWargaPage() {
                   </>
                 )}
 
-                <div className="space-y-2.5 pt-4">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Hubungan Keluarga</Label>
+                <div className="space-y-2 pt-2">
+                  <Label>Hubungan Keluarga</Label>
                   <select 
-                    className="w-full h-14 px-6 rounded-2xl border-none bg-slate-50 font-bold text-sm appearance-none cursor-pointer focus:ring-2 focus:ring-primary/20"
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
                     value={formData.hubungan_keluarga} 
                     onChange={(e) => setFormData({...formData, hubungan_keluarga: e.target.value})}
                   >
@@ -322,15 +312,16 @@ export default function TambahWargaPage() {
 
             <Button 
               type="submit" 
-              className="w-full h-20 rounded-[2rem] text-lg font-black shadow-2xl shadow-primary/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              size="lg"
+              className="w-full text-base font-semibold"
               disabled={isPending}
             >
               {isPending ? (
-                <Loader2 className="mr-3 h-6 w-6 animate-spin" />
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               ) : (
-                <UserPlus className="mr-3 h-6 w-6" />
+                <UserPlus className="mr-2 h-5 w-5" />
               )}
-              SIMPAN DATA
+              Simpan Data
             </Button>
           </div>
         </div>

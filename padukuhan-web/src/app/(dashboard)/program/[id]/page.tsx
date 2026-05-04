@@ -14,20 +14,17 @@ import {
   ArrowLeft, 
   Search,
   MapPin, 
-  Calendar, 
   Clock, 
   CheckCircle2, 
   XCircle, 
   Construction,
-  Users as UsersIcon,
-  HeartPulse,
-  Lightbulb,
   MessageSquare,
   Wallet,
   ShieldCheck,
   History,
   FileEdit,
-  Loader2
+  Loader2,
+  Calendar
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -56,7 +53,7 @@ export default function DetailProposalPage() {
         status: item.status,
         catatan_dukuh: item.catatan_dukuh || '',
         sumber_dana: item.sumber_dana || '',
-        tahun_dilaksanakan: item.tahun_dilaksanakan || ''
+        tahun_dilaksanakan: item.tahun_dilaksanakan?.toString() || ''
       })
     }
   })
@@ -75,97 +72,107 @@ export default function DetailProposalPage() {
     }
   }
 
-  if (isLoading) return <div className="p-8 animate-pulse space-y-4">
-    <div className="h-10 w-48 bg-slate-200 rounded-xl" />
-    <div className="h-64 bg-slate-100 rounded-3xl" />
-  </div>
+  if (isLoading) return (
+    <div className="p-8 flex items-center justify-center h-[40vh]">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  )
 
-  if (!item) return <div className="p-8 text-center">Data tidak ditemukan.</div>
+  if (!item) return <div className="p-8 text-center text-sm text-muted-foreground">Data tidak ditemukan.</div>
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
-      {/* Top Nav */}
-      <div className="flex items-center justify-between">
-        <Link href="/program" className="flex items-center text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
-        </Link>
+    <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
+        <div className="flex items-center gap-4">
+          <Link href="/program">
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-[28px] font-semibold tracking-tight text-foreground">Detail Program</h1>
+            <p className="text-sm text-muted-foreground mt-1">Status dan realisasi usulan pembangunan</p>
+          </div>
+        </div>
         {isDukuh() && !editMode && (
-          <Button onClick={() => {
-            setForm({
-              status: item.status,
-              catatan_dukuh: item.catatan_dukuh || '',
-              sumber_dana: item.sumber_dana || '',
-              tahun_dilaksanakan: item.tahun_dilaksanakan?.toString() || ''
-            })
-            setEditMode(true)
-          }} className="rounded-xl bg-white text-slate-900 border border-slate-200 hover:bg-slate-50 shadow-sm">
-            <FileEdit className="mr-2 h-4 w-4" />
-            Edit Status & Catatan
+          <Button 
+            size="sm"
+            onClick={() => {
+              setForm({
+                status: item.status,
+                catatan_dukuh: item.catatan_dukuh || '',
+                sumber_dana: item.sumber_dana || '',
+                tahun_dilaksanakan: item.tahun_dilaksanakan?.toString() || ''
+              })
+              setEditMode(true)
+            }} 
+            className="h-9 gap-2"
+          >
+            <FileEdit className="h-4 w-4" />
+            Edit Status
           </Button>
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: Detail Info */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          <Card className="border-none shadow-2xl shadow-slate-200/50 rounded-[2.5rem] overflow-hidden bg-white">
-            <div className="h-3 bg-emerald-600" />
-            <CardHeader className="p-8 pb-4">
+          <Card className="border border-border shadow-sm rounded-lg bg-card overflow-hidden">
+            <div className="bg-muted/30 border-b border-border p-6 sm:p-8">
               <div className="flex items-center gap-3 mb-4">
-                <Badge variant="outline" className="rounded-full bg-slate-50 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 border-slate-200">
+                <Badge variant="outline" size="sm">
                   {item.jenis_program}
                 </Badge>
                 <StatusBadge status={item.status} />
               </div>
-              <CardTitle className="text-3xl font-black tracking-tight leading-tight mb-2">
+              <h2 className="text-[28px] font-semibold tracking-tight text-foreground leading-tight mb-6">
                 {item.nama_program}
-              </CardTitle>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Sumber Usulan</p>
+              </h2>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-background p-4 rounded-md border border-border">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Sumber Usulan</p>
                   <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-blue-500" />
-                    <p className="text-sm font-bold text-slate-700 uppercase">
+                    <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                    <p className="text-sm font-semibold text-foreground uppercase">
                       {item.sumber_usulan?.replace('_', ' ') || 'WARGA'}
                     </p>
                   </div>
                 </div>
-                <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Diusulkan Oleh</p>
-                  <p className="text-sm font-bold text-slate-700">RT {String(item.rts?.nomor_rt).padStart(3, '0')}</p>
+                <div className="bg-background p-4 rounded-md border border-border">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Diusulkan Oleh</p>
+                  <p className="text-sm font-semibold text-foreground">RT {String(item.rts?.nomor_rt).padStart(3, '0')}</p>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-4 pt-4 border-t border-slate-50">
-                <div className="flex items-center text-sm text-slate-500">
-                  <MapPin className="mr-2 h-4 w-4 text-emerald-500" />
+            </div>
+
+            <CardContent className="p-6 sm:p-8 space-y-8">
+              <div className="flex flex-wrap gap-x-6 gap-y-3">
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <MapPin className="mr-2 h-4 w-4 text-emerald-600" />
                   {item.lokasi || 'Padukuhan Mandingan'}
                 </div>
-                <div className="flex items-center text-sm text-slate-500">
-                  <Clock className="mr-2 h-4 w-4 text-blue-500" />
-                  Diajukan {format(new Date(item.created_at), 'dd MMMM yyyy', { locale: idLocale })}
-                </div>
-                <div className="flex items-center text-sm text-slate-500">
-                  <ShieldCheck className="mr-2 h-4 w-4 text-purple-500" />
-                  Oleh RT {item.rts?.nomor_rt}
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <Calendar className="mr-2 h-4 w-4 text-blue-600" />
+                  {format(new Date(item.created_at), 'dd MMMM yyyy', { locale: idLocale })}
                 </div>
               </div>
-            </CardHeader>
-            <CardContent className="p-8 pt-4 space-y-8">
+
               <section>
-                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center">
-                  <MessageSquare className="mr-2 h-3.5 w-3.5" /> Deskripsi Program
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" /> Deskripsi Program
                 </h4>
-                <p className="text-slate-600 leading-relaxed text-lg bg-slate-50/50 p-6 rounded-3xl border border-slate-100 italic">
+                <p className="text-sm text-foreground leading-relaxed bg-muted/30 p-4 rounded-md border border-border italic">
                   "{item.deskripsi}"
                 </p>
               </section>
 
               {item.catatan_dukuh && (
                 <section>
-                  <h4 className="text-xs font-bold uppercase tracking-widest text-emerald-500 mb-3 flex items-center">
-                    <History className="mr-2 h-3.5 w-3.5" /> Tanggapan Dukuh
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-3 flex items-center gap-2">
+                    <History className="h-4 w-4" /> Tanggapan Dukuh
                   </h4>
-                  <div className="bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100 text-emerald-900 leading-relaxed">
+                  <div className="bg-emerald-50/30 p-4 rounded-md border border-emerald-100 text-sm text-emerald-900 leading-relaxed">
                     {item.catatan_dukuh}
                   </div>
                 </section>
@@ -174,31 +181,29 @@ export default function DetailProposalPage() {
           </Card>
         </div>
 
-        {/* Right Column: Status & Processing */}
+        {/* Sidebar */}
         <div className="space-y-6">
-          {/* Status Card (Viewing) */}
+          {/* Status Panel (Viewing) */}
           {!editMode && (
-            <Card className="border-none shadow-xl rounded-[2rem] bg-slate-900 text-white overflow-hidden">
-              <CardHeader className="p-6 pb-2">
-                <CardTitle className="text-lg font-bold flex items-center gap-2">
-                  <Wallet className="h-5 w-5 text-emerald-400" />
-                  Informasi Pelaksanaan
+            <Card className="border border-border shadow-sm rounded-lg bg-slate-900 text-white overflow-hidden">
+              <CardHeader className="p-6 pb-2 border-b border-white/10">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <Wallet className="h-4 w-4 text-emerald-400" />
+                  Pelaksanaan
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6 space-y-4">
+              <CardContent className="p-6 space-y-5">
                 <div className="space-y-1">
-                  <Label className="text-[10px] uppercase tracking-widest text-slate-400">Status Akhir</Label>
-                  <div className="flex items-center gap-2">
-                    <StatusBadge status={item.status} />
-                  </div>
+                  <p className="text-[10px] uppercase font-semibold tracking-widest text-white/50">Status Saat Ini</p>
+                  <StatusBadge status={item.status} />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[10px] uppercase tracking-widest text-slate-400">Sumber Dana</Label>
-                  <p className="font-bold text-emerald-400">{item.sumber_dana ? item.sumber_dana.toUpperCase().replace('_', ' ') : 'BELUM DITETAPKAN'}</p>
+                  <p className="text-[10px] uppercase font-semibold tracking-widest text-white/50">Sumber Dana</p>
+                  <p className="text-sm font-semibold text-emerald-400">{item.sumber_dana ? item.sumber_dana.toUpperCase().replace('_', ' ') : 'BELUM DITETAPKAN'}</p>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[10px] uppercase tracking-widest text-slate-400">Estimasi Pelaksanaan</Label>
-                  <p className="font-bold text-blue-400">{item.tahun_dilaksanakan ? `TAHUN ${item.tahun_dilaksanakan}` : 'BELUM DIJADWALKAN'}</p>
+                  <p className="text-[10px] uppercase font-semibold tracking-widest text-white/50">Tahun Pelaksanaan</p>
+                  <p className="text-sm font-semibold text-blue-400">{item.tahun_dilaksanakan ? `TAHUN ${item.tahun_dilaksanakan}` : 'BELUM DIJADWALKAN'}</p>
                 </div>
               </CardContent>
             </Card>
@@ -206,18 +211,18 @@ export default function DetailProposalPage() {
 
           {/* Edit Mode Panel (Dukuh Only) */}
           {editMode && (
-            <Card className="border-none shadow-2xl rounded-[2rem] bg-white overflow-hidden">
-              <CardHeader className="p-6 border-b border-slate-50">
-                <CardTitle className="text-lg font-bold flex items-center gap-2">
-                  <FileEdit className="h-5 w-5 text-emerald-600" />
+            <Card className="border border-border shadow-sm rounded-lg bg-card overflow-hidden">
+              <CardHeader className="p-6 bg-muted/30 border-b border-border">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <FileEdit className="h-4 w-4 text-emerald-600" />
                   Proses Usulan
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6 space-y-6">
+              <CardContent className="p-6 space-y-5">
                 <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase text-slate-400">Update Status</Label>
+                  <Label>Update Status</Label>
                   <select 
-                    className="w-full h-11 rounded-xl border border-slate-200 px-3 text-sm focus:ring-2 focus:ring-emerald-500/20"
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
                     value={form.status}
                     onChange={(e) => setForm({ ...form, status: e.target.value })}
                   >
@@ -231,9 +236,9 @@ export default function DetailProposalPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase text-slate-400">Sumber Dana</Label>
+                  <Label>Sumber Dana</Label>
                   <select 
-                    className="w-full h-11 rounded-xl border border-slate-200 px-3 text-sm focus:ring-2 focus:ring-emerald-500/20"
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
                     value={form.sumber_dana}
                     onChange={(e) => setForm({ ...form, sumber_dana: e.target.value })}
                   >
@@ -248,44 +253,42 @@ export default function DetailProposalPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase text-slate-400">Tahun Pelaksanaan</Label>
+                  <Label>Tahun Pelaksanaan</Label>
                   <Input 
                     type="number" 
                     placeholder="2025" 
-                    className="h-11 rounded-xl"
                     value={form.tahun_dilaksanakan}
                     onChange={(e) => setForm({ ...form, tahun_dilaksanakan: e.target.value })}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase text-slate-400">Catatan / Feedback</Label>
+                  <Label>Catatan / Feedback</Label>
                   <Textarea 
                     placeholder="Berikan alasan atau detail tambahan..."
-                    className="min-h-[100px] rounded-xl"
+                    className="min-h-[100px]"
                     value={form.catatan_dukuh}
                     onChange={(e) => setForm({ ...form, catatan_dukuh: e.target.value })}
                   />
                 </div>
 
                 <div className="flex gap-2 pt-2">
-                  <Button variant="ghost" className="flex-1 rounded-xl" onClick={() => setEditMode(false)}>Batal</Button>
+                  <Button variant="ghost" className="flex-1" onClick={() => setEditMode(false)}>Batal</Button>
                   <Button 
-                    className="flex-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-600/20"
+                    className="flex-[2] bg-emerald-600 hover:bg-emerald-700 font-semibold"
                     onClick={handleUpdate}
                     disabled={updateStatus.isPending}
                   >
-                    {updateStatus.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Simpan Perubahan'}
+                    {updateStatus.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Simpan'}
                   </Button>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Quick Stats Helper */}
-          <div className="rounded-[2rem] bg-blue-600 p-8 text-white shadow-xl shadow-blue-600/20">
-            <h4 className="text-sm font-bold mb-2">Penting:</h4>
-            <p className="text-xs text-blue-100 leading-relaxed">
+          <div className="rounded-lg bg-blue-50 p-6 border border-blue-100">
+            <h4 className="text-sm font-semibold text-blue-900 mb-2">Penting</h4>
+            <p className="text-xs text-blue-800 leading-relaxed">
               Seluruh usulan yang disetujui akan masuk ke dalam RKP Padukuhan tahunan dan akan diprioritaskan dalam Musrenbangdes.
             </p>
           </div>
@@ -298,18 +301,18 @@ export default function DetailProposalPage() {
 function StatusBadge({ status }: { status: string }) {
   switch (status) {
     case 'diusulkan':
-      return <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none px-2.5 py-1 rounded-full text-[10px]"><Clock className="mr-1 h-3 w-3" /> USULAN</Badge>
+      return <Badge variant="secondary" className="bg-amber-100 text-amber-700 border-none px-2.5 py-0.5 text-xs"><Clock className="mr-1.5 h-3 w-3" /> USULAN</Badge>
     case 'dikaji':
-      return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-none px-2.5 py-1 rounded-full text-[10px]"><Search className="mr-1 h-3 w-3" /> DIKAJI</Badge>
+      return <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-none px-2.5 py-0.5 text-xs"><Search className="mr-1.5 h-3 w-3" /> DIKAJI</Badge>
     case 'disetujui':
-      return <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none px-2.5 py-1 rounded-full text-[10px]"><CheckCircle2 className="mr-1 h-3 w-3" /> DISETUJUI</Badge>
+      return <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 border-none px-2.5 py-0.5 text-xs"><CheckCircle2 className="mr-1.5 h-3 w-3" /> DISETUJUI</Badge>
     case 'dilaksanakan':
-      return <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 border-none px-2.5 py-1 rounded-full text-[10px]"><Construction className="mr-1 h-3 w-3" /> JALAN</Badge>
+      return <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-none px-2.5 py-0.5 text-xs"><Construction className="mr-1.5 h-3 w-3" /> JALAN</Badge>
     case 'selesai':
-      return <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100 border-none px-2.5 py-1 rounded-full text-[10px]"><CheckCircle2 className="mr-1 h-3 w-3" /> SELESAI</Badge>
+      return <Badge variant="secondary" className="bg-slate-100 text-slate-700 border-none px-2.5 py-0.5 text-xs"><CheckCircle2 className="mr-1.5 h-3 w-3" /> SELESAI</Badge>
     case 'ditolak':
-      return <Badge className="bg-rose-100 text-rose-700 hover:bg-rose-100 border-none px-2.5 py-1 rounded-full text-[10px]"><XCircle className="mr-1 h-3 w-3" /> DITOLAK</Badge>
+      return <Badge variant="secondary" className="bg-rose-100 text-rose-700 border-none px-2.5 py-0.5 text-xs"><XCircle className="mr-1.5 h-3 w-3" /> DITOLAK</Badge>
     default:
-      return <Badge variant="outline" className="text-[10px]">{status}</Badge>
+      return <Badge variant="outline" className="text-xs">{status}</Badge>
   }
 }

@@ -16,8 +16,6 @@ import {
   Construction, 
   MapPin, 
   Info,
-  CheckCircle2,
-  AlertCircle,
   ShieldCheck
 } from 'lucide-react'
 import Link from 'next/link'
@@ -54,141 +52,143 @@ export default function BaruProposalPage() {
   }
 
   return (
-    <div className="min-h-full bg-slate-50/50 py-12 dark:bg-slate-950/50">
-      <div className="mx-auto max-w-2xl px-4">
-        <Link href="/program" className="mb-6 flex items-center text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Kembali ke Daftar
+    <div className="p-6 md:p-8 max-w-2xl mx-auto space-y-6">
+      <div className="flex items-center gap-4 border-b border-border pb-6">
+        <Link href="/program">
+          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
         </Link>
+        <div>
+          <h1 className="text-[28px] font-semibold tracking-tight text-foreground">
+            {isDukuh() ? 'Inisiatif Dukuh' : 'Usulan Program'}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">Sampaikan aspirasi pembangunan wilayah</p>
+        </div>
+      </div>
 
-        <Card className="border-none bg-white/70 shadow-2xl backdrop-blur-md dark:bg-slate-900/70 overflow-hidden rounded-[2rem]">
-          <div className="h-2 bg-emerald-600" />
-          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-8 pt-8 px-8">
-            <div className="flex items-center gap-4 mb-2">
-              <div className="rounded-2xl bg-emerald-600 p-3 text-white shadow-lg shadow-emerald-600/20">
-                {isDukuh() ? <ShieldCheck className="h-6 w-6" /> : <Construction className="h-6 w-6" />}
-              </div>
-              <div>
-                <CardTitle className="text-2xl font-bold tracking-tight">
-                  {isDukuh() ? 'Ajukan Inisiatif Dukuh' : 'Ajukan Usulan Program'}
-                </CardTitle>
-                <CardDescription>
-                  {isDukuh() ? 'Program strategis hasil inisiatif atau instruksi pemerintah.' : 'Sampaikan aspirasi pembangunan untuk wilayah Anda.'}
-                </CardDescription>
-              </div>
+      <Card className="border border-border shadow-sm rounded-lg overflow-hidden bg-card">
+        <CardHeader className="bg-muted/30 border-b border-border p-6">
+          <div className="flex items-center gap-4">
+            <div className="text-emerald-600">
+              {isDukuh() ? <ShieldCheck className="h-5 w-5" /> : <Construction className="h-5 w-5" />}
             </div>
-          </CardHeader>
-          <CardContent className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-8">
-              {/* Nama & Jenis */}
-              <div className="grid gap-6 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase tracking-wider text-slate-400">Nama Program</Label>
-                  <Input
-                    placeholder="Contoh: Corblok Jalan Mawar"
-                    className="h-12 rounded-xl border-slate-200 bg-white focus-visible:ring-emerald-500/20"
-                    value={form.nama_program}
-                    onChange={(e) => setForm({ ...form, nama_program: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase tracking-wider text-slate-400">Jenis Program</Label>
-                  <select
-                    className="flex h-12 w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20"
-                    value={form.jenis_program}
-                    onChange={(e) => setForm({ ...form, jenis_program: e.target.value as any })}
-                    required
-                  >
-                    <option value="infrastruktur">Infrastruktur</option>
-                    <option value="sosial">Sosial & Budaya</option>
-                    <option value="kesehatan">Kesehatan</option>
-                    <option value="pendidikan">Pendidikan</option>
-                    <option value="penerangan">Penerangan Jalan</option>
-                    <option value="lingkungan">Lingkungan Hidup</option>
-                    <option value="ekonomi">Ekonomi / UMKM</option>
-                    <option value="lainnya">Lainnya</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Wilayah & Sumber (Dukuh version) */}
-              <div className="grid gap-6 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase tracking-wider text-slate-400">Wilayah RT</Label>
-                  {isDukuh() ? (
-                    <select
-                      className="flex h-12 w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20"
-                      value={form.rt_id}
-                      onChange={(e) => setForm({ ...form, rt_id: e.target.value })}
-                      required
-                    >
-                      <option value="">Pilih RT...</option>
-                      {rts?.map((rt: any) => (
-                        <option key={rt.id} value={rt.id}>RT {String(rt.nomor_rt).padStart(3, '0')}</option>
-                      ))}
-                    </select>
-                  ) : (
-                    <div className="h-12 flex items-center px-4 bg-slate-50 rounded-xl text-sm font-semibold border border-slate-100">
-                      RT Otomatis (Wilayah Anda)
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase tracking-wider text-slate-400">Sumber Usulan</Label>
-                  <select
-                    className="flex h-12 w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20"
-                    value={form.sumber_usulan}
-                    onChange={(e) => setForm({ ...form, sumber_usulan: e.target.value })}
-                    required
-                  >
-                    <option value="warga">Aspirasi Warga</option>
-                    <option value="inisiatif_rt">Inisiatif RT</option>
-                    <option value="inisiatif_dukuh">Inisiatif Dukuh</option>
-                    <option value="pemerintah">Instruksi Pemerintah</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Lokasi Detail */}
+            <div>
+              <CardTitle className="text-xl font-semibold tracking-tight">Form Usulan Baru</CardTitle>
+              <CardDescription className="text-sm mt-1">
+                {isDukuh() ? 'Program strategis hasil inisiatif atau instruksi.' : 'Aspirasi pembangunan untuk wilayah Anda.'}
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid gap-6 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase tracking-wider text-slate-400">Lokasi Detail</Label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <Input
-                    placeholder="Contoh: Depan Masjid, Jalan poros RT 6, dll..."
-                    className="h-12 pl-10 rounded-xl border-slate-200 bg-white focus-visible:ring-emerald-500/20"
-                    value={form.lokasi}
-                    onChange={(e) => setForm({ ...form, lokasi: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Deskripsi */}
-              <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase tracking-wider text-slate-400">Deskripsi Lengkap</Label>
-                <Textarea
-                  placeholder="Jelaskan detail rencana kegiatan, manfaat, dan estimasi sasaran..."
-                  className="min-h-[150px] rounded-2xl border-slate-200 bg-white focus-visible:ring-emerald-500/20 p-4"
-                  value={form.deskripsi}
-                  onChange={(e) => setForm({ ...form, deskripsi: e.target.value })}
+                <Label>Nama Program</Label>
+                <Input
+                  placeholder="Contoh: Corblok Jalan Mawar"
+                  value={form.nama_program}
+                  onChange={(e) => setForm({ ...form, nama_program: e.target.value })}
                   required
                 />
               </div>
 
-              {/* Warning/Info */}
-              <div className="rounded-2xl bg-amber-50 p-4 flex gap-3 border border-amber-100 dark:bg-amber-950/20">
-                <Info className="h-5 w-5 text-amber-600 flex-shrink-0" />
-                <p className="text-xs text-amber-800 dark:text-amber-400 leading-relaxed">
-                  Setiap usulan yang masuk akan dikaji oleh Dukuh dan tim teknis sebelum diputuskan sumber pendanaannya (Dana Desa, Swadaya, atau CSR).
-                </p>
+              <div className="space-y-2">
+                <Label>Jenis Program</Label>
+                <select
+                  className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                  value={form.jenis_program}
+                  onChange={(e) => setForm({ ...form, jenis_program: e.target.value as any })}
+                  required
+                >
+                  <option value="infrastruktur">Infrastruktur</option>
+                  <option value="sosial">Sosial & Budaya</option>
+                  <option value="kesehatan">Kesehatan</option>
+                  <option value="pendidikan">Pendidikan</option>
+                  <option value="penerangan">Penerangan Jalan</option>
+                  <option value="lingkungan">Lingkungan Hidup</option>
+                  <option value="ekonomi">Ekonomi / UMKM</option>
+                  <option value="lainnya">Lainnya</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Wilayah RT</Label>
+                {isDukuh() ? (
+                  <select
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                    value={form.rt_id}
+                    onChange={(e) => setForm({ ...form, rt_id: e.target.value })}
+                    required
+                  >
+                    <option value="">Pilih RT...</option>
+                    {rts?.map((rt: any) => (
+                      <option key={rt.id} value={rt.id}>RT {String(rt.nomor_rt).padStart(3, '0')}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="h-10 flex items-center px-3 bg-muted/50 rounded-md text-sm font-medium border border-border text-muted-foreground">
+                    RT Otomatis (Wilayah Anda)
+                  </div>
+                )}
               </div>
 
+              <div className="space-y-2">
+                <Label>Sumber Usulan</Label>
+                <select
+                  className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                  value={form.sumber_usulan}
+                  onChange={(e) => setForm({ ...form, sumber_usulan: e.target.value })}
+                  required
+                >
+                  <option value="warga">Aspirasi Warga</option>
+                  <option value="inisiatif_rt">Inisiatif RT</option>
+                  <option value="inisiatif_dukuh">Inisiatif Dukuh</option>
+                  <option value="pemerintah">Instruksi Pemerintah</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Lokasi Detail</Label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Contoh: Depan Masjid, Jalan poros RT 6, dll..."
+                  className="pl-9"
+                  value={form.lokasi}
+                  onChange={(e) => setForm({ ...form, lokasi: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Deskripsi Lengkap</Label>
+              <Textarea
+                placeholder="Jelaskan detail rencana kegiatan, manfaat, dan estimasi sasaran..."
+                className="min-h-[120px] resize-y"
+                value={form.deskripsi}
+                onChange={(e) => setForm({ ...form, deskripsi: e.target.value })}
+                required
+              />
+            </div>
+
+            <div className="rounded-lg bg-amber-50/50 p-4 flex gap-3 border border-amber-200">
+              <Info className="h-5 w-5 text-amber-600 flex-shrink-0" />
+              <p className="text-xs text-amber-800 leading-relaxed">
+                Setiap usulan yang masuk akan dikaji sebelum diputuskan sumber pendanaannya (Dana Desa, Swadaya, atau CSR).
+              </p>
+            </div>
+
+            <div className="pt-2">
               <Button 
                 type="submit" 
-                className="w-full h-14 rounded-2xl bg-emerald-600 text-lg font-bold shadow-xl shadow-emerald-600/20 hover:bg-emerald-700 transition-all hover:-translate-y-0.5 active:translate-y-0"
+                size="lg"
+                className="w-full text-base font-semibold bg-emerald-600 hover:bg-emerald-700"
                 disabled={createProposal.isPending}
               >
                 {createProposal.isPending ? (
@@ -203,10 +203,10 @@ export default function BaruProposalPage() {
                   </>
                 )}
               </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   )
 }
