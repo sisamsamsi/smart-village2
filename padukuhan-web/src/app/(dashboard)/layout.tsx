@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import Link from 'next/link'
-import { Home, Users, ClipboardList, FileText, LayoutTemplate, Megaphone, Calendar, Shield, MessageSquare, Settings, Bell } from 'lucide-react'
+import { Home, Users, ClipboardList, FileText, LayoutTemplate, Megaphone, Calendar, Shield, MessageSquare, Settings, Bell, Printer } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import SidebarClient from './SidebarClient'
@@ -44,6 +44,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             { href: '/kependudukan', icon: <Users size={20} />, label: 'Data Warga', category: 'Kependudukan' },
             { href: '/pkk', icon: <ClipboardList size={20} />, label: 'PKK & Dasawisma' },
             { href: '/surat', icon: <FileText size={20} />, label: 'Layanan Surat', category: 'Layanan' },
+            { href: '/laporan', icon: <Printer size={20} />, label: 'Laporan PKK' },
             { href: '/program', icon: <LayoutTemplate size={20} />, label: 'Pembangunan' },
             { href: '/pengumuman', icon: <Megaphone size={20} />, label: 'Pengumuman', category: 'Informasi' },
             { href: '/kegiatan', icon: <Calendar size={20} />, label: 'Agenda Kegiatan' },

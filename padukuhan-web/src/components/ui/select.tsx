@@ -30,7 +30,7 @@ Select.displayName = "Select"
 
 // Abstraksi untuk memudahkan transisi jika nanti pakai Radix
 const SelectTrigger = ({ children }: { children: React.ReactNode }) => <>{children}</>
-const SelectValue = ({ placeholder }: { placeholder?: string }) => <option value="" disabled selected>{placeholder}</option>
+const SelectValue = ({ placeholder }: { placeholder?: string }) => <option value="" disabled>{placeholder}</option>
 const SelectContent = ({ children }: { children: React.ReactNode }) => <>{children}</>
 const SelectItem = ({ children, value }: { children: React.ReactNode, value: string }) => (
   <option value={value}>{children}</option>
