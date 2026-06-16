@@ -5,52 +5,60 @@ export function useDashboardStats() {
   return useQuery({
     queryKey: ['dashboard', 'stats'],
     queryFn: async () => {
-      const [wargaRes, kkRes, laporanRes] = await Promise.all([
-        supabase.from('wargas').select('id, tanggal_lahir, jenis_kelamin, status_perkawinan, status_kehamilan, status_menyusui').eq('status_warga', 'aktif'),
-        supabase.from('rumah_tanggas').select('*', { count: 'exact', head: true }).eq('status_aktif', true),
-        supabase.from('laporan_kejadian').select('*', { count: 'exact', head: true }).eq('status', 'baru'),
+      const now = new Date();
+      
+      const fiveYearsAgo = new Date();
+      fiveYearsAgo.setFullYear(now.getFullYear() - 5);
+      const fiveYearsAgoStr = fiveYearsAgo.toISOString().split('T')[0];
+
+      const sixtyYearsAgo = new Date();
+      sixtyYearsAgo.setFullYear(now.getFullYear() - 60);
+      const sixtyYearsAgoStr = sixtyYearsAgo.toISOString().split('T')[0];
+
+      const fifteenYearsAgo = new Date();
+      fifteenYearsAgo.setFullYear(now.getFullYear() - 15);
+      const fifteenYearsAgoStr = fifteenYearsAgo.toISOString().split('T')[0];
+
+      const fortyNineYearsAgo = new Date();
+      fortyNineYearsAgo.setFullYear(now.getFullYear() - 49);
+      const fortyNineYearsAgoStr = fortyNineYearsAgo.toISOString().split('T')[0];
+
+      const [
+        wargaRes,
+        kkRes,
+        laporanRes,
+        balitaRes,
+        lansiaRes,
+        wusRes,
+        pusRes,
+        bumilRes,
+        busuiRes
+      ] = await Promise.all([
+        supabase.from('wargas').select('id', { count: 'exact', head: true }).eq('status_warga', 'aktif'),
+        supabase.from('rumah_tanggas').select('id', { count: 'exact', head: true }).eq('status_aktif', true),
+        supabase.from('laporan_kejadian').select('id', { count: 'exact', head: true }).eq('status', 'baru'),
+        supabase.from('wargas').select('id', { count: 'exact', head: true }).eq('status_warga', 'aktif').gte('tanggal_lahir', fiveYearsAgoStr),
+        supabase.from('wargas').select('id', { count: 'exact', head: true }).eq('status_warga', 'aktif').lte('tanggal_lahir', sixtyYearsAgoStr),
+        supabase.from('wargas').select('id', { count: 'exact', head: true }).eq('status_warga', 'aktif').eq('jenis_kelamin', 'P').gte('tanggal_lahir', fortyNineYearsAgoStr).lte('tanggal_lahir', fifteenYearsAgoStr),
+        supabase.from('wargas').select('id', { count: 'exact', head: true }).eq('status_warga', 'aktif').eq('jenis_kelamin', 'P').eq('status_perkawinan', 'kawin').gte('tanggal_lahir', fortyNineYearsAgoStr).lte('tanggal_lahir', fifteenYearsAgoStr),
+        supabase.from('wargas').select('id', { count: 'exact', head: true }).eq('status_warga', 'aktif').eq('status_kehamilan', true),
+        supabase.from('wargas').select('id', { count: 'exact', head: true }).eq('status_warga', 'aktif').eq('status_menyusui', true),
       ]);
 
       if (wargaRes.error) throw wargaRes.error;
       if (kkRes.error) throw kkRes.error;
 
-      const wargas = wargaRes.data || [];
-      const now = new Date();
-      
-      const stats = {
-        totalWarga: wargas.length,
+      return {
+        totalWarga: wargaRes.count ?? 0,
         totalKK: kkRes.count ?? 0,
         totalLaporan: laporanRes.count ?? 0,
-        balita: 0,
-        lansia: 0,
-        wus: 0,
-        pus: 0,
-        ibuHamil: 0,
-        ibuMenyusui: 0
+        balita: balitaRes.count ?? 0,
+        lansia: lansiaRes.count ?? 0,
+        wus: wusRes.count ?? 0,
+        pus: pusRes.count ?? 0,
+        ibuHamil: bumilRes.count ?? 0,
+        ibuMenyusui: busuiRes.count ?? 0
       };
-
-      wargas.forEach(w => {
-        if (!w.tanggal_lahir) return;
-        const birthDate = new Date(w.tanggal_lahir);
-        let age = now.getFullYear() - birthDate.getFullYear();
-        const m = now.getMonth() - birthDate.getMonth();
-        if (m < 0 || (m === 0 && now.getDate() < birthDate.getDate())) {
-          age--;
-        }
-
-        if (age <= 5) stats.balita++;
-        if (age >= 60) stats.lansia++;
-        
-        if (w.jenis_kelamin === 'P' && age >= 15 && age <= 49) {
-          stats.wus++;
-          if (w.status_perkawinan === 'kawin') stats.pus++;
-        }
-
-        if (w.status_kehamilan) stats.ibuHamil++;
-        if (w.status_menyusui) stats.ibuMenyusui++;
-      });
-
-      return stats;
     },
   });
 }

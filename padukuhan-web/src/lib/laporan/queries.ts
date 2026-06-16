@@ -94,6 +94,85 @@ export const getL2Data = async (rumahTanggaId: string) => {
 }
 
 /**
+ * Query data bundle untuk Laporan L2 (Massal per Dasawisma)
+ */
+export const getL2BundleData = async (dasawismaId: string) => {
+  const { data: rumahTanggas, error } = await supabase
+    .from('rumah_tanggas')
+    .select(`
+      *,
+      wargas (*),
+      dasawismas (
+        nama_dasawisma,
+        rts (
+          nomor_rt
+        )
+      )
+    `)
+    .eq('dasawisma_id', dasawismaId)
+
+  if (error) throw error
+
+  // Sort wargas inside each rt
+  const mapped = rumahTanggas.map((rt: any) => {
+    const sortedAnggota = (rt.wargas || []).sort((a: any, b: any) => {
+      const statusA = a.status_keluarga || a.status_dalam_keluarga || ''
+      const statusB = b.status_keluarga || b.status_dalam_keluarga || ''
+      if (statusA === 'kepala_keluarga') return -1
+      if (statusB === 'kepala_keluarga') return 1
+      return 0
+    })
+    return { ...rt, anggota: sortedAnggota }
+  })
+
+  return mapped
+}
+
+/**
+ * Query data bundle untuk Laporan Catatan Keluarga (Massal per Dasawisma per Tahun)
+ */
+export const getCatatanKeluargaBundleData = async (dasawismaId: string, tahun: number) => {
+  const { data: rumahTanggas, error } = await supabase
+    .from('rumah_tanggas')
+    .select(`
+      *,
+      wargas (
+        *,
+        pkk_partisipasi (*)
+      ),
+      dasawismas (
+        nama_dasawisma,
+        rts (
+          nomor_rt
+        )
+      )
+    `)
+    .eq('dasawisma_id', dasawismaId)
+    .order('no_kk', { ascending: true })
+
+  if (error) throw error
+
+  // Sort wargas inside each rt and filter pkk_partisipasi by year
+  const mapped = rumahTanggas.map((rt: any) => {
+    const sortedAnggota = (rt.wargas || []).sort((a: any, b: any) => {
+      const statusA = a.status_keluarga || a.status_dalam_keluarga || ''
+      const statusB = b.status_keluarga || b.status_dalam_keluarga || ''
+      if (statusA === 'kepala_keluarga') return -1
+      if (statusB === 'kepala_keluarga') return 1
+      return 0
+    }).map((w: any) => {
+      // Find partisipasi for specific year
+      const partisipasi = (w.pkk_partisipasi || []).find((p: any) => p.tahun === tahun)
+      return { ...w, partisipasi_tahun: partisipasi || null }
+    })
+    
+    return { ...rt, anggota: sortedAnggota }
+  })
+
+  return mapped
+}
+
+/**
  * Query data untuk Laporan L3 (Rekapitulasi Dasawisma)
  * Mengambil data dari VIEW v_rekap_dasawisma
  */

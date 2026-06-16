@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, Alert, ActivityIndicator, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { supabase } from '@/lib/supabase';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQueryClient } from '@tanstack/react-query';
@@ -13,6 +14,8 @@ export default function TambahWargaScreen() {
   const { data: rts } = useRTs();
   const { data: kkList } = useKKs();
   const [loading, setLoading] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [kkSearch, setKkSearch] = useState('');
 
   const [form, setForm] = useState({
     nama_lengkap: '',
@@ -31,6 +34,11 @@ export default function TambahWargaScreen() {
     nama_kepala_keluarga_baru: '',
     pendidikan: 'SD/SEDERAJAT'
   });
+
+  const filteredKk = kkList?.filter((kk: any) =>
+    kk.no_kk?.toLowerCase().includes(kkSearch.toLowerCase()) ||
+    kk.nama_kepala_keluarga?.toLowerCase().includes(kkSearch.toLowerCase())
+  );
 
   const handleSubmit = async () => {
     if (!form.nama_lengkap || !form.nik || !form.rt_id) {
@@ -151,12 +159,11 @@ export default function TambahWargaScreen() {
                   <TextInput 
                     style={[styles.input, { paddingLeft: 48, backgroundColor: '#F8FAFC', borderRadius: 18, height: 56, borderWidth: 1, borderColor: '#E2E8F0' }]}
                     placeholder="Cari No KK atau Nama Kepala Keluarga..."
-                    onChangeText={(text) => {
-                      // Simple search logic could be added here
-                    }}
+                    value={kkSearch}
+                    onChangeText={setKkSearch}
                   />
                   <ScrollView style={{ maxHeight: 200, marginTop: 8 }} nestedScrollEnabled>
-                    {kkList?.map((kk: any) => (
+                    {filteredKk?.map((kk: any) => (
                       <TouchableOpacity 
                         key={kk.id}
                         onPress={() => setForm({ ...form, rumah_tangga_id: kk.id })}
@@ -217,12 +224,16 @@ export default function TambahWargaScreen() {
                 />
               </View>
               <View style={styles.half}>
-                <InputGroup
-                  label="Tanggal Lahir"
-                  value={form.tanggal_lahir}
-                  onChangeText={(v) => setForm({ ...form, tanggal_lahir: v })}
-                  placeholder="YYYY-MM-DD"
-                />
+                <Text style={styles.label}>Tanggal Lahir</Text>
+                <TouchableOpacity 
+                  onPress={() => setShowDatePicker(true)}
+                  style={[styles.inputWrapper, { height: 60, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center' }]}
+                >
+                  <Calendar size={18} color="#94A3B8" style={{ marginRight: 12 }} />
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: '#1E293B', flex: 1 }}>
+                    {form.tanggal_lahir || 'YYYY-MM-DD'}
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -297,6 +308,19 @@ export default function TambahWargaScreen() {
             <View style={{ height: 40 }} />
           </View>
         </ScrollView>
+        {showDatePicker && (
+          <DateTimePicker
+            value={form.tanggal_lahir ? new Date(form.tanggal_lahir) : new Date()}
+            mode="date"
+            display="default"
+            onChange={(event, selectedDate) => {
+              setShowDatePicker(false);
+              if (selectedDate) {
+                setForm({ ...form, tanggal_lahir: selectedDate.toISOString().split('T')[0] });
+              }
+            }}
+          />
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

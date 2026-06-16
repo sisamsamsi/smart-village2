@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { supabase } from '@/lib/supabase';
 import { useUpdateWarga } from '@/hooks/useKependudukan';
 import { 
@@ -26,6 +27,7 @@ export default function EditWargaScreen() {
   const router = useRouter();
   const wargaId = Array.isArray(id) ? id[0] : id;
   const updateWarga = useUpdateWarga();
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const { data: warga, isLoading } = useQuery({
     queryKey: ['warga', wargaId],
@@ -182,15 +184,15 @@ export default function EditWargaScreen() {
                 </View>
                 <View style={[styles.field, { flex: 1 }]}>
                   <Text style={styles.fieldLabel}>TGL LAHIR</Text>
-                  <View style={styles.inputWrapper}>
-                    <Calendar size={18} color="#94A3B8" style={{ marginLeft: 16 }} />
-                    <TextInput
-                      placeholder="YYYY-MM-DD"
-                      style={[styles.input, { paddingLeft: 12 }]}
-                      value={form.tanggal_lahir}
-                      onChangeText={(val) => setForm({...form, tanggal_lahir: val})}
-                    />
-                  </View>
+                  <TouchableOpacity 
+                    onPress={() => setShowDatePicker(true)}
+                    style={[styles.inputWrapper, { height: 56, paddingLeft: 16, flexDirection: 'row', alignItems: 'center' }]}
+                  >
+                    <Calendar size={18} color="#94A3B8" />
+                    <Text style={{ fontSize: 15, fontWeight: '700', color: '#1E293B', marginLeft: 12, flex: 1 }}>
+                      {form.tanggal_lahir || 'YYYY-MM-DD'}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
 
@@ -318,6 +320,19 @@ export default function EditWargaScreen() {
           </View>
           <View style={{ height: 40 }} />
         </ScrollView>
+        {showDatePicker && (
+        <DateTimePicker
+          value={form.tanggal_lahir ? new Date(form.tanggal_lahir) : new Date()}
+          mode="date"
+          display="default"
+          onChange={(event, selectedDate) => {
+            setShowDatePicker(false);
+            if (selectedDate) {
+              setForm({ ...form, tanggal_lahir: selectedDate.toISOString().split('T')[0] });
+            }
+          }}
+        />
+      )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

@@ -55,6 +55,15 @@ export const useCreateMutasi = () => {
         await supabase.from('wargas').update({ status_warga: 'meninggal' }).eq('id', payload.warga_id)
       } else if (payload.jenis_mutasi === 'pindah_keluar' && payload.warga_id) {
         await supabase.from('wargas').update({ status_warga: 'pindah_keluar' }).eq('id', payload.warga_id)
+      } else if (payload.jenis_mutasi === 'kehamilan' && payload.warga_id) {
+        const isHamil = payload.status_kehamilan === 'hamil';
+        await supabase
+          .from('wargas')
+          .update({ 
+            status_kehamilan: isHamil, 
+            status_menyusui: !isHamil 
+          })
+          .eq('id', payload.warga_id)
       }
 
       return data

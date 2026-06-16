@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import { useRTs } from '@/hooks/useKependudukan';
 import { Search, User, ChevronRight, Plus, MapPin, Filter, X, XCircle } from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useAuthStore } from '@/stores/authStore';
 
 const { width } = Dimensions.get('window');
 
@@ -26,24 +27,35 @@ function rtNomor(item: any): string | number {
 }
 
 export default function WargaTabScreen() {
+  const { profile } = useAuthStore();
+  const role = profile?.role;
+  const rtId = profile?.rt_id;
+  const dasawismaId = profile?.dasawisma_id;
+
   const [search, setSearch] = useState('');
   const { data: rtList } = useRTs();
   const [filterRT, setFilterRT] = useState<string | null>(null);
   const router = useRouter();
 
   const { data: wargas, isLoading, error, refetch } = useQuery({
-    queryKey: ['wargas', search, filterRT],
+    queryKey: ['wargas', search, filterRT, role, rtId, dasawismaId],
     queryFn: async () => {
+      let selectFields = `
+        id, 
+        nama_lengkap, 
+        nik, 
+        rumah_tangga_id, 
+        status_warga, 
+        rt:rt_id(nomor_rt)
+      `;
+
+      if (role === 'kader_dasawisma' && dasawismaId) {
+        selectFields += `, rumah_tanggas!inner(dasawisma_id)`;
+      }
+
       let query = supabase
         .from('wargas')
-        .select(`
-          id, 
-          nama_lengkap, 
-          nik, 
-          rumah_tangga_id, 
-          status_warga, 
-          rt:rt_id(nomor_rt)
-        `)
+        .select(selectFields)
         .order('nama_lengkap', { ascending: true })
         .limit(50);
 
@@ -51,7 +63,12 @@ export default function WargaTabScreen() {
         query = query.ilike('nama_lengkap', `%${search}%`);
       }
 
-      if (filterRT) {
+      // Filter berdasarkan hak akses peran aktif
+      if (role === 'kader_dasawisma' && dasawismaId) {
+        query = query.eq('rumah_tanggas.dasawisma_id', dasawismaId);
+      } else if (role === 'ketua_rt' && rtId) {
+        query = query.eq('rt_id', rtId);
+      } else if (filterRT) {
         query = query.eq('rt_id', filterRT);
       }
 
@@ -114,19 +131,21 @@ export default function WargaTabScreen() {
         </View>
       </View>
 
-      <View style={styles.filterSection}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
-          <FilterChip label="Semua RT" active={!filterRT} onPress={() => setFilterRT(null)} />
-          {rtList?.map((rt) => (
-            <FilterChip
-              key={rt.id}
-              label={`RT 0${rt.nomor_rt}`}
-              active={filterRT === rt.id}
-              onPress={() => setFilterRT(rt.id)}
-            />
-          ))}
-        </ScrollView>
-      </View>
+      {!(role === 'ketua_rt' || role === 'kader_dasawisma') && (
+        <View style={styles.filterSection}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+            <FilterChip label="Semua RT" active={!filterRT} onPress={() => setFilterRT(null)} />
+            {rtList?.map((rt) => (
+              <FilterChip
+                key={rt.id}
+                label={`RT 0${rt.nomor_rt}`}
+                active={filterRT === rt.id}
+                onPress={() => setFilterRT(rt.id)}
+              />
+            ))}
+          </ScrollView>
+        </View>
+      )}
 
       {isLoading ? (
         <View style={styles.loaderContainer}>

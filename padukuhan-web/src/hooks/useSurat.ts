@@ -44,7 +44,7 @@ export function useUpdateSuratStatus() {
       nomor_surat?: string
     }) => {
       const { data, error } = await supabase
-        .from('surat_pengajuan_publik')
+        .from('surat_pengajuan')
         .update({ 
           status, 
           catatan_rt: catatan,

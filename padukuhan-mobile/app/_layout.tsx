@@ -1,4 +1,4 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -6,18 +6,17 @@ import 'react-native-reanimated';
 import { QueryClientProvider } from '@tanstack/react-query';
 import "../global.css";
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { queryClient } from '@/lib/query';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
 import type { UserProfile } from '@/types/auth';
+import { UpdateBanner } from '@/components/UpdateBanner';
 
 export const unstable_settings = {
   anchor: '(app)',
 };
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const { user, initialized, setUser, setProfile, setInitialized } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
@@ -70,7 +69,7 @@ export default function RootLayout() {
       // Redirect to login if not authenticated
       router.replace('/login');
     } else if (user && inAuthGroup) {
-      router.replace('/(app)');
+      router.replace('/(app)' as any);
     }
   }, [user, segments, initialized]);
 
@@ -80,8 +79,8 @@ export default function RootLayout() {
         <Stack>
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(app)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         </Stack>
+        <UpdateBanner />
         <StatusBar style="light" />
       </ThemeProvider>
     </QueryClientProvider>

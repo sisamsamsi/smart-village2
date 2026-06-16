@@ -42,7 +42,7 @@ export default function LoginScreen() {
           .single();
 
         setProfile(profile as UserProfile);
-        router.replace('/(app)');
+        router.replace('/(app)' as any);
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Gagal login. Silakan periksa kembali.';

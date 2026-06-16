@@ -31,7 +31,34 @@ yarn-error.*
 *.pem
 
 # local env files
-.env*.local
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+.env.*
+*.env
+
+# credentials, secrets, & certificates
+*.pem
+*.key
+*.jks
+*.keystore
+*.p12
+*.p8
+*.pfx
+*.pub
+*.mobileprovision
+google-services.json
+GoogleService-Info.plist
+*-credentials.json
+service-account*.json
+
+# databases
+*.sqlite
+*.sqlite3
+*.db
+*.backup
 
 # typescript
 *.tsbuildinfo

@@ -17,12 +17,15 @@ import {
   CreditCard,
   MapPin,
   FileText,
-  LogIn
+  LogIn,
+  Heart,
+  UserPlus
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const { width } = Dimensions.get('window');
-type MutationType = 'kelahiran' | 'kematian' | 'pindah_keluar' | 'pindah_datang';
+type MutationType = 'kelahiran' | 'kematian' | 'pindah_keluar' | 'pindah_masuk' | 'kehamilan';
 
 export default function AddMutasiScreen() {
   const router = useRouter();
@@ -34,6 +37,7 @@ export default function AddMutasiScreen() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [selectedWarga, setSelectedWarga] = useState<any>(null);
   const [searching, setSearching] = useState(false);
+  const [activeDatePicker, setActiveDatePicker] = useState<'tanggal_mutasi' | 'hpht' | 'tanggal_melahirkan' | null>(null);
 
   const [form, setForm] = useState({
     jenis_mutasi: 'kelahiran' as MutationType,
@@ -47,7 +51,12 @@ export default function AddMutasiScreen() {
     tujuan_daerah: '',
     asal_daerah: '',
     keterangan: '',
-    warga_id: ''
+    warga_id: '',
+    // Tambahan Kehamilan
+    status_kehamilan: 'hamil' as 'hamil' | 'melahirkan' | 'nifas',
+    hpht: '',
+    hpl: '',
+    tanggal_melahirkan: '',
   });
 
   const handleSearchWarga = async (text: string) => {
@@ -58,12 +67,17 @@ export default function AddMutasiScreen() {
     }
 
     setSearching(true);
-    const { data, error } = await supabase
+    let query = supabase
       .from('wargas')
       .select('id, nama_lengkap, nik, rts(nomor_rt), hubungan_keluarga')
       .ilike('nama_lengkap', `%${text}%`)
-      .eq('status_warga', 'aktif')
-      .limit(5);
+      .eq('status_warga', 'aktif');
+    
+    if (activeTab === 'kehamilan') {
+      query = query.eq('jenis_kelamin', 'P');
+    }
+
+    const { data, error } = await query.limit(5);
     
     if (!error && data) {
       setSearchResults(data);
@@ -73,11 +87,60 @@ export default function AddMutasiScreen() {
 
   const selectWarga = (warga: any) => {
     setSelectedWarga(warga);
-    setForm({ ...form, warga_id: warga.id });
+    setForm({ 
+      ...form, 
+      warga_id: warga.id,
+      nama_ibu: activeTab === 'kehamilan' ? warga.nama_lengkap : form.nama_ibu
+    });
     setWargaSearch('');
     setSearchResults([]);
     // Reset toggle 1 KK jika pilih warga baru
     setIsSatuKk(false);
+  };
+
+  const handleTabChange = (tab: MutationType) => {
+    setActiveTab(tab);
+    setSelectedWarga(null);
+    setWargaSearch('');
+    setSearchResults([]);
+    setIsSatuKk(false);
+    setForm(prev => ({
+      ...prev,
+      warga_id: '',
+      nama_bayi: '',
+      jenis_kelamin_bayi: 'L',
+      nama_ibu: '',
+      nama_ayah: '',
+      ada_akte: false,
+      sebab_meninggal: '',
+      tujuan_daerah: '',
+      asal_daerah: '',
+      status_kehamilan: 'hamil',
+      hpht: '',
+      hpl: '',
+      tanggal_melahirkan: '',
+    }));
+  };
+
+  const getHplDate = (hphtStr: string) => {
+    if (!hphtStr) return '-';
+    const date = new Date(hphtStr);
+    if (isNaN(date.getTime())) return 'Format salah';
+    date.setDate(date.getDate() + 280);
+    return date.toISOString().split('T')[0];
+  };
+
+  const getUsiaKehamilan = (hphtStr: string) => {
+    if (!hphtStr) return '-';
+    const hpht = new Date(hphtStr);
+    if (isNaN(hpht.getTime())) return 'Format salah';
+    const today = new Date();
+    const diffMs = today.getTime() - hpht.getTime();
+    const diffHari = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (diffHari < 0) return 'HPHT di masa depan';
+    const minggu = Math.floor(diffHari / 7);
+    const hari = diffHari % 7;
+    return `${minggu} minggu ${hari} hari`;
   };
 
   const handleSubmit = async () => {
@@ -86,17 +149,52 @@ export default function AddMutasiScreen() {
       return;
     }
 
-    if (activeTab !== 'kelahiran' && activeTab !== 'pindah_datang' && !form.warga_id) {
+    if (activeTab !== 'kelahiran' && activeTab !== 'pindah_masuk' && !form.warga_id) {
       Alert.alert('Eror', 'Silakan cari dan pilih warga terlebih dahulu.');
       return;
     }
 
+    if (activeTab === 'kehamilan') {
+      if (form.status_kehamilan === 'hamil') {
+        if (!form.hpht) {
+          Alert.alert('Eror', 'Silakan isi tanggal HPHT.');
+          return;
+        }
+        const date = new Date(form.hpht);
+        if (isNaN(date.getTime())) {
+          Alert.alert('Eror', 'Format tanggal HPHT salah. Gunakan YYYY-MM-DD.');
+          return;
+        }
+      } else {
+        if (!form.tanggal_melahirkan) {
+          Alert.alert('Eror', 'Silakan isi tanggal melahirkan.');
+          return;
+        }
+        const date = new Date(form.tanggal_melahirkan);
+        if (isNaN(date.getTime())) {
+          Alert.alert('Eror', 'Format tanggal melahirkan salah. Gunakan YYYY-MM-DD.');
+          return;
+        }
+      }
+    }
+
     try {
-      await createMutasi.mutateAsync({ 
-        ...form, 
+      const payload: any = {
+        ...form,
         jenis_mutasi: activeTab,
         is_satu_kk: isSatuKk
-      });
+      };
+
+      if (activeTab === 'kehamilan') {
+        if (form.status_kehamilan === 'hamil') {
+          payload.hpl = getHplDate(form.hpht);
+        } else {
+          payload.hpht = null;
+          payload.hpl = null;
+        }
+      }
+
+      await createMutasi.mutateAsync(payload);
       Alert.alert('Berhasil', 'Data mutasi berhasil disimpan.');
       router.back();
     } catch (err: any) {
@@ -127,25 +225,31 @@ export default function AddMutasiScreen() {
                 active={activeTab === 'kelahiran'} 
                 label="Lahir" 
                 icon={<Baby size={16} color={activeTab === 'kelahiran' ? '#fff' : '#64748B'} />}
-                onPress={() => setActiveTab('kelahiran')} 
+                onPress={() => handleTabChange('kelahiran')} 
               />
               <TabButton 
                 active={activeTab === 'kematian'} 
                 label="Wafat" 
                 icon={<Skull size={16} color={activeTab === 'kematian' ? '#fff' : '#64748B'} />}
-                onPress={() => setActiveTab('kematian')} 
+                onPress={() => handleTabChange('kematian')} 
               />
               <TabButton 
                 active={activeTab === 'pindah_keluar'} 
                 label="Keluar" 
                 icon={<ArrowRightLeft size={16} color={activeTab === 'pindah_keluar' ? '#fff' : '#64748B'} />}
-                onPress={() => setActiveTab('pindah_keluar')} 
+                onPress={() => handleTabChange('pindah_keluar')} 
               />
               <TabButton 
-                active={activeTab === 'pindah_datang'} 
+                active={activeTab === 'pindah_masuk'} 
                 label="Datang" 
-                icon={<LogIn size={16} color={activeTab === 'pindah_datang' ? '#fff' : '#64748B'} />}
-                onPress={() => setActiveTab('pindah_datang')} 
+                icon={<LogIn size={16} color={activeTab === 'pindah_masuk' ? '#fff' : '#64748B'} />}
+                onPress={() => handleTabChange('pindah_masuk')} 
+              />
+              <TabButton 
+                active={activeTab === 'kehamilan'} 
+                label="Hamil" 
+                icon={<Heart size={16} color={activeTab === 'kehamilan' ? '#fff' : '#64748B'} />}
+                onPress={() => handleTabChange('kehamilan')} 
               />
             </View>
 
@@ -167,11 +271,11 @@ export default function AddMutasiScreen() {
                         <X size={16} color="#64748B" />
                       </TouchableOpacity>
                     </View>
-                  ) : activeTab === 'pindah_datang' ? (
+                  ) : activeTab === 'pindah_masuk' ? (
                     <View style={styles.infoBoxBlue}>
                       <Info size={20} color="#1D4ED8" />
                       <Text style={styles.infoTextBlue}>
-                        Untuk pendatang baru, silakan gunakan menu <Text style={{fontWeight:'900'}}>"Tambah Warga"</Text> agar NIK & No KK terekam lengkap di database.
+                        Untuk pendatang baru, silakan gunakan menu <Text style={{fontWeight:'900'}}>{`"Tambah Warga"`}</Text> agar NIK & No KK terekam lengkap di database.
                       </Text>
                     </View>
                   ) : (
@@ -228,18 +332,150 @@ export default function AddMutasiScreen() {
               {/* Common Fields */}
               <View style={styles.field}>
                 <Text style={styles.fieldLabel}>TANGGAL PERISTIWA</Text>
-                <View style={styles.inputWrapper}>
-                  <CalendarIcon size={20} color="#94A3B8" style={{ marginLeft: 16 }} />
-                  <TextInput
-                    placeholder="YYYY-MM-DD"
-                    style={styles.input}
-                    value={form.tanggal_mutasi}
-                    onChangeText={(val) => setForm({...form, tanggal_mutasi: val})}
-                  />
-                </View>
+                <TouchableOpacity 
+                  onPress={() => setActiveDatePicker('tanggal_mutasi')}
+                  style={[styles.inputWrapper, { height: 56, paddingLeft: 16, flexDirection: 'row', alignItems: 'center' }]}
+                >
+                  <CalendarIcon size={20} color="#94A3B8" />
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: '#1E293B', marginLeft: 12, flex: 1 }}>
+                    {form.tanggal_mutasi || 'YYYY-MM-DD'}
+                  </Text>
+                </TouchableOpacity>
               </View>
 
               {/* Type Specific Fields */}
+              {activeTab === 'kehamilan' && (
+                <>
+                  <View style={styles.field}>
+                    <Text style={styles.fieldLabel}>STATUS KEHAMILAN</Text>
+                    <View style={styles.genderRow}>
+                      <TouchableOpacity 
+                        onPress={() => setForm({...form, status_kehamilan: 'hamil'})}
+                        style={[styles.genderButton, form.status_kehamilan === 'hamil' && styles.genderButtonActive]}
+                      >
+                        <Text style={[styles.genderText, form.status_kehamilan === 'hamil' && styles.genderTextActive]}>Hamil</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        onPress={() => setForm({...form, status_kehamilan: 'melahirkan'})}
+                        style={[styles.genderButton, form.status_kehamilan === 'melahirkan' && styles.genderButtonActive]}
+                      >
+                        <Text style={[styles.genderText, form.status_kehamilan === 'melahirkan' && styles.genderTextActive]}>Melahirkan</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        onPress={() => setForm({...form, status_kehamilan: 'nifas'})}
+                        style={[styles.genderButton, form.status_kehamilan === 'nifas' && styles.genderButtonActive]}
+                      >
+                        <Text style={[styles.genderText, form.status_kehamilan === 'nifas' && styles.genderTextActive]}>Nifas</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  {form.status_kehamilan === 'hamil' && (
+                    <>
+                      <View style={styles.field}>
+                        <Text style={styles.fieldLabel}>TANGGAL HPHT (HARI PERTAMA HAID TERAKHIR)</Text>
+                        <TouchableOpacity 
+                          onPress={() => setActiveDatePicker('hpht')}
+                          style={[styles.inputWrapper, { height: 56, paddingLeft: 16, flexDirection: 'row', alignItems: 'center' }]}
+                        >
+                          <CalendarIcon size={20} color="#94A3B8" />
+                          <Text style={{ fontSize: 15, fontWeight: '700', color: '#1E293B', marginLeft: 12, flex: 1 }}>
+                            {form.hpht || 'YYYY-MM-DD'}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+
+                      <View style={styles.infoBoxBlue}>
+                        <Info size={20} color="#1D4ED8" />
+                        <View style={{ flex: 1, marginLeft: 10 }}>
+                          <Text style={styles.infoTextBlue}>
+                            <Text style={{ fontWeight: 'bold' }}>Hari Perkiraan Lahir (HPL):</Text> {getHplDate(form.hpht)}
+                          </Text>
+                          <Text style={[styles.infoTextBlue, { marginTop: 4 }]}>
+                            <Text style={{ fontWeight: 'bold' }}>Usia Kehamilan:</Text> {getUsiaKehamilan(form.hpht)}
+                          </Text>
+                        </View>
+                      </View>
+                    </>
+                  )}
+
+                  {(form.status_kehamilan === 'melahirkan' || form.status_kehamilan === 'nifas') && (
+                    <View style={styles.field}>
+                      <Text style={styles.fieldLabel}>TANGGAL MELAHIRKAN / PERSALINAN</Text>
+                      <TouchableOpacity 
+                        onPress={() => setActiveDatePicker('tanggal_melahirkan')}
+                        style={[styles.inputWrapper, { height: 56, paddingLeft: 16, flexDirection: 'row', alignItems: 'center' }]}
+                      >
+                        <CalendarIcon size={20} color="#94A3B8" />
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: '#1E293B', marginLeft: 12, flex: 1 }}>
+                          {form.tanggal_melahirkan || 'YYYY-MM-DD'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+
+                  {form.status_kehamilan === 'melahirkan' && (
+                    <>
+                      <View style={styles.field}>
+                        <Text style={styles.fieldLabel}>NAMA BAYI</Text>
+                        <View style={styles.inputWrapper}>
+                          <Baby size={20} color="#94A3B8" style={{ marginLeft: 16 }} />
+                          <TextInput
+                            placeholder="Nama Lengkap Bayi"
+                            style={styles.input}
+                            value={form.nama_bayi}
+                            onChangeText={(val) => setForm({...form, nama_bayi: val})}
+                          />
+                        </View>
+                      </View>
+                      
+                      <View style={styles.field}>
+                        <Text style={styles.fieldLabel}>JENIS KELAMIN BAYI</Text>
+                        <View style={styles.genderRow}>
+                          <TouchableOpacity 
+                            onPress={() => setForm({...form, jenis_kelamin_bayi: 'L'})}
+                            style={[styles.genderButton, form.jenis_kelamin_bayi === 'L' && styles.genderButtonActive]}
+                          >
+                            <Text style={[styles.genderText, form.jenis_kelamin_bayi === 'L' && styles.genderTextActive]}>Laki-laki</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity 
+                            onPress={() => setForm({...form, jenis_kelamin_bayi: 'P'})}
+                            style={[styles.genderButton, form.jenis_kelamin_bayi === 'P' && styles.genderButtonActive]}
+                          >
+                            <Text style={[styles.genderText, form.jenis_kelamin_bayi === 'P' && styles.genderTextActive]}>Perempuan</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+
+                      <View style={styles.field}>
+                        <Text style={styles.fieldLabel}>NAMA AYAH / SUAMI</Text>
+                        <View style={styles.inputWrapper}>
+                          <User size={20} color="#94A3B8" style={{ marginLeft: 16 }} />
+                          <TextInput
+                            placeholder="Nama Lengkap Ayah"
+                            style={styles.input}
+                            value={form.nama_ayah}
+                            onChangeText={(val) => setForm({...form, nama_ayah: val})}
+                          />
+                        </View>
+                      </View>
+
+                      <TouchableOpacity 
+                        onPress={() => setForm({...form, ada_akte: !form.ada_akte})}
+                        style={[styles.kkToggle, form.ada_akte && styles.kkToggleActive]}
+                      >
+                        <View style={[styles.checkbox, form.ada_akte && styles.checkboxActive]}>
+                          {form.ada_akte && <CheckCircle2 size={14} color="#fff" />}
+                        </View>
+                        <Text style={[styles.kkToggleText, form.ada_akte && styles.kkToggleTextActive]}>
+                          Memiliki Akte Kelahiran
+                        </Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+                </>
+              )}
+
               {activeTab === 'kelahiran' && (
                 <>
                   <View style={styles.field}>
@@ -330,24 +566,51 @@ export default function AddMutasiScreen() {
                 />
               </View>
 
-              <TouchableOpacity 
-                onPress={handleSubmit}
-                disabled={createMutasi.isPending}
-                style={styles.submitButton}
-              >
-                {createMutasi.isPending ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <>
-                    <CheckCircle2 size={20} color="#fff" />
-                    <Text style={styles.submitButtonText}>SIMPAN DATA MUTASI</Text>
-                  </>
-                )}
-              </TouchableOpacity>
+              {activeTab === 'pindah_masuk' ? (
+                <TouchableOpacity 
+                  onPress={() => router.push('/kependudukan/tambah' as any)}
+                  style={[styles.submitButton, { backgroundColor: '#1B5E20' }]}
+                >
+                  <UserPlus size={20} color="#fff" />
+                  <Text style={styles.submitButtonText}>TAMBAH WARGA BARU</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity 
+                  onPress={handleSubmit}
+                  disabled={createMutasi.isPending}
+                  style={styles.submitButton}
+                >
+                  {createMutasi.isPending ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <>
+                      <CheckCircle2 size={20} color="#fff" />
+                      <Text style={styles.submitButtonText}>SIMPAN DATA MUTASI</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              )}
             </View>
           </View>
           <View style={{ height: 40 }} />
         </ScrollView>
+        {activeDatePicker !== null && (
+          <DateTimePicker
+            value={form[activeDatePicker] ? new Date(form[activeDatePicker]) : new Date()}
+            mode="date"
+            display="default"
+            onChange={(event, selectedDate) => {
+              const field = activeDatePicker;
+              setActiveDatePicker(null);
+              if (selectedDate) {
+                setForm({
+                  ...form,
+                  [field]: selectedDate.toISOString().split('T')[0]
+                });
+              }
+            }}
+          />
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -423,10 +686,10 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   tabText: {
-    fontSize: 12,
+    fontSize: 9,
     fontWeight: '700',
     color: '#64748B',
-    marginLeft: 8,
+    marginLeft: 4,
   },
   tabTextActive: {
     color: '#fff',

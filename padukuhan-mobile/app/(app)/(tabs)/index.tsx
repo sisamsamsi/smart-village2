@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { Users, Home, FileText, AlertTriangle, Construction, ArrowRightLeft, Megaphone, LogOut, ChevronRight } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { RoleSimulator } from '@/components/RoleSimulator';
 
 const { width } = Dimensions.get('window');
 
@@ -17,6 +18,8 @@ export default function DashboardScreen() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
+
+  const isKader = profile?.role === 'kader_dasawisma';
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -57,6 +60,9 @@ export default function DashboardScreen() {
           </View>
         </View>
 
+        {/* Simulator Role */}
+        <RoleSimulator />
+
         {/* Menu Grid */}
         <View style={styles.menuSection}>
           <Text style={styles.sectionLabel}>LAYANAN DIGITAL</Text>
@@ -70,26 +76,24 @@ export default function DashboardScreen() {
               title="Pembangunan" 
               icon={<Construction size={24} color="#1B5E20" />} 
               onPress={() => router.push('/program' as any)}
+              disabled={isKader}
             />
             <MenuCard 
               title="Mutasi Warga" 
               icon={<ArrowRightLeft size={24} color="#1B5E20" />} 
               onPress={() => router.push('/mutasi' as any)}
+              disabled={isKader}
             />
             <MenuCard 
               title="Layanan Surat" 
               icon={<FileText size={24} color="#1B5E20" />} 
               onPress={() => router.push('/surat' as any)}
+              disabled={isKader}
             />
             <MenuCard 
               title="Kegiatan PKK" 
               icon={<Home size={24} color="#1B5E20" />} 
               onPress={() => router.push('/pkk' as any)}
-            />
-            <MenuCard 
-              title="Pengumuman" 
-              icon={<Megaphone size={24} color="#1B5E20" />} 
-              onPress={() => router.push('/pengumuman' as any)}
             />
           </View>
         </View>
@@ -104,22 +108,6 @@ export default function DashboardScreen() {
             <PkkStatItem label="PUS" value={stats?.pus ?? 0} color="#EC4899" bg="#FFF1F2" />
             <PkkStatItem label="Ibu Hamil" value={stats?.ibuHamil ?? 0} color="#F43F5E" bg="#FFF1F2" />
           </ScrollView>
-        </View>
-
-        {/* Info Box */}
-        <View style={styles.infoContainer}>
-          <View style={styles.infoBox}>
-            <Text style={styles.infoTag}>INFORMASI TERKINI</Text>
-            <Text style={styles.infoTitle}>
-              Musyawarah Padukuhan Mandingan hari Sabtu, 10 Mei 2026 jam 19.30 WIB.
-            </Text>
-            <TouchableOpacity style={styles.infoButton} onPress={() => router.push('/pengumuman' as any)}>
-              <Text style={styles.infoButtonText}>Lihat Agenda</Text>
-              <ChevronRight size={14} color="#fff" />
-            </TouchableOpacity>
-            {/* Decoration */}
-            <View style={styles.decorationCircle} />
-          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -144,13 +132,17 @@ function PkkStatItem({ label, value, color, bg }: { label: string, value: number
   )
 }
 
-function MenuCard({ title, icon, onPress }: { title: string, icon: React.ReactNode, onPress?: () => void }) {
+function MenuCard({ title, icon, onPress, disabled }: { title: string, icon: React.ReactNode, onPress?: () => void, disabled?: boolean }) {
   return (
-    <TouchableOpacity onPress={onPress} style={styles.menuCard}>
-      <View style={styles.menuIconWrapper}>
+    <TouchableOpacity 
+      onPress={disabled ? undefined : onPress} 
+      style={[styles.menuCard, disabled && styles.menuCardDisabled]}
+      activeOpacity={disabled ? 1 : 0.7}
+    >
+      <View style={[styles.menuIconWrapper, disabled && styles.menuIconWrapperDisabled]}>
          {icon}
       </View>
-      <Text style={styles.menuTitle}>{title}</Text>
+      <Text style={[styles.menuTitle, disabled && styles.menuTitleDisabled]}>{title}</Text>
     </TouchableOpacity>
   );
 }
@@ -297,6 +289,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#F8FAFC',
   },
+  menuCardDisabled: {
+    opacity: 0.5,
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+  },
   menuIconWrapper: {
     height: 56,
     width: 56,
@@ -306,68 +303,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 12,
   },
+  menuIconWrapperDisabled: {
+    backgroundColor: '#E2E8F0',
+  },
   menuTitle: {
     color: '#1E293B',
     fontSize: 13,
     fontWeight: '800',
     textAlign: 'center',
   },
-  infoContainer: {
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-    marginTop: 20,
-  },
-  infoBox: {
-    backgroundColor: '#0F172A',
-    borderRadius: 35,
-    padding: 28,
-    position: 'relative',
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 15 },
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  infoTag: {
-    color: 'rgba(255,255,255,0.4)',
-    fontSize: 9,
-    fontWeight: '900',
-    letterSpacing: 1.5,
-    marginBottom: 8,
-  },
-  infoTitle: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-    lineHeight: 24,
-    marginBottom: 20,
-  },
-  infoButton: {
-    backgroundColor: '#1B5E20',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 14,
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  infoButtonText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginRight: 6,
-  },
-  decorationCircle: {
-    position: 'absolute',
-    bottom: -40,
-    right: -40,
-    height: 120,
-    width: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+  menuTitleDisabled: {
+    color: '#94A3B8',
   },
   pkkStatsSection: {
     paddingTop: 24,

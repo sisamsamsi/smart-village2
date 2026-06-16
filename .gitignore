@@ -15,11 +15,34 @@ venv/
 # Environment
 .env
 .env.local
-.env.*.local
+.env.development
+.env.production
+.env.staging
+.env.*
+*.env
 
 # Databases
 *.sqlite
+*.sqlite3
 *.db
+*.backup
+backup/
+db_backups/
+
+# credentials, secrets, & certificates
+*.pem
+*.key
+*.jks
+*.keystore
+*.p12
+*.p8
+*.pfx
+*.pub
+*.mobileprovision
+google-services.json
+GoogleService-Info.plist
+*-credentials.json
+service-account*.json
 
 # OS
 .DS_Store

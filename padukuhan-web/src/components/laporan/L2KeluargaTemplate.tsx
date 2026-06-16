@@ -1,120 +1,275 @@
 import React from 'react'
-import { Page, Text, View, Document } from '@react-pdf/renderer'
-import { styles } from './shared/TableStyles'
-import { KopSurat } from './shared/KopSurat'
-import { TandaTangan } from './shared/TandaTangan'
-import { formatTanggal, calculateAge, formatStatusKeluarga } from '@/lib/laporan/formatters'
+import { Page, Text, View, Document, StyleSheet } from '@react-pdf/renderer'
+import { formatTanggal, calculateAge } from '@/lib/laporan/formatters'
+
+const localStyles = StyleSheet.create({
+  page: {
+    paddingTop: 30,
+    paddingBottom: 30,
+    paddingLeft: 40,
+    paddingRight: 40,
+    fontFamily: 'Helvetica',
+  },
+  judulContainer: {
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  judul: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  // Top Header Info
+  headerInfo: {
+    marginBottom: 15,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    marginBottom: 5,
+  },
+  headerLabel: {
+    width: 200,
+    fontSize: 9,
+  },
+  headerDots: {
+    width: 15,
+    fontSize: 9,
+  },
+  headerValue: {
+    flex: 1,
+    fontSize: 9,
+  },
+  // Table Section
+  table: {
+    width: '100%',
+    borderStyle: 'solid',
+    borderWidth: 1,
+    borderColor: '#000',
+    marginBottom: 15,
+  },
+  tableRow: {
+    flexDirection: 'row',
+  },
+  tableColHeader: {
+    borderStyle: 'solid',
+    borderBottomWidth: 1,
+    borderRightWidth: 1,
+    borderColor: '#000',
+    padding: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9',
+  },
+  tableColHeaderLast: {
+    borderStyle: 'solid',
+    borderBottomWidth: 1,
+    borderColor: '#000',
+    padding: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9',
+  },
+  tableCol: {
+    borderStyle: 'solid',
+    borderBottomWidth: 1,
+    borderRightWidth: 1,
+    borderColor: '#000',
+    padding: 5,
+    justifyContent: 'center',
+  },
+  tableColLast: {
+    borderStyle: 'solid',
+    borderBottomWidth: 1,
+    borderColor: '#000',
+    padding: 5,
+    justifyContent: 'center',
+  },
+  tableCellHeader: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  tableCell: {
+    fontSize: 8,
+  },
+  tableCellCenter: {
+    fontSize: 8,
+    textAlign: 'center',
+  },
+  // Bottom Info
+  bottomInfoRow: {
+    flexDirection: 'row',
+    marginBottom: 5,
+  },
+  bottomLabel: {
+    width: 250,
+    fontSize: 9,
+  },
+  bottomDots: {
+    width: 15,
+    fontSize: 9,
+  },
+  bottomValue: {
+    flex: 1,
+    fontSize: 9,
+  }
+})
 
 interface L2Props {
   data: any // Info Rumah Tangga + anggota[]
 }
 
-export const L2KeluargaTemplate: React.FC<L2Props> = ({ data }) => {
+export const L2KeluargaPage: React.FC<L2Props> = ({ data }) => {
   const anggota = data?.anggota || []
   const dasawisma = data?.dasawismas || {}
   
+  const padukuhanText = "Padukuhan Mandingan, Kalurahan Ringinharjo, Kapanewon Bantul"
+
+  // Calculasi Jumlah Anak dkk
+  let cBalita = 0, cPus = 0, cWus = 0, cButa = 0, cHamil = 0, cMenyusui = 0, cLansia = 0;
+  anggota.forEach((w: any) => {
+    const age = calculateAge(w.tanggal_lahir) || 0;
+    if (age < 5) cBalita++;
+    if (age >= 60) cLansia++;
+    if (w.jenis_kelamin === 'P' && age >= 15 && age <= 49) {
+      cWus++;
+      if (w.status_perkawinan === 'kawin') {
+        cPus++;
+      }
+    }
+    if (w.berkebutuhan_khusus) cButa++;
+  });
+
+  const jumlahAnakStr = `a. Balita: ${cBalita} orang; b. PUS: ${cPus} orang; c. WUS: ${cWus} orang; d. Buta: ${cButa} orang; e. Ibu Hamil: ${cHamil} orang; f. Ibu Menyusui: ${cMenyusui} orang; g. Lansia: ${cLansia} orang`
+
   return (
-    <Document>
-      <Page size="A4" style={styles.page}>
-        <KopSurat />
+      <Page size="FOLIO" orientation="landscape" style={localStyles.page}>
         
-        <View style={styles.judulContainer}>
-          <Text style={styles.judul}>DATA KELUARGA</Text>
+        <View style={localStyles.judulContainer}>
+          <Text style={localStyles.judul}>LAPORAN DATA KELUARGA</Text>
         </View>
 
         {/* Info Header */}
-        <View style={{ marginBottom: 15 }}>
-          <View style={styles.infoRow}>
-            <Text style={{ width: 140, fontSize: 9 }}>Nama Kepala Keluarga</Text>
-            <Text style={styles.infoDots}>:</Text>
-            <Text style={styles.infoValue}>{data.nama_kepala_keluarga || '-'}</Text>
+        <View style={localStyles.headerInfo}>
+          <View style={localStyles.headerRow}>
+            <Text style={localStyles.headerLabel}>Dasa Wisma</Text>
+            <Text style={localStyles.headerDots}>:</Text>
+            <Text style={localStyles.headerValue}>{dasawisma?.nama_dasawisma || '-'}</Text>
           </View>
-          <View style={styles.infoRow}>
-            <Text style={{ width: 140, fontSize: 9 }}>Dasawisma</Text>
-            <Text style={styles.infoDots}>:</Text>
-            <Text style={styles.infoValue}>{dasawisma?.nama_dasawisma || '-'}</Text>
+          <View style={localStyles.headerRow}>
+            <Text style={localStyles.headerLabel}>Alamat</Text>
+            <Text style={localStyles.headerDots}>:</Text>
+            <Text style={localStyles.headerValue}>{padukuhanText}</Text>
           </View>
-          <View style={styles.infoRow}>
-            <Text style={{ width: 140, fontSize: 9 }}>RT / RW</Text>
-            <Text style={styles.infoDots}>:</Text>
-            <Text style={styles.infoValue}>{dasawisma?.rts?.nomor_rt || '-'} / -</Text>
+          <View style={localStyles.headerRow}>
+            <Text style={localStyles.headerLabel}>Nama Kepala Rumah Tangga</Text>
+            <Text style={localStyles.headerDots}>:</Text>
+            <Text style={localStyles.headerValue}>{data.nama_kepala_keluarga?.toUpperCase() || '-'}</Text>
+          </View>
+          <View style={localStyles.headerRow}>
+            <Text style={localStyles.headerLabel}>Nomor KK</Text>
+            <Text style={localStyles.headerDots}>:</Text>
+            <Text style={localStyles.headerValue}>{data.no_kk || '-'}</Text>
+          </View>
+          <View style={localStyles.headerRow}>
+            <Text style={localStyles.headerLabel}>Jumlah Anggota Keluarga</Text>
+            <Text style={localStyles.headerDots}>:</Text>
+            <Text style={localStyles.headerValue}>{anggota.length} orang</Text>
+          </View>
+          <View style={{ ...localStyles.headerRow, marginTop: 10 }}>
+            <Text style={localStyles.headerLabel}>Jumlah Anak</Text>
+            <Text style={localStyles.headerDots}>:</Text>
+            <Text style={localStyles.headerValue}>{jumlahAnakStr}</Text>
           </View>
         </View>
 
         {/* Tabel Anggota */}
-        <View style={styles.table}>
-          <View style={styles.tableRow}>
-            <View style={[styles.tableColHeader, { width: '5%' }]}><Text style={styles.tableCellHeader}>NO</Text></View>
-            <View style={[styles.tableColHeader, { width: '25%' }]}><Text style={styles.tableCellHeader}>NAMA ANGGOTA</Text></View>
-            <View style={[styles.tableColHeader, { width: '10%' }]}><Text style={styles.tableCellHeader}>STATUS</Text></View>
-            <View style={[styles.tableColHeader, { width: '5%' }]}><Text style={styles.tableCellHeader}>L/P</Text></View>
-            <View style={[styles.tableColHeader, { width: '15%' }]}><Text style={styles.tableCellHeader}>TGL LAHIR</Text></View>
-            <View style={[styles.tableColHeader, { width: '10%' }]}><Text style={styles.tableCellHeader}>UMUR</Text></View>
-            <View style={[styles.tableColHeader, { width: '15%' }]}><Text style={styles.tableCellHeader}>PENDIDIKAN</Text></View>
-            <View style={[styles.tableColHeader, { width: '15%' }]}><Text style={styles.tableCellHeader}>PEKERJAAN</Text></View>
+        <View style={localStyles.table}>
+          <View style={localStyles.tableRow}>
+            <View style={[localStyles.tableColHeader, { width: '4%' }]}><Text style={localStyles.tableCellHeader}>NO</Text></View>
+            <View style={[localStyles.tableColHeader, { width: '6%' }]}><Text style={localStyles.tableCellHeader}>No. REG</Text></View>
+            <View style={[localStyles.tableColHeader, { width: '22%' }]}><Text style={localStyles.tableCellHeader}>NAMA ANGGOTA KELUARGA</Text></View>
+            <View style={[localStyles.tableColHeader, { width: '16%' }]}><Text style={localStyles.tableCellHeader}>STATUS DLM KELUARGA</Text></View>
+            <View style={[localStyles.tableColHeader, { width: '16%' }]}><Text style={localStyles.tableCellHeader}>STATUS DALAM PERKAWINAN</Text></View>
+            <View style={[localStyles.tableColHeader, { width: '3%' }]}><Text style={localStyles.tableCellHeader}>L</Text></View>
+            <View style={[localStyles.tableColHeader, { width: '3%' }]}><Text style={localStyles.tableCellHeader}>P</Text></View>
+            <View style={[localStyles.tableColHeader, { width: '15%' }]}><Text style={localStyles.tableCellHeader}>TGL LAHIR/ UMUR</Text></View>
+            <View style={[localStyles.tableColHeaderLast, { width: '15%' }]}><Text style={localStyles.tableCellHeader}>PEKERJAAN</Text></View>
           </View>
           
-          {anggota.map((w: any, idx: number) => (
-            <View key={idx} style={styles.tableRow}>
-              <View style={[styles.tableCol, { width: '5%', textAlign: 'center' }]}><Text style={styles.tableCell}>{idx + 1}</Text></View>
-              <View style={[styles.tableCol, { width: '25%' }]}><Text style={styles.tableCell}>{w.nama_lengkap}</Text></View>
-              <View style={[styles.tableCol, { width: '10%' }]}><Text style={styles.tableCell}>{formatStatusKeluarga(w.status_keluarga)}</Text></View>
-              <View style={[styles.tableCol, { width: '5%', textAlign: 'center' }]}><Text style={styles.tableCell}>{w.jenis_kelamin}</Text></View>
-              <View style={[styles.tableCol, { width: '15%' }]}><Text style={styles.tableCell}>{formatTanggal(w.tanggal_lahir)}</Text></View>
-              <View style={[styles.tableCol, { width: '10%', textAlign: 'center' }]}><Text style={styles.tableCell}>{calculateAge(w.tanggal_lahir)}</Text></View>
-              <View style={[styles.tableCol, { width: '15%' }]}><Text style={styles.tableCell}>{w.pendidikan_terakhir || '-'}</Text></View>
-              <View style={[styles.tableCol, { width: '15%' }]}><Text style={styles.tableCell}>{w.pekerjaan || '-'}</Text></View>
-            </View>
-          ))}
+          {anggota.map((w: any, idx: number) => {
+             const statusKeluarga = w.status_keluarga || w.status_dalam_keluarga || '-'
+             const statusKawin = w.status_perkawinan || '-'
+             const age = calculateAge(w.tanggal_lahir)
+             const tglLahirUmur = `${formatTanggal(w.tanggal_lahir)} / ${age}`
+
+             return (
+              <View key={idx} style={localStyles.tableRow}>
+                <View style={[localStyles.tableCol, { width: '4%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{idx + 1}</Text></View>
+                <View style={[localStyles.tableCol, { width: '6%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{w.no_reg || '-'}</Text></View>
+                <View style={[localStyles.tableCol, { width: '22%' }]}><Text style={localStyles.tableCell}>{w.nama_lengkap?.toUpperCase()}</Text></View>
+                <View style={[localStyles.tableCol, { width: '16%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{statusKeluarga.replace(/_/g, ' ').toUpperCase()}</Text></View>
+                <View style={[localStyles.tableCol, { width: '16%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{statusKawin.replace(/_/g, ' ').toUpperCase()}</Text></View>
+                <View style={[localStyles.tableCol, { width: '3%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{w.jenis_kelamin === 'L' ? 'V' : ''}</Text></View>
+                <View style={[localStyles.tableCol, { width: '3%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{w.jenis_kelamin === 'P' ? 'V' : ''}</Text></View>
+                <View style={[localStyles.tableCol, { width: '15%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{tglLahirUmur}</Text></View>
+                <View style={[localStyles.tableColLast, { width: '15%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{w.pekerjaan?.toUpperCase() || '-'}</Text></View>
+              </View>
+            )
+          })}
         </View>
 
         {/* Info Fasilitas Rumah */}
-        <Text style={{ fontSize: 10, fontWeight: 'bold', marginTop: 10, marginBottom: 5 }}>KRITERIA RUMAH & FASILITAS:</Text>
-        <View style={{ border: '0.5pt solid black', padding: 5 }}>
-          <View style={styles.infoRow}>
-             <Text style={{ width: 140, fontSize: 8 }}>1. Makanan Pokok Sehari-hari</Text>
-             <Text style={styles.infoDots}>:</Text>
-             <Text style={{ flex: 1, fontSize: 8 }}>{data.makanan_pokok || 'Beras'}</Text>
+        <View>
+          <View style={localStyles.bottomInfoRow}>
+             <Text style={localStyles.bottomLabel}>Makanan Pokok Sehari-Hari</Text>
+             <Text style={localStyles.bottomDots}>:</Text>
+             <Text style={localStyles.bottomValue}>{data.makanan_pokok ? data.makanan_pokok.charAt(0).toUpperCase() + data.makanan_pokok.slice(1) : 'Beras'}</Text>
           </View>
-          <View style={styles.infoRow}>
-             <Text style={{ width: 140, fontSize: 8 }}>2. Memiliki Jamban Keluarga</Text>
-             <Text style={styles.infoDots}>:</Text>
-             <Text style={{ flex: 1, fontSize: 8 }}>{data.memiliki_jamban ? 'YA' : 'TIDAK'} (Jumlah: {data.jumlah_jamban || 0})</Text>
+          <View style={localStyles.bottomInfoRow}>
+             <Text style={localStyles.bottomLabel}>Mempunyai Jamban Keluarga</Text>
+             <Text style={localStyles.bottomDots}>:</Text>
+             <Text style={localStyles.bottomValue}>{data.memiliki_jamban ? `Ada, Jumlah: ${data.jumlah_jamban || 1} buah` : 'Tidak'}</Text>
           </View>
-          <View style={styles.infoRow}>
-             <Text style={{ width: 140, fontSize: 8 }}>3. Sumber Air Keluarga</Text>
-             <Text style={styles.infoDots}>:</Text>
-             <Text style={{ flex: 1, fontSize: 8 }}>{data.sumber_air || '-'}</Text>
+          <View style={localStyles.bottomInfoRow}>
+             <Text style={localStyles.bottomLabel}>Sumber Air Keluarga</Text>
+             <Text style={localStyles.bottomDots}>:</Text>
+             <Text style={localStyles.bottomValue}>{data.sumber_air?.toUpperCase() || '-'}</Text>
           </View>
-          <View style={styles.infoRow}>
-             <Text style={{ width: 140, fontSize: 8 }}>4. Memiliki Tmp Pembuangan Sampah</Text>
-             <Text style={styles.infoDots}>:</Text>
-             <Text style={{ flex: 1, fontSize: 8 }}>{data.memiliki_tempat_sampah ? 'YA' : 'TIDAK'}</Text>
+          <View style={localStyles.bottomInfoRow}>
+             <Text style={localStyles.bottomLabel}>Memiliki Tempat Pembuangan Sampah</Text>
+             <Text style={localStyles.bottomDots}>:</Text>
+             <Text style={localStyles.bottomValue}>{data.memiliki_tempat_sampah ? 'Ada' : 'Tidak'}</Text>
           </View>
-          <View style={styles.infoRow}>
-             <Text style={{ width: 140, fontSize: 8 }}>5. Memiliki SPAL</Text>
-             <Text style={styles.infoDots}>:</Text>
-             <Text style={{ flex: 1, fontSize: 8 }}>{data.memiliki_spal ? 'YA' : 'TIDAK'}</Text>
+          <View style={localStyles.bottomInfoRow}>
+             <Text style={localStyles.bottomLabel}>Mempunyai Saluran Pembuangan Air Limbah</Text>
+             <Text style={localStyles.bottomDots}>:</Text>
+             <Text style={localStyles.bottomValue}>{data.memiliki_spal ? 'Ada' : 'Tidak'}</Text>
           </View>
-          <View style={styles.infoRow}>
-             <Text style={{ width: 140, fontSize: 8 }}>6. Menempel Stiker P4K</Text>
-             <Text style={styles.infoDots}>:</Text>
-             <Text style={{ flex: 1, fontSize: 8 }}>{data.menempel_stiker_p4k ? 'YA' : 'TIDAK'}</Text>
+          <View style={localStyles.bottomInfoRow}>
+             <Text style={localStyles.bottomLabel}>Menempel Stiker P4K</Text>
+             <Text style={localStyles.bottomDots}>:</Text>
+             <Text style={localStyles.bottomValue}>{data.menempel_stiker_p4k ? 'Ada' : 'Tidak'}</Text>
           </View>
-          <View style={styles.infoRow}>
-             <Text style={{ width: 140, fontSize: 8 }}>7. Kriteria Rumah</Text>
-             <Text style={styles.infoDots}>:</Text>
-             <Text style={{ flex: 1, fontSize: 8 }}>{data.kriteria_rumah || 'Sehat Layak Huni'}</Text>
+          <View style={localStyles.bottomInfoRow}>
+             <Text style={localStyles.bottomLabel}>Kriteria Rumah</Text>
+             <Text style={localStyles.bottomDots}>:</Text>
+             <Text style={localStyles.bottomValue}>{(data.kriteria_rumah || 'Sehat Layak Huni').replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}</Text>
           </View>
-          <View style={styles.infoRow}>
-             <Text style={{ width: 140, fontSize: 8 }}>8. Aktivitas UP2K</Text>
-             <Text style={styles.infoDots}>:</Text>
-             <Text style={{ flex: 1, fontSize: 8 }}>{data.aktivitas_up2k ? 'YA' : 'TIDAK'}</Text>
+          <View style={localStyles.bottomInfoRow}>
+             <Text style={localStyles.bottomLabel}>Aktivitas UP2K</Text>
+             <Text style={localStyles.bottomDots}>:</Text>
+             <Text style={localStyles.bottomValue}>{data.aktivitas_up2k ? 'Ada' : 'Tidak'}</Text>
           </View>
         </View>
 
-        <TandaTangan jabatanPenandatangan="Ketua TP PKK / Kepala Rumah Tangga" />
       </Page>
+  )
+}
+
+export const L2KeluargaTemplate: React.FC<L2Props> = ({ data }) => {
+  return (
+    <Document>
+      <L2KeluargaPage data={data} />
     </Document>
   )
 }

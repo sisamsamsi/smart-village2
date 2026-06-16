@@ -175,11 +175,7 @@ export default function SuratDetailScreen() {
                 label="Diajukan Pada" 
                 value={formatTanggal(item.created_at)} 
                 icon={<Calendar size={16} color="#1B5E20" />} 
-              />
-              <DetailRow 
-                label="Metode Pengajuan" 
-                value={item.diajukan_via === 'pwa' ? 'Portal Warga' : 'Layanan RT'} 
-                icon={<Smartphone size={16} color="#1B5E20" />} 
+                isLast={!isApproved || !item.nomor_surat}
               />
               {isApproved && item.nomor_surat && (
                 <DetailRow 

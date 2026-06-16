@@ -151,7 +151,7 @@ function MutasiCard({ item }: { item: any }) {
           </Text>
         </View>
         {item.keterangan && (
-          <Text style={styles.noteText} numberOfLines={1}>"{item.keterangan}"</Text>
+          <Text style={styles.noteText} numberOfLines={1}>{`"${item.keterangan}"`}</Text>
         )}
       </View>
     </View>

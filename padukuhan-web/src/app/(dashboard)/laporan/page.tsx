@@ -13,14 +13,21 @@ import {
 } from 'lucide-react'
 import { useDasawismaList } from '@/hooks/usePkkData'
 import { toast } from 'sonner'
-import { getL1BundleData } from '@/lib/laporan/queries'
+import { getL1BundleData, getL2BundleData, getCatatanKeluargaBundleData } from '@/lib/laporan/queries'
 import { generateAndDownloadPDF } from '@/lib/laporan/pdfGenerator'
 import { L1WargaBundleTemplate } from '@/components/laporan/L1WargaBundleTemplate'
+import { L2KeluargaBundleTemplate } from '@/components/laporan/L2KeluargaBundleTemplate'
+import { CatatanKeluargaBundleTemplate } from '@/components/laporan/CatatanKeluargaBundleTemplate'
 
 export default function LaporanHubPage() {
   const router = useRouter()
   const [selectedDasawisma, setSelectedDasawisma] = useState<string>('')
   const [generatingL1, setGeneratingL1] = useState(false)
+  const [selectedDasawismaL2, setSelectedDasawismaL2] = useState<string>('')
+  const [generatingL2, setGeneratingL2] = useState(false)
+  const [selectedDasawismaCatatan, setSelectedDasawismaCatatan] = useState<string>('')
+  const [selectedTahun, setSelectedTahun] = useState<string>(new Date().getFullYear().toString())
+  const [generatingCatatan, setGeneratingCatatan] = useState(false)
   const { data: dasawismas } = useDasawismaList()
 
   const handleDownloadL1Bundle = async () => {
@@ -50,6 +57,60 @@ export default function LaporanHubPage() {
     }
   }
 
+  const handleDownloadL2Bundle = async () => {
+    if (!selectedDasawismaL2) return
+    setGeneratingL2(true)
+    try {
+      const keluargas = await getL2BundleData(selectedDasawismaL2)
+      if (!keluargas || keluargas.length === 0) {
+        toast.error('Tidak ada data keluarga di Dasawisma ini.')
+        return
+      }
+      
+      const dw = dasawismas?.find((d: any) => d.id === selectedDasawismaL2)
+      const fileName = `L2_Massal_${dw?.nama_dasawisma?.replace(/\s+/g, '_') || 'Dasawisma'}`
+
+      await generateAndDownloadPDF(
+        L2KeluargaBundleTemplate,
+        { keluargas },
+        fileName
+      )
+      toast.success(`Berhasil mengunduh L2 massal (${keluargas.length} keluarga)`)
+    } catch (error) {
+      console.error(error)
+      toast.error('Gagal men-generate PDF massal L2')
+    } finally {
+      setGeneratingL2(false)
+    }
+  }
+
+  const handleDownloadCatatanBundle = async () => {
+    if (!selectedDasawismaCatatan || !selectedTahun) return
+    setGeneratingCatatan(true)
+    try {
+      const keluargas = await getCatatanKeluargaBundleData(selectedDasawismaCatatan, parseInt(selectedTahun))
+      if (!keluargas || keluargas.length === 0) {
+        toast.error('Tidak ada data keluarga di Dasawisma ini.')
+        return
+      }
+      
+      const dw = dasawismas?.find((d: any) => d.id === selectedDasawismaCatatan)
+      const fileName = `Catatan_Keluarga_Massal_${dw?.nama_dasawisma?.replace(/\s+/g, '_') || 'Dasawisma'}_${selectedTahun}`
+
+      await generateAndDownloadPDF(
+        CatatanKeluargaBundleTemplate,
+        { keluargas, tahun: parseInt(selectedTahun) },
+        fileName
+      )
+      toast.success(`Berhasil mengunduh Catatan Keluarga (${keluargas.length} keluarga)`)
+    } catch (error) {
+      console.error(error)
+      toast.error('Gagal men-generate PDF massal Catatan Keluarga')
+    } finally {
+      setGeneratingCatatan(false)
+    }
+  }
+
   return (
     <div className="space-y-8 p-8">
       <div>
@@ -70,7 +131,7 @@ export default function LaporanHubPage() {
             </TabsList>
 
             <TabsContent value="individu" className="mt-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Card className="hover:border-primary/50 transition-colors cursor-pointer group border-none shadow-sm bg-slate-50/50">
                   <CardHeader className="pb-3">
                     <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 mb-2 group-hover:bg-blue-600 group-hover:text-white transition-colors">
@@ -111,10 +172,64 @@ export default function LaporanHubPage() {
                     <CardDescription>Rekap anggota keluarga & fasilitas rumah per KK.</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button variant="outline" className="w-full justify-between font-normal text-muted-foreground border-dashed" onClick={() => toast.info('Pilih KK melalui daftar kependudukan untuk cetak L2')}>
-                      Pilih dari Daftar Warga
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
+                    <div className="space-y-4 mt-2">
+                      <Select value={selectedDasawismaL2} onChange={(e) => setSelectedDasawismaL2(e.target.value)}>
+                        <SelectValue placeholder="Pilih Dasawisma..." />
+                        {dasawismas?.map((dw: any) => (
+                          <SelectItem key={dw.id} value={dw.id}>
+                            {dw.nama_dasawisma}
+                          </SelectItem>
+                        ))}
+                      </Select>
+                      
+                      <Button 
+                        className="w-full bg-emerald-600 hover:bg-emerald-700" 
+                        disabled={!selectedDasawismaL2 || generatingL2}
+                        onClick={handleDownloadL2Bundle}
+                      >
+                        {generatingL2 ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                        {generatingL2 ? 'Memproses PDF...' : 'Unduh L2 (Massal)'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="hover:border-primary/50 transition-colors cursor-pointer border-none shadow-sm bg-slate-50/50">
+                  <CardHeader className="pb-3">
+                    <div className="h-10 w-10 rounded-lg bg-pink-100 flex items-center justify-center text-pink-600 mb-2">
+                      <FileText className="h-5 w-5" />
+                    </div>
+                    <CardTitle className="text-lg">Catatan Keluarga</CardTitle>
+                    <CardDescription>Partisipasi 8 Program PKK per anggota keluarga.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4 mt-2">
+                      <Select value={selectedDasawismaCatatan} onChange={(e) => setSelectedDasawismaCatatan(e.target.value)}>
+                        <SelectValue placeholder="Pilih Dasawisma..." />
+                        {dasawismas?.map((dw: any) => (
+                          <SelectItem key={dw.id} value={dw.id}>
+                            {dw.nama_dasawisma}
+                          </SelectItem>
+                        ))}
+                      </Select>
+
+                      <Select value={selectedTahun} onChange={(e) => setSelectedTahun(e.target.value)}>
+                        <SelectValue placeholder="Pilih Tahun..." />
+                        {[0, 1, 2].map(offset => {
+                          const y = new Date().getFullYear() - offset
+                          return <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                        })}
+                      </Select>
+                      
+                      <Button 
+                        className="w-full bg-pink-600 hover:bg-pink-700" 
+                        disabled={!selectedDasawismaCatatan || !selectedTahun || generatingCatatan}
+                        onClick={handleDownloadCatatanBundle}
+                      >
+                        {generatingCatatan ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                        {generatingCatatan ? 'Memproses PDF...' : 'Unduh Catatan'}
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
