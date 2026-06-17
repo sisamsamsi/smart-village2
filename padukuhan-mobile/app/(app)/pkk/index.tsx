@@ -28,7 +28,7 @@ export default function PkkListScreen() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft color="#1B5E20" size={24} />
+            <ArrowLeft color="#67C090" size={24} />
           </TouchableOpacity>
           <Text style={styles.title}>PKK & Dasawisma</Text>
           <View style={{ width: 44 }} />
@@ -42,7 +42,7 @@ export default function PkkListScreen() {
           <Text style={styles.statLabel}>TOTAL KELOMPOK</Text>
           <Text style={styles.statValue}>{dws?.length || 0}</Text>
         </View>
-        <View style={[styles.statCard, { backgroundColor: '#1B5E20' }]}>
+        <View style={[styles.statCard, { backgroundColor: '#67C090' }]}>
           <Text style={[styles.statLabel, { color: 'rgba(255,255,255,0.6)' }]}>TAHUN AKTIF</Text>
           <Text style={[styles.statValue, { color: '#fff' }]}>2025</Text>
         </View>
@@ -58,7 +58,7 @@ export default function PkkListScreen() {
 
         {isLoading ? (
           <View style={styles.loaderContainer}>
-            <ActivityIndicator color="#1B5E20" size="large" />
+            <ActivityIndicator color="#67C090" size="large" />
           </View>
         ) : error ? (
           <View style={styles.emptyState}>
@@ -76,7 +76,7 @@ export default function PkkListScreen() {
               onPress={() => router.push(`/pkk/${dw.id}` as any)}
             >
               <View style={styles.dwIconWrapper}>
-                <ClipboardList size={24} color="#1B5E20" />
+                <ClipboardList size={24} color="#67C090" />
               </View>
               <View style={styles.dwInfo}>
                 <Text style={styles.dwName}>{dw.nama_dasawisma}</Text>
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     height: 52,
     width: 52,
     borderRadius: 16,
-    backgroundColor: 'rgba(27, 94, 32, 0.05)',
+    backgroundColor: 'rgba(103, 192, 144, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingHorizontal: 20,
     paddingVertical: 10,
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#67C090',
     borderRadius: 12,
   },
   retryText: {

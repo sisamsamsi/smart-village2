@@ -97,7 +97,7 @@ export default function SuratDetailScreen() {
 
   if (isLoading) return (
     <SafeAreaView style={styles.loaderContainer}>
-      <ActivityIndicator color="#1B5E20" size="large" />
+      <ActivityIndicator color="#67C090" size="large" />
     </SafeAreaView>
   );
 
@@ -106,7 +106,7 @@ export default function SuratDetailScreen() {
       <XCircle color="#EF4444" size={48} style={{ marginBottom: 16 }} />
       <Text style={styles.emptyText}>{error ? "Terjadi kesalahan memuat data." : "Data tidak ditemukan."}</Text>
       <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/' as any)} style={{ marginTop: 20 }}>
-        <Text style={{ color: '#1B5E20', fontWeight: '800' }}>Kembali</Text>
+        <Text style={{ color: '#67C090', fontWeight: '800' }}>Kembali</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -122,7 +122,7 @@ export default function SuratDetailScreen() {
         {/* Header Section */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/' as any)} style={styles.backButton}>
-            <ArrowLeft color="#1B5E20" size={24} />
+            <ArrowLeft color="#67C090" size={24} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Verifikasi Layanan</Text>
           <View style={{ width: 44 }} />
@@ -132,7 +132,7 @@ export default function SuratDetailScreen() {
         <View style={styles.profileSection}>
           <View style={styles.profileCard}>
             <View style={styles.avatarCircle}>
-              <User color="#1B5E20" size={32} />
+              <User color="#67C090" size={32} />
             </View>
             <View style={styles.profileInfo}>
               <Text style={styles.wargaName}>{wargaData?.nama_lengkap || 'Warga Tidak Diketahui'}</Text>
@@ -164,24 +164,24 @@ export default function SuratDetailScreen() {
               <DetailRow 
                 label="Jenis Layanan" 
                 value={item.jenis_surat?.replace(/_/g, ' ')} 
-                icon={<FileText size={16} color="#1B5E20" />} 
+                icon={<FileText size={16} color="#67C090" />} 
               />
               <DetailRow 
                 label="Keperluan" 
                 value={item.keperluan} 
-                icon={<Info size={16} color="#1B5E20" />} 
+                icon={<Info size={16} color="#67C090" />} 
               />
               <DetailRow 
                 label="Diajukan Pada" 
                 value={formatTanggal(item.created_at)} 
-                icon={<Calendar size={16} color="#1B5E20" />} 
+                icon={<Calendar size={16} color="#67C090" />} 
                 isLast={!isApproved || !item.nomor_surat}
               />
               {isApproved && item.nomor_surat && (
                 <DetailRow 
                   label="Nomor Surat" 
                   value={item.nomor_surat} 
-                  icon={<ShieldCheck size={16} color="#1B5E20" />} 
+                  icon={<ShieldCheck size={16} color="#67C090" />} 
                   isLast
                 />
               )}
@@ -191,18 +191,30 @@ export default function SuratDetailScreen() {
           {/* Action Area */}
           <View style={styles.actionArea}>
             {isPending ? (
-              <TouchableOpacity 
-                style={styles.approveButton}
-                onPress={handleApprove}
-                disabled={processing}
-              >
-                {processing ? <ActivityIndicator color="#fff" /> : (
-                  <>
-                    <CheckCircle2 color="#fff" size={20} />
-                    <Text style={styles.approveButtonText}>Approve Sekarang</Text>
-                  </>
-                )}
-              </TouchableOpacity>
+              (profile?.role === 'ketua_rt' || profile?.role === 'dukuh' || __DEV__) ? (
+                <>
+                  <TouchableOpacity 
+                    style={styles.approveButton}
+                    onPress={handleApprove}
+                    disabled={processing}
+                  >
+                    {processing ? <ActivityIndicator color="#fff" /> : (
+                      <>
+                        <CheckCircle2 color="#fff" size={20} />
+                        <Text style={styles.approveButtonText}>Approve Sekarang</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.rejectButton}>
+                    <Text style={styles.rejectButtonText}>Tolak Pengajuan</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <View style={styles.infoBoxYellow}>
+                  <Info size={18} color="#D97706" style={{ marginRight: 8 }} />
+                  <Text style={styles.infoTextYellow}>Menunggu persetujuan dari Ketua RT setempat.</Text>
+                </View>
+              )
             ) : isApproved && (
               <TouchableOpacity 
                 style={styles.printButton}
@@ -215,12 +227,6 @@ export default function SuratDetailScreen() {
                     <Text style={styles.printButtonText}>Cetak & Bagikan PDF</Text>
                   </>
                 )}
-              </TouchableOpacity>
-            )}
-            
-            {isPending && (
-              <TouchableOpacity style={styles.rejectButton}>
-                <Text style={styles.rejectButtonText}>Tolak Pengajuan</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -334,7 +340,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   statusApproved: {
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#67C090',
   },
   statusPending: {
     backgroundColor: '#1E293B',
@@ -420,12 +426,12 @@ const styles = StyleSheet.create({
   },
   approveButton: {
     height: 64,
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#67C090',
     borderRadius: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#1B5E20',
+    shadowColor: '#67C090',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 15,
@@ -439,12 +445,12 @@ const styles = StyleSheet.create({
   },
   printButton: {
     height: 64,
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#67C090',
     borderRadius: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#1B5E20',
+    shadowColor: '#67C090',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 15,
@@ -477,5 +483,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#94A3B8',
     fontWeight: '600',
+  },
+  infoBoxYellow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFBEB',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1.5,
+    borderColor: '#FEF3C7',
+    marginTop: 12,
+  },
+  infoTextYellow: {
+    fontSize: 13,
+    color: '#B45309',
+    fontWeight: '600',
+    flex: 1,
   }
 });

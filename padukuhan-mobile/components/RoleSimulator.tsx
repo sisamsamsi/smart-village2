@@ -5,6 +5,10 @@ import { supabase } from '@/lib/supabase';
 import { Shield, User, Users } from 'lucide-react-native';
 
 export function RoleSimulator() {
+  if (!__DEV__) {
+    return null;
+  }
+
   const { profile, setProfile } = useAuthStore();
   const [loading, setLoading] = useState(false);
 
@@ -67,14 +71,14 @@ export function RoleSimulator() {
     <View style={styles.container}>
       <Text style={styles.title}>SIMULATOR AKSES PERAN (DEMO)</Text>
       {loading ? (
-        <ActivityIndicator color="#1B5E20" size="small" style={{ marginVertical: 10 }} />
+        <ActivityIndicator color="#67C090" size="small" style={{ marginVertical: 10 }} />
       ) : (
         <View style={styles.buttonRow}>
           <TouchableOpacity
             style={[styles.button, profile?.role === 'dukuh' && styles.activeButton]}
             onPress={() => simulateRole('dukuh')}
           >
-            <Shield size={16} color={profile?.role === 'dukuh' ? '#fff' : '#1B5E20'} />
+            <Shield size={16} color={profile?.role === 'dukuh' ? '#fff' : '#67C090'} />
             <Text style={[styles.buttonText, profile?.role === 'dukuh' && styles.activeButtonText]}>Dukuh</Text>
           </TouchableOpacity>
 
@@ -82,7 +86,7 @@ export function RoleSimulator() {
             style={[styles.button, profile?.role === 'ketua_rt' && styles.activeButton]}
             onPress={() => simulateRole('ketua_rt')}
           >
-            <User size={16} color={profile?.role === 'ketua_rt' ? '#fff' : '#1B5E20'} />
+            <User size={16} color={profile?.role === 'ketua_rt' ? '#fff' : '#67C090'} />
             <Text style={[styles.buttonText, profile?.role === 'ketua_rt' && styles.activeButtonText]}>RT</Text>
           </TouchableOpacity>
 
@@ -90,7 +94,7 @@ export function RoleSimulator() {
             style={[styles.button, profile?.role === 'kader_dasawisma' && styles.activeButton]}
             onPress={() => simulateRole('kader_dasawisma')}
           >
-            <Users size={16} color={profile?.role === 'kader_dasawisma' ? '#fff' : '#1B5E20'} />
+            <Users size={16} color={profile?.role === 'kader_dasawisma' ? '#fff' : '#67C090'} />
             <Text style={[styles.buttonText, profile?.role === 'kader_dasawisma' && styles.activeButtonText]}>Dasawisma</Text>
           </TouchableOpacity>
         </View>
@@ -138,13 +142,13 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   activeButton: {
-    backgroundColor: '#1B5E20',
-    borderColor: '#1B5E20',
+    backgroundColor: '#67C090',
+    borderColor: '#67C090',
   },
   buttonText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#1B5E20',
+    color: '#67C090',
   },
   activeButtonText: {
     color: '#fff',

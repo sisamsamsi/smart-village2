@@ -93,7 +93,7 @@ export default function AddSuratScreen() {
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <ArrowLeft color="#1B5E20" size={24} />
+              <ArrowLeft color="#67C090" size={24} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Buat Layanan</Text>
             <View style={{ width: 44 }} />
@@ -138,7 +138,7 @@ export default function AddSuratScreen() {
                         value={wargaSearch}
                         onChangeText={handleSearchWarga}
                       />
-                      {searching && <ActivityIndicator size="small" color="#1B5E20" style={{ marginRight: 16 }} />}
+                      {searching && <ActivityIndicator size="small" color="#67C090" style={{ marginRight: 16 }} />}
                     </View>
                     
                     {searchResults.length > 0 && (
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     height: 64,
     width: 64,
     borderRadius: 22,
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#67C090',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     height: 44,
     width: 44,
     borderRadius: 14,
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#67C090',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -436,13 +436,13 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     height: 64,
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#67C090',
     borderRadius: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10,
-    shadowColor: '#1B5E20',
+    shadowColor: '#67C090',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 15,

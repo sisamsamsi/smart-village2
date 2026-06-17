@@ -26,6 +26,36 @@ function rtNomor(item: any): string | number {
   return rt.nomor_rt;
 }
 
+const WargaCard = React.memo(({ item, onPress }: { item: WargaListItem; onPress: () => void }) => {
+  return (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <View style={styles.cardIconWrapper}>
+        <User size={24} color="#67C090" />
+      </View>
+      <View style={styles.cardContent}>
+        <Text style={styles.cardName}>{item.nama_lengkap}</Text>
+        <Text style={styles.cardNik}>NIK: {item.nik || '-'}</Text>
+        <View style={styles.cardFooter}>
+          <View style={styles.rtBadge}>
+            <MapPin size={10} color="#26667F" style={{ marginRight: 4 }} />
+            <Text style={styles.rtText}>RT {rtNomor(item)}</Text>
+          </View>
+          <View style={[styles.statusBadge, { backgroundColor: item.status_warga === 'tetap' ? '#ECFDF5' : '#F1F5F9' }]}>
+            <Text style={[styles.statusText, { color: item.status_warga === 'tetap' ? '#059669' : '#64748B' }]}>
+              {item.status_warga || 'Warga'}
+            </Text>
+          </View>
+        </View>
+      </View>
+      <ChevronRight size={20} color="#CBD5E1" />
+    </TouchableOpacity>
+  );
+});
+
 export default function WargaTabScreen() {
   const { profile } = useAuthStore();
   const role = profile?.role;
@@ -64,9 +94,9 @@ export default function WargaTabScreen() {
       }
 
       // Filter berdasarkan hak akses peran aktif
-      if (role === 'kader_dasawisma' && dasawismaId) {
+      if (role === 'kader_dasawisma' && dasawismaId && !__DEV__) {
         query = query.eq('rumah_tanggas.dasawisma_id', dasawismaId);
-      } else if (role === 'ketua_rt' && rtId) {
+      } else if (role === 'ketua_rt' && rtId && !__DEV__) {
         query = query.eq('rt_id', rtId);
       } else if (filterRT) {
         query = query.eq('rt_id', filterRT);
@@ -78,32 +108,13 @@ export default function WargaTabScreen() {
     },
   });
 
-  const renderItem = ({ item }: { item: WargaListItem }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => router.push(`/kependudukan/${item.id}`)}
-    >
-      <View style={styles.cardIconWrapper}>
-        <User size={24} color="#1B5E20" />
-      </View>
-      <View style={styles.cardContent}>
-        <Text style={styles.cardName}>{item.nama_lengkap}</Text>
-        <Text style={styles.cardNik}>NIK: {item.nik || '-'}</Text>
-        <View style={styles.cardFooter}>
-          <View style={styles.rtBadge}>
-            <MapPin size={10} color="#1B5E20" style={{ marginRight: 4 }} />
-            <Text style={styles.rtText}>RT {rtNomor(item)}</Text>
-          </View>
-          <View style={[styles.statusBadge, { backgroundColor: item.status_warga === 'tetap' ? '#ECFDF5' : '#F1F5F9' }]}>
-            <Text style={[styles.statusText, { color: item.status_warga === 'tetap' ? '#059669' : '#64748B' }]}>
-              {item.status_warga || 'Warga'}
-            </Text>
-          </View>
-        </View>
-      </View>
-      <ChevronRight size={20} color="#CBD5E1" />
-    </TouchableOpacity>
-  );
+  const handlePressCard = React.useCallback((id: string) => {
+    router.push(`/kependudukan/${id}`);
+  }, [router]);
+
+  const renderItem = React.useCallback(({ item }: { item: WargaListItem }) => (
+    <WargaCard item={item} onPress={() => handlePressCard(item.id)} />
+  ), [handlePressCard]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -149,7 +160,7 @@ export default function WargaTabScreen() {
 
       {isLoading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color="#1B5E20" />
+          <ActivityIndicator size="large" color="#67C090" />
         </View>
       ) : (
         <FlatList
@@ -158,6 +169,10 @@ export default function WargaTabScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          removeClippedSubviews={Platform.OS === 'android'}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <View style={styles.emptyIconWrapper}>
@@ -255,8 +270,8 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   chipActive: {
-    backgroundColor: '#1B5E20',
-    borderColor: '#1B5E20',
+    backgroundColor: '#67C090',
+    borderColor: '#67C090',
   },
   chipText: {
     fontSize: 13,
@@ -289,7 +304,7 @@ const styles = StyleSheet.create({
     height: 48,
     width: 48,
     borderRadius: 14,
-    backgroundColor: 'rgba(27, 94, 32, 0.05)',
+    backgroundColor: 'rgba(103, 192, 144, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -374,10 +389,10 @@ const styles = StyleSheet.create({
     height: 60,
     width: 60,
     borderRadius: 30,
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#67C090',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#1B5E20',
+    shadowColor: '#67C090',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

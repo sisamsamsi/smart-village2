@@ -7,16 +7,18 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Plus } from 'lucide-react-native';
 import { QuickActionModal } from '@/components/QuickActionModal';
+import { useAuthStore } from '@/stores/authStore';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const theme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const [modalVisible, setModalVisible] = useState(false);
+  const { profile } = useAuthStore();
 
   return (
     <>
       <Tabs
         screenOptions={{
-          tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+          tabBarActiveTintColor: Colors[theme].tint,
           headerShown: false,
           tabBarButton: HapticTab,
           tabBarStyle: {
@@ -64,6 +66,7 @@ export default function TabLayout() {
           options={{
             title: 'Aktivitas',
             tabBarIcon: ({ color }) => <IconSymbol size={24} name="doc.plaintext.fill" color={color} />,
+            href: (__DEV__ || profile?.role !== 'kader_dasawisma') ? undefined : null,
           }}
         />
         <Tabs.Screen
@@ -92,10 +95,10 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: 27,
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#67C090',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#1B5E20',
+    shadowColor: '#67C090',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

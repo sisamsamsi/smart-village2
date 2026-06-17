@@ -25,7 +25,7 @@ export function UpdateBanner() {
     <View style={styles.container}>
       <View style={styles.card}>
         <View style={styles.iconContainer}>
-          <Sparkles size={20} color="#1B5E20" />
+          <Sparkles size={20} color="#67C090" />
         </View>
         <View style={styles.textContainer}>
           <Text style={styles.title}>Pembaruan Tersedia!</Text>
@@ -57,8 +57,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#A5D6A7', // Soft green border
-    shadowColor: '#1B5E20',
+    borderColor: '#67C090', // Soft green border
+    shadowColor: '#67C090',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#DDF4E7',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1B5E20', // Premium green
+    backgroundColor: '#67C090', // Premium green
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 10,

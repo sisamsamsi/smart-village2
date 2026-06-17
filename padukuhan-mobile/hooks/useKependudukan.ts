@@ -113,3 +113,21 @@ export function useTambahWarga() {
     }
   });
 }
+
+export function useWargaMutasi(wargaId: string) {
+  return useQuery({
+    queryKey: ['warga_mutasi', wargaId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('mutasi_penduduk')
+        .select('*')
+        .eq('warga_id', wargaId)
+        .order('tanggal_mutasi', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!wargaId,
+  });
+}
+

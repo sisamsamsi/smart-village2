@@ -27,11 +27,11 @@ export default function AnnouncementListScreen() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft color="#1B5E20" size={20} />
+            <ArrowLeft color="#67C090" size={20} />
           </TouchableOpacity>
           <Text style={styles.title}>Pengumuman</Text>
           <TouchableOpacity style={styles.bellButton}>
-            <Bell color="#1B5E20" size={20} />
+            <Bell color="#67C090" size={20} />
           </TouchableOpacity>
         </View>
         <Text style={styles.subtitle}>Informasi dan berita terbaru untuk warga</Text>
@@ -59,11 +59,11 @@ export default function AnnouncementListScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={false} onRefresh={refetch} tintColor="#1B5E20" />}
+        refreshControl={<RefreshControl refreshing={false} onRefresh={refetch} tintColor="#67C090" />}
       >
         {isLoading ? (
           <View style={styles.loaderContainer}>
-            <ActivityIndicator color="#1B5E20" size="large" />
+            <ActivityIndicator color="#67C090" size="large" />
           </View>
         ) : announcements?.length === 0 ? (
           <View style={styles.emptyState}>
@@ -122,7 +122,7 @@ function AnnouncementCard({ item, onPress }: { item: any, onPress: () => void })
         <View style={styles.cardFooter}>
           <View style={styles.readMore}>
             <Text style={styles.readMoreText}>BACA SELENGKAPNYA</Text>
-            <ArrowRight size={14} color="#1B5E20" style={{ marginLeft: 4 }} />
+            <ArrowRight size={14} color="#67C090" style={{ marginLeft: 4 }} />
           </View>
           <TouchableOpacity style={styles.shareButton}>
             <Share2 size={16} color="#94A3B8" />
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     height: 40,
     width: 40,
     borderRadius: 12,
-    backgroundColor: 'rgba(27, 94, 32, 0.05)',
+    backgroundColor: 'rgba(103, 192, 144, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -181,13 +181,13 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   summaryCard: {
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#67C090',
     borderRadius: 24,
     padding: 24,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    shadowColor: '#1B5E20',
+    shadowColor: '#67C090',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 15,
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   readMoreText: {
     fontSize: 10,
     fontWeight: '900',
-    color: '#1B5E20',
+    color: '#67C090',
     letterSpacing: 1,
   },
   shareButton: {

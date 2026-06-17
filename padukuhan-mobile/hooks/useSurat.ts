@@ -37,7 +37,7 @@ export const useSuratList = (filter?: { status?: string }) => {
         `)
         .order('created_at', { ascending: false })
 
-      if (isKetuaRT() && profile?.rt_id) {
+      if (isKetuaRT() && profile?.rt_id && !__DEV__) {
         query = query.eq('rt_id', profile.rt_id)
       }
 

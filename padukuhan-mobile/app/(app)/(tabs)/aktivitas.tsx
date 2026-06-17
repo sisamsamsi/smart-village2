@@ -24,7 +24,7 @@ export default function AktivitasScreen() {
       case 'diproses':
         return { bg: '#E3F2FD', text: '#1565C0', label: 'Diproses' };
       case 'selesai':
-        return { bg: '#E8F5E9', text: '#2E7D32', label: 'Selesai' };
+        return { bg: '#DDF4E7', text: '#67C090', label: 'Selesai' };
       case 'ditolak':
         return { bg: '#FFEBEE', text: '#C62828', label: 'Ditolak' };
       default:
@@ -37,7 +37,7 @@ export default function AktivitasScreen() {
       case 'pending':
         return <Clock size={size} color="#E65100" />;
       case 'selesai':
-        return <CheckCircle2 size={size} color="#2E7D32" />;
+        return <CheckCircle2 size={size} color="#67C090" />;
       case 'ditolak':
         return <XCircle size={size} color="#C62828" />;
       default:
@@ -77,7 +77,7 @@ export default function AktivitasScreen() {
       {/* Main Content */}
       {isLoading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator color="#1B5E20" size="large" />
+          <ActivityIndicator color="#67C090" size="large" />
         </View>
       ) : error ? (
         <View style={styles.emptyState}>
@@ -109,7 +109,7 @@ export default function AktivitasScreen() {
               >
                 <View style={styles.cardHeader}>
                   <View style={styles.typeBadge}>
-                    <FileText size={16} color="#1B5E20" style={{ marginRight: 6 }} />
+                    <FileText size={16} color="#67C090" style={{ marginRight: 6 }} />
                     <Text style={styles.typeText}>
                       {item.jenis_surat === 'pengantar_rt' ? 'Pengantar RT' : 'Keterangan Domisili'}
                     </Text>
@@ -140,7 +140,7 @@ export default function AktivitasScreen() {
                   </Text>
                   <View style={styles.actionLink}>
                     <Text style={styles.actionLinkText}>Lihat Detail</Text>
-                    <ArrowRight size={14} color="#1B5E20" />
+                    <ArrowRight size={14} color="#26667F" />
                   </View>
                 </View>
               </TouchableOpacity>
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
   typeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#DDF4E7',
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   typeText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#2E7D32',
+    color: '#67C090',
   },
   statusBadge: {
     flexDirection: 'row',
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
   actionLinkText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#1B5E20',
+    color: '#26667F',
   },
   emptyState: {
     flex: 1,
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   retryButton: {
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#67C090',
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 8,

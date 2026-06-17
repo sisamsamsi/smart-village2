@@ -32,7 +32,7 @@ export default function MutasiListScreen() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft color="#1B5E20" size={20} />
+            <ArrowLeft color="#67C090" size={20} />
           </TouchableOpacity>
           <Text style={styles.title}>Mutasi Penduduk</Text>
           <View style={{ width: 40 }} />
@@ -62,11 +62,11 @@ export default function MutasiListScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={false} onRefresh={refetch} tintColor="#1B5E20" />}
+        refreshControl={<RefreshControl refreshing={false} onRefresh={refetch} tintColor="#67C090" />}
       >
         {isLoading ? (
           <View style={styles.loaderContainer}>
-            <ActivityIndicator color="#1B5E20" size="large" />
+            <ActivityIndicator color="#67C090" size="large" />
           </View>
         ) : mutasi?.length === 0 ? (
           <View style={styles.emptyState}>
@@ -198,13 +198,13 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   summaryCard: {
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#67C090',
     borderRadius: 24,
     padding: 24,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    shadowColor: '#1B5E20',
+    shadowColor: '#67C090',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 15,

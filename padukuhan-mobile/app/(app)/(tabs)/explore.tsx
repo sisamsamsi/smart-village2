@@ -115,7 +115,7 @@ export default function RangkumanScreen() {
 
       {isLoading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator color="#1B5E20" size="large" />
+          <ActivityIndicator color="#67C090" size="large" />
         </View>
       ) : error ? (
         <View style={styles.errorContainer}>
@@ -126,15 +126,15 @@ export default function RangkumanScreen() {
           {/* Info Scope */}
           <View style={styles.scopeBadgeContainer}>
             <View style={styles.scopeBadge}>
-              <Sparkles size={14} color="#1B5E20" style={{ marginRight: 6 }} />
+              <Sparkles size={14} color="#67C090" style={{ marginRight: 6 }} />
               <Text style={styles.scopeText}>Cakupan: {getScopeLabel()}</Text>
             </View>
           </View>
 
           {/* Core Stats Row */}
           <View style={styles.coreStatsRow}>
-            <View style={[styles.coreCard, { backgroundColor: '#E8F5E9', borderColor: '#A5D6A7' }]}>
-              <Users size={24} color="#2E7D32" style={{ marginBottom: 8 }} />
+            <View style={[styles.coreCard, { backgroundColor: '#DDF4E7', borderColor: '#67C090' }]}>
+              <Users size={24} color="#67C090" style={{ marginBottom: 8 }} />
               <Text style={styles.coreValue}>{stats?.totalWarga}</Text>
               <Text style={styles.coreLabel}>Total Jiwa</Text>
             </View>
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
   scopeText: {
     fontSize: 11,
     fontWeight: 'bold',
-    color: '#1B5E20',
+    color: '#67C090',
   },
   coreStatsRow: {
     flexDirection: 'row',

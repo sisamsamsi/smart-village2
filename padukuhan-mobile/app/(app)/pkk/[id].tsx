@@ -85,7 +85,7 @@ export default function PkkDetailScreen() {
   if (loadingWarga || loadingPkk) {
     return (
       <SafeAreaView style={styles.loaderContainer}>
-        <ActivityIndicator color="#1B5E20" size="large" />
+        <ActivityIndicator color="#67C090" size="large" />
       </SafeAreaView>
     );
   }
@@ -98,7 +98,7 @@ export default function PkkDetailScreen() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft color="#1B5E20" size={24} />
+            <ArrowLeft color="#67C090" size={24} />
           </TouchableOpacity>
           <Text style={styles.title}>Partisipasi PKK</Text>
           <View style={{ width: 44 }} />
@@ -109,7 +109,7 @@ export default function PkkDetailScreen() {
             <Text style={styles.subtitle}>Tahun Monitoring 2025</Text>
           </View>
           <View style={styles.badgeCount}>
-            <Users size={14} color="#1B5E20" />
+            <Users size={14} color="#67C090" />
             <Text style={styles.badgeText}>{allWarga?.length || 0} Warga</Text>
           </View>
         </View>
@@ -121,7 +121,7 @@ export default function PkkDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.tipBox}>
-          <Info size={16} color="#1B5E20" />
+          <Info size={16} color="#67C090" />
           <Text style={styles.tipText}>Klik pada kartu warga untuk mengisi atau mengubah data partisipasi.</Text>
         </View>
 
@@ -203,7 +203,7 @@ export default function PkkDetailScreen() {
                   <Switch
                     value={editForm[prog.key]}
                     onValueChange={(val) => setEditForm({...editForm, [prog.key]: val})}
-                    trackColor={{ false: '#E2E8F0', true: '#1B5E20' }}
+                    trackColor={{ false: '#E2E8F0', true: '#67C090' }}
                     thumbColor={Platform.OS === 'ios' ? '#fff' : editForm[prog.key] ? '#fff' : '#f4f3f4'}
                   />
                 </View>
@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
   dwName: {
     fontSize: 18,
     fontWeight: '900',
-    color: '#1B5E20',
+    color: '#67C090',
   },
   subtitle: {
     fontSize: 12,
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
   badgeCount: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(27, 94, 32, 0.05)',
+    backgroundColor: 'rgba(103, 192, 144, 0.08)',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 12,
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#1B5E20',
+    color: '#67C090',
     marginLeft: 6,
   },
   scrollView: {
@@ -315,17 +315,17 @@ const styles = StyleSheet.create({
   tipBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(27, 94, 32, 0.05)',
+    backgroundColor: 'rgba(103, 192, 144, 0.08)',
     padding: 16,
     borderRadius: 16,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: 'rgba(27, 94, 32, 0.1)',
+    borderColor: 'rgba(103, 192, 144, 0.15)',
   },
   tipText: {
     flex: 1,
     fontSize: 12,
-    color: '#1B5E20',
+    color: '#67C090',
     marginLeft: 10,
     fontWeight: '600',
     lineHeight: 18,
@@ -508,12 +508,12 @@ const styles = StyleSheet.create({
     color: '#475569',
   },
   saveButton: {
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#67C090',
     height: 60,
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#1B5E20',
+    shadowColor: '#67C090',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 15,

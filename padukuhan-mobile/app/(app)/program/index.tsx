@@ -33,7 +33,7 @@ export default function ProgramListScreen() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft color="#1B5E20" size={20} />
+            <ArrowLeft color="#67C090" size={20} />
           </TouchableOpacity>
           <Text style={styles.title}>Pembangunan</Text>
           <View style={{ width: 40 }} />
@@ -78,11 +78,11 @@ export default function ProgramListScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={false} onRefresh={refetch} tintColor="#1B5E20" />}
+        refreshControl={<RefreshControl refreshing={false} onRefresh={refetch} tintColor="#67C090" />}
       >
         {isLoading ? (
           <View style={styles.loaderContainer}>
-            <ActivityIndicator color="#1B5E20" size="large" />
+            <ActivityIndicator color="#67C090" size="large" />
           </View>
         ) : proposals?.length === 0 ? (
           <View style={styles.emptyState}>
@@ -133,7 +133,7 @@ function ProposalCard({ item, onPress }: { item: any, onPress: () => void }) {
       
       <View style={styles.cardFooter}>
         <View style={styles.footerItem}>
-          <MapPin size={14} color="#1B5E20" />
+          <MapPin size={14} color="#67C090" />
           <Text style={styles.footerText}>{item.lokasi || 'Mandingan'}</Text>
         </View>
         <View style={styles.footerItem}>
@@ -211,13 +211,13 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   summaryCard: {
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#67C090',
     borderRadius: 24,
     padding: 24,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    shadowColor: '#1B5E20',
+    shadowColor: '#67C090',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 15,
@@ -268,8 +268,8 @@ const styles = StyleSheet.create({
     borderColor: '#F1F5F9',
   },
   chipActive: {
-    backgroundColor: '#1B5E20',
-    borderColor: '#1B5E20',
+    backgroundColor: '#67C090',
+    borderColor: '#67C090',
   },
   chipText: {
     fontSize: 10,

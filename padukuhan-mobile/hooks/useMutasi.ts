@@ -22,7 +22,7 @@ export const useMutasiList = () => {
         `)
         .order('tanggal_mutasi', { ascending: false })
 
-      if (isKetuaRT() && profile?.rt_id) {
+      if (isKetuaRT() && profile?.rt_id && !__DEV__) {
         query = query.eq('rt_id', profile.rt_id)
       }
 
