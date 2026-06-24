@@ -1,28 +1,26 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useMutasiList } from '@/hooks/useMutasi';
+import { useKematianList } from '@/hooks/useKematian';
 import { useYearStore } from '@/stores/yearStore';
 import { useAuthStore } from '@/stores/authStore';
 import { 
   ArrowLeft, 
   Plus, 
-  ArrowRightLeft, 
   Calendar,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Info
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 
-const { width } = Dimensions.get('window');
-
-export default function MutasiListScreen() {
+export default function KematianListScreen() {
   const router = useRouter();
   const { activeYear, setActiveYear } = useYearStore();
   const { isKader } = useAuthStore();
-  const { data: mutasi, isLoading, refetch } = useMutasiList(activeYear);
+  const { data: kematian, isLoading, refetch } = useKematianList(activeYear);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -32,10 +30,10 @@ export default function MutasiListScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <ArrowLeft color="#1E293B" size={20} />
           </TouchableOpacity>
-          <Text style={styles.title}>Mutasi Penduduk</Text>
+          <Text style={styles.title}>Kematian Warga</Text>
           {!isKader() ? (
             <TouchableOpacity 
-              onPress={() => router.push('/mutasi/tambah')}
+              onPress={() => router.push('/kematian/tambah' as any)}
               style={styles.addButton}
             >
               <Plus color="#fff" size={16} />
@@ -45,7 +43,7 @@ export default function MutasiListScreen() {
             <View style={{ width: 40 }} />
           )}
         </View>
-        <Text style={styles.subtitle}>Pencatatan perpindahan warga (pindah masuk & keluar)</Text>
+        <Text style={styles.subtitle}>Pencatatan pelaporan kematian warga padukuhan</Text>
       </View>
 
       {/* Year Switcher */}
@@ -79,39 +77,35 @@ export default function MutasiListScreen() {
           <View style={styles.loaderContainer}>
             <ActivityIndicator color="#67C090" size="large" />
           </View>
-        ) : !mutasi || mutasi.length === 0 ? (
+        ) : !kematian || kematian.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIconWrapper}>
-              <ArrowRightLeft size={36} color="#94A3B8" />
+              <Info size={36} color="#94A3B8" />
             </View>
-            <Text style={styles.emptyText}>Belum Ada Mutasi</Text>
+            <Text style={styles.emptyText}>Belum Ada Data Kematian</Text>
             <Text style={styles.emptySubtext}>
-              Data mutasi masuk/keluar tahun {activeYear} akan muncul di sini.
+              Data kematian warga tahun {activeYear} akan muncul di sini.
             </Text>
           </View>
         ) : (
           <View style={{ paddingBottom: 24 }}>
-            {mutasi.map((item) => (
+            {kematian.map((item) => (
               <View key={item.id} style={styles.listItemRow}>
-                <View style={[styles.iconWrapper, { backgroundColor: item.jenis_mutasi === 'pindah_masuk' ? '#EFF6FF' : '#FEF3C7' }]}>
-                  <ArrowRightLeft size={16} color={item.jenis_mutasi === 'pindah_masuk' ? '#2563EB' : '#D97706'} />
+                <View style={styles.iconWrapper}>
+                  <Info size={16} color="#64748B" />
                 </View>
                 <View style={styles.itemContent}>
-                  <Text style={styles.itemName}>{item.wargas?.nama_lengkap || 'Warga Baru'}</Text>
+                  <Text style={styles.itemName}>{item.wargas?.nama_lengkap || 'Warga'}</Text>
                   <View style={styles.itemMetaRow}>
-                    <Text style={styles.itemType}>{item.jenis_mutasi === 'pindah_masuk' ? 'Pindah Masuk' : 'Pindah Keluar'}</Text>
-                    <Text style={styles.dividerDot}>•</Text>
                     <Text style={styles.itemDate}>
-                      {format(new Date(item.tanggal_mutasi), 'dd MMM yyyy', { locale: localeId })}
+                      Wafat: {format(new Date(item.tanggal_mutasi), 'dd MMM yyyy', { locale: localeId })}
                     </Text>
                     <Text style={styles.dividerDot}>•</Text>
                     <Text style={styles.itemRt}>RT {item.wargas?.rts?.nomor_rt || '?'}</Text>
                   </View>
-                  {item.jenis_mutasi === 'pindah_masuk' && item.asal_daerah ? (
-                    <Text style={styles.itemDetails}>Asal: {item.asal_daerah}</Text>
-                  ) : item.jenis_mutasi === 'pindah_keluar' && item.tujuan_daerah ? (
-                    <Text style={styles.itemDetails}>Tujuan: {item.tujuan_daerah}</Text>
-                  ) : null}
+                  {item.sebab_meninggal && (
+                    <Text style={styles.itemSebab}>Sebab: {item.sebab_meninggal}</Text>
+                  )}
                   {item.keterangan ? (
                     <Text style={styles.itemNote}>"{item.keterangan}"</Text>
                   ) : null}
@@ -221,6 +215,7 @@ const styles = StyleSheet.create({
     height: 36,
     width: 36,
     borderRadius: 10,
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -239,25 +234,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 4,
   },
-  itemType: {
+  itemDate: {
     fontSize: 12,
     color: '#64748B',
-    fontWeight: '500',
   },
   dividerDot: {
     fontSize: 12,
     color: '#CBD5E1',
     marginHorizontal: 6,
   },
-  itemDate: {
-    fontSize: 12,
-    color: '#64748B',
-  },
   itemRt: {
     fontSize: 12,
     color: '#64748B',
   },
-  itemDetails: {
+  itemSebab: {
     fontSize: 12,
     color: '#475569',
     marginTop: 4,

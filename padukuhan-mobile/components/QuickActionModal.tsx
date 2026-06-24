@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, Pressable, Dimensions } from 'react-native';
 import { useAuthStore } from '@/stores/authStore';
 import { useRouter } from 'expo-router';
-import { UserPlus, FileText, ArrowRightLeft, ClipboardList, X, Construction, Users } from 'lucide-react-native';
+import { UserPlus, FileText, ArrowRightLeft, ClipboardList, X, Construction, Users, Heart } from 'lucide-react-native';
 
 interface QuickActionModalProps {
   visible: boolean;
@@ -49,13 +49,13 @@ export function QuickActionModal({ visible, onClose }: QuickActionModalProps) {
 
           <TouchableOpacity 
             style={styles.actionCard} 
-            onPress={() => handleNavigate('/mutasi/tambah')}
+            onPress={() => handleNavigate('/kehamilan/tambah')}
           >
-            <View style={[styles.iconWrapper, { backgroundColor: '#F3E5F5' }]}>
-              <ArrowRightLeft size={28} color="#6A1B9A" />
+            <View style={[styles.iconWrapper, { backgroundColor: '#FCE7F3' }]}>
+              <Heart size={28} color="#C2185B" />
             </View>
-            <Text style={styles.actionTitle}>Catat Mutasi Cepat</Text>
-            <Text style={styles.actionDesc}>Laporkan status kehamilan, kelahiran, atau kematian warga</Text>
+            <Text style={styles.actionTitle}>Catat Kehamilan</Text>
+            <Text style={styles.actionDesc}>Laporkan kehamilan baru warga binaan dasawisma</Text>
           </TouchableOpacity>
         </View>
       );
@@ -77,24 +77,24 @@ export function QuickActionModal({ visible, onClose }: QuickActionModalProps) {
 
           <TouchableOpacity 
             style={styles.actionCard} 
+            onPress={() => handleNavigate('/kehamilan/tambah')}
+          >
+            <View style={[styles.iconWrapper, { backgroundColor: '#FCE7F3' }]}>
+              <Heart size={28} color="#C2185B" />
+            </View>
+            <Text style={styles.actionTitle}>Catat Kehamilan</Text>
+            <Text style={styles.actionDesc}>Catat data ibu hamil baru tingkat padukuhan</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.actionCard} 
             onPress={() => handleNavigate('/mutasi/tambah')}
           >
             <View style={[styles.iconWrapper, { backgroundColor: '#F3E5F5' }]}>
               <ArrowRightLeft size={28} color="#6A1B9A" />
             </View>
             <Text style={styles.actionTitle}>Catat Mutasi</Text>
-            <Text style={styles.actionDesc}>Catat warga lahir, wafat, pindah, atau datang se-padukuhan</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.actionCard} 
-            onPress={() => handleNavigate('/program/baru')}
-          >
-            <View style={[styles.iconWrapper, { backgroundColor: '#FFF3E0' }]}>
-              <Construction size={28} color="#E65100" />
-            </View>
-            <Text style={styles.actionTitle}>Buat Program Kerja</Text>
-            <Text style={styles.actionDesc}>Buat program kerja pembangunan baru tingkat padukuhan</Text>
+            <Text style={styles.actionDesc}>Catat perpindahan warga (pindah masuk/keluar) se-padukuhan</Text>
           </TouchableOpacity>
         </View>
       );
@@ -133,7 +133,7 @@ export function QuickActionModal({ visible, onClose }: QuickActionModalProps) {
             <ArrowRightLeft size={28} color="#6A1B9A" />
           </View>
           <Text style={styles.actionTitle}>Catat Mutasi RT</Text>
-          <Text style={styles.actionDesc}>Catat kelahiran, kematian, atau perpindahan warga di RT Anda</Text>
+          <Text style={styles.actionDesc}>Catat perpindahan warga (pindah masuk/keluar) di RT Anda</Text>
         </TouchableOpacity>
       </View>
     );

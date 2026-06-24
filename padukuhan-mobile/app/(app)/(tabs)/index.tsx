@@ -27,7 +27,8 @@ import {
   Clock,
   User,
   Coffee,
-  Calendar
+  Calendar,
+  Skull
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -373,42 +374,63 @@ export default function DashboardScreen() {
           <View style={styles.menuCepatGrid}>
             <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/warga' as any)}>
               <View style={[styles.menuIconBox, { backgroundColor: '#EBF8FF' }]}>
-                <Users size={24} color="#2B6CB0" />
+                <Users size={20} color="#2B6CB0" />
               </View>
               <Text style={styles.menuLabel}>Kependudukan</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/mutasi' as any)}>
               <View style={[styles.menuIconBox, { backgroundColor: '#EDF2F7' }]}>
-                <ArrowRightLeft size={24} color="#4A5568" />
+                <ArrowRightLeft size={20} color="#4A5568" />
               </View>
               <Text style={styles.menuLabel}>Mutasi</Text>
             </TouchableOpacity>
 
+            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/kelahiran' as any)}>
+              <View style={[styles.menuIconBox, { backgroundColor: '#E6FFFA' }]}>
+                <Baby size={20} color="#319795" />
+              </View>
+              <Text style={styles.menuLabel}>Kelahiran</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/kematian' as any)}>
+              <View style={[styles.menuIconBox, { backgroundColor: '#FFF5F5' }]}>
+                <Skull size={20} color="#E53E3E" />
+              </View>
+              <Text style={styles.menuLabel}>Kematian</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/kehamilan' as any)}>
+              <View style={[styles.menuIconBox, { backgroundColor: '#FFF5F7' }]}>
+                <Heart size={20} color="#D53F8C" />
+              </View>
+              <Text style={styles.menuLabel}>Kehamilan</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/surat' as any)}>
-              <View style={[styles.menuIconBox, { backgroundColor: '#FEEBC8' }]}>
-                <FileText size={24} color="#C05621" />
+              <View style={[styles.menuIconBox, { backgroundColor: '#FEF3C7' }]}>
+                <FileText size={20} color="#D97706" />
               </View>
               <Text style={styles.menuLabel}>Surat</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/pengumuman' as any)}>
-              <View style={[styles.menuIconBox, { backgroundColor: '#EBF8FF' }]}>
-                <Megaphone size={24} color="#2B6CB0" />
+              <View style={[styles.menuIconBox, { backgroundColor: '#EFF6FF' }]}>
+                <Megaphone size={20} color="#3B82F6" />
               </View>
               <Text style={styles.menuLabel}>Pengumuman</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/program' as any)}>
-              <View style={[styles.menuIconBox, { backgroundColor: '#E6FFFA' }]}>
-                <Construction size={24} color="#319795" />
+              <View style={[styles.menuIconBox, { backgroundColor: '#F0FDF4' }]}>
+                <Construction size={20} color="#16A34A" />
               </View>
               <Text style={styles.menuLabel}>Program</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/pkk' as any)}>
-              <View style={[styles.menuIconBox, { backgroundColor: '#FFF5F5' }]}>
-                <Heart size={24} color="#C53030" />
+              <View style={[styles.menuIconBox, { backgroundColor: '#F5F3FF' }]}>
+                <Heart size={20} color="#7C3AED" />
               </View>
               <Text style={styles.menuLabel}>PKK / Dasawisma</Text>
             </TouchableOpacity>
@@ -929,31 +951,27 @@ const styles = StyleSheet.create({
   menuCepatGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
+    gap: 8,
   },
   menuItem: {
-    width: (width - 40) / 4,
+    width: (width - 56) / 3,
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   menuIconBox: {
-    height: 52,
-    width: 52,
-    borderRadius: 16,
+    height: 48,
+    width: 48,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.01,
-    shadowRadius: 4,
-    elevation: 1,
+    marginBottom: 6,
     borderWidth: 1,
     borderColor: '#F1F5F9',
   },
   menuLabel: {
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '500',
     color: PALETTE.textDark,
     textAlign: 'center',
     paddingHorizontal: 2,

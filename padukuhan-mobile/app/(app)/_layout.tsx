@@ -6,6 +6,9 @@ export default function AppLayout() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="kependudukan" options={{ headerShown: false }} />
       <Stack.Screen name="mutasi" options={{ headerShown: false }} />
+      <Stack.Screen name="kehamilan" options={{ headerShown: false }} />
+      <Stack.Screen name="kelahiran" options={{ headerShown: false }} />
+      <Stack.Screen name="kematian" options={{ headerShown: false }} />
       <Stack.Screen name="pengumuman" options={{ headerShown: false }} />
       <Stack.Screen name="pkk" options={{ headerShown: false }} />
       <Stack.Screen name="program" options={{ headerShown: false }} />

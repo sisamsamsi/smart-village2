@@ -1,13 +1,13 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useMutasiList } from '@/hooks/useMutasi';
+import { useKelahiranList } from '@/hooks/useKelahiran';
 import { useYearStore } from '@/stores/yearStore';
 import { useAuthStore } from '@/stores/authStore';
 import { 
   ArrowLeft, 
   Plus, 
-  ArrowRightLeft, 
+  Baby, 
   Calendar,
   ChevronLeft,
   ChevronRight
@@ -16,13 +16,23 @@ import { useRouter } from 'expo-router';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 
-const { width } = Dimensions.get('window');
-
-export default function MutasiListScreen() {
+export default function KelahiranListScreen() {
   const router = useRouter();
   const { activeYear, setActiveYear } = useYearStore();
   const { isKader } = useAuthStore();
-  const { data: mutasi, isLoading, refetch } = useMutasiList(activeYear);
+  const { data: kelahiran, isLoading, refetch } = useKelahiranList(activeYear);
+
+  const getBabyDetails = (keteranganStr?: string) => {
+    if (!keteranganStr) return null;
+    try {
+      if (keteranganStr.startsWith('{')) {
+        return JSON.parse(keteranganStr);
+      }
+    } catch (e) {
+      // ignore
+    }
+    return null;
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -32,10 +42,10 @@ export default function MutasiListScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <ArrowLeft color="#1E293B" size={20} />
           </TouchableOpacity>
-          <Text style={styles.title}>Mutasi Penduduk</Text>
+          <Text style={styles.title}>Kelahiran Bayi</Text>
           {!isKader() ? (
             <TouchableOpacity 
-              onPress={() => router.push('/mutasi/tambah')}
+              onPress={() => router.push('/kelahiran/tambah' as any)}
               style={styles.addButton}
             >
               <Plus color="#fff" size={16} />
@@ -45,7 +55,7 @@ export default function MutasiListScreen() {
             <View style={{ width: 40 }} />
           )}
         </View>
-        <Text style={styles.subtitle}>Pencatatan perpindahan warga (pindah masuk & keluar)</Text>
+        <Text style={styles.subtitle}>Pencatatan data kelahiran bayi baru padukuhan</Text>
       </View>
 
       {/* Year Switcher */}
@@ -79,45 +89,50 @@ export default function MutasiListScreen() {
           <View style={styles.loaderContainer}>
             <ActivityIndicator color="#67C090" size="large" />
           </View>
-        ) : !mutasi || mutasi.length === 0 ? (
+        ) : !kelahiran || kelahiran.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIconWrapper}>
-              <ArrowRightLeft size={36} color="#94A3B8" />
+              <Baby size={36} color="#94A3B8" />
             </View>
-            <Text style={styles.emptyText}>Belum Ada Mutasi</Text>
+            <Text style={styles.emptyText}>Belum Ada Data Kelahiran</Text>
             <Text style={styles.emptySubtext}>
-              Data mutasi masuk/keluar tahun {activeYear} akan muncul di sini.
+              Data kelahiran bayi baru tahun {activeYear} akan muncul di sini.
             </Text>
           </View>
         ) : (
           <View style={{ paddingBottom: 24 }}>
-            {mutasi.map((item) => (
-              <View key={item.id} style={styles.listItemRow}>
-                <View style={[styles.iconWrapper, { backgroundColor: item.jenis_mutasi === 'pindah_masuk' ? '#EFF6FF' : '#FEF3C7' }]}>
-                  <ArrowRightLeft size={16} color={item.jenis_mutasi === 'pindah_masuk' ? '#2563EB' : '#D97706'} />
-                </View>
-                <View style={styles.itemContent}>
-                  <Text style={styles.itemName}>{item.wargas?.nama_lengkap || 'Warga Baru'}</Text>
-                  <View style={styles.itemMetaRow}>
-                    <Text style={styles.itemType}>{item.jenis_mutasi === 'pindah_masuk' ? 'Pindah Masuk' : 'Pindah Keluar'}</Text>
-                    <Text style={styles.dividerDot}>•</Text>
-                    <Text style={styles.itemDate}>
-                      {format(new Date(item.tanggal_mutasi), 'dd MMM yyyy', { locale: localeId })}
-                    </Text>
-                    <Text style={styles.dividerDot}>•</Text>
-                    <Text style={styles.itemRt}>RT {item.wargas?.rts?.nomor_rt || '?'}</Text>
+            {kelahiran.map((item) => {
+              const details = getBabyDetails(item.keterangan);
+              return (
+                <View key={item.id} style={styles.listItemRow}>
+                  <View style={styles.iconWrapper}>
+                    <Baby size={16} color="#67C090" />
                   </View>
-                  {item.jenis_mutasi === 'pindah_masuk' && item.asal_daerah ? (
-                    <Text style={styles.itemDetails}>Asal: {item.asal_daerah}</Text>
-                  ) : item.jenis_mutasi === 'pindah_keluar' && item.tujuan_daerah ? (
-                    <Text style={styles.itemDetails}>Tujuan: {item.tujuan_daerah}</Text>
-                  ) : null}
-                  {item.keterangan ? (
-                    <Text style={styles.itemNote}>"{item.keterangan}"</Text>
-                  ) : null}
+                  <View style={styles.itemContent}>
+                    <Text style={styles.itemName}>{item.nama_bayi || item.wargas?.nama_lengkap || 'Bayi Baru'}</Text>
+                    <View style={styles.itemMetaRow}>
+                      <Text style={styles.itemGender}>{item.jenis_kelamin_bayi === 'L' ? 'Laki-laki' : 'Perempuan'}</Text>
+                      <Text style={styles.dividerDot}>•</Text>
+                      <Text style={styles.itemDate}>
+                        {format(new Date(item.tanggal_mutasi), 'dd MMM yyyy', { locale: localeId })}
+                      </Text>
+                      <Text style={styles.dividerDot}>•</Text>
+                      <Text style={styles.itemRt}>RT {item.wargas?.rts?.nomor_rt || '?'}</Text>
+                    </View>
+                    
+                    <Text style={styles.itemParents}>
+                      Ibu: {item.nama_ibu || '-'} • Ayah: {item.nama_ayah || '-'}
+                    </Text>
+
+                    {details && (
+                      <Text style={styles.itemDetails}>
+                        Lahir: {details.bb_lahir ? `${details.bb_lahir} kg` : '-'} / {details.tb_lahir ? `${details.tb_lahir} cm` : '-'}
+                      </Text>
+                    )}
+                  </View>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         )}
       </ScrollView>
@@ -221,6 +236,7 @@ const styles = StyleSheet.create({
     height: 36,
     width: 36,
     borderRadius: 10,
+    backgroundColor: '#EEFBF4',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -239,7 +255,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 4,
   },
-  itemType: {
+  itemGender: {
     fontSize: 12,
     color: '#64748B',
     fontWeight: '500',
@@ -257,16 +273,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#64748B',
   },
-  itemDetails: {
+  itemParents: {
     fontSize: 12,
     color: '#475569',
     marginTop: 4,
   },
-  itemNote: {
-    fontSize: 12,
+  itemDetails: {
+    fontSize: 11,
     color: '#94A3B8',
-    fontStyle: 'italic',
-    marginTop: 4,
+    marginTop: 2,
   },
   loaderContainer: {
     paddingVertical: 40,

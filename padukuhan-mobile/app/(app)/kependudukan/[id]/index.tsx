@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Dimensions, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { 
@@ -18,6 +18,8 @@ import {
   MoreVertical
 } from 'lucide-react-native';
 import { useWargaDetail, useWargaMutasi } from '@/hooks/useKependudukan';
+import { supabase } from '@/lib/supabase';
+import { useQueryClient } from '@tanstack/react-query';
 
 const { width } = Dimensions.get('window');
 
@@ -67,6 +69,36 @@ export default function WargaDetailScreen() {
     }));
   };
 
+  const queryClient = useQueryClient();
+
+  const handleDeleteWarga = () => {
+    Alert.alert(
+      'Hapus Permanen Warga',
+      `Apakah Anda yakin ingin menghapus data warga ${warga?.nama_lengkap || ''} secara fisik dari database? Tindakan ini tidak dapat dibatalkan.`,
+      [
+        { text: 'Batal', style: 'cancel' },
+        { 
+          text: 'Hapus Permanen', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const { error: deleteError } = await supabase
+                .from('wargas')
+                .delete()
+                .eq('id', wargaId);
+              if (deleteError) throw deleteError;
+              queryClient.invalidateQueries({ queryKey: ['wargas'] });
+              Alert.alert('Sukses', 'Data warga berhasil dihapus.');
+              router.replace('/warga' as any);
+            } catch (err: any) {
+              Alert.alert('Gagal', err.message || 'Gagal menghapus data.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   if (isLoading) {
     return (
       <View style={styles.loaderContainer}>
@@ -102,7 +134,7 @@ export default function WargaDetailScreen() {
           <ArrowLeft color="#1E293B" size={24} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Detail Warga</Text>
-        <TouchableOpacity style={styles.moreButton}>
+        <TouchableOpacity style={styles.moreButton} onPress={handleDeleteWarga}>
           <MoreVertical color="#1E293B" size={24} />
         </TouchableOpacity>
       </View>
