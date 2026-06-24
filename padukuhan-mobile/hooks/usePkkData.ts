@@ -20,7 +20,7 @@ export function useDasawismaList() {
 
       if (error) throw error
       
-      return data.map(dw => ({
+      return (data || []).map(dw => ({
         ...dw,
         warga_count: (dw.rumah_tanggas as any[])?.reduce((acc, rt) => acc + (rt.wargas?.length || 0), 0) || 0
       }))

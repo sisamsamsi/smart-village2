@@ -114,6 +114,7 @@ export const useCreateSurat = () => {
           ...payload,
           rt_id: profile?.rt_id,
           created_by: user?.id,
+          status: 'selesai',
           diajukan_via: 'rt'
         }])
         .select()

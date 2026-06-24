@@ -5,7 +5,7 @@ import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Plus } from 'lucide-react-native';
+import { Plus, AlertTriangle } from 'lucide-react-native';
 import { QuickActionModal } from '@/components/QuickActionModal';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -59,14 +59,6 @@ export default function TabLayout() {
                 </View>
               </TouchableOpacity>
             )
-          }}
-        />
-        <Tabs.Screen
-          name="aktivitas"
-          options={{
-            title: 'Aktivitas',
-            tabBarIcon: ({ color }) => <IconSymbol size={24} name="doc.plaintext.fill" color={color} />,
-            href: (__DEV__ || profile?.role !== 'kader_dasawisma') ? undefined : null,
           }}
         />
         <Tabs.Screen

@@ -69,7 +69,7 @@ export default function EditWargaScreen() {
         tanggal_lahir: warga.tanggal_lahir || '',
         agama: warga.agama || 'ISLAM',
         pekerjaan: warga.pekerjaan || '',
-        status_kawin: warga.status_kawin || 'BELUM KAWIN',
+        status_kawin: warga.status_perkawinan?.toUpperCase().replace('_', ' ') || 'BELUM KAWIN',
         pendidikan: warga.pendidikan || 'SD/SEDERAJAT',
         status_dalam_keluarga: warga.status_dalam_keluarga || '',
         status_warga: warga.status_warga || '',

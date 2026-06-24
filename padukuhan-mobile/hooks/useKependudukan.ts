@@ -1,6 +1,46 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 
+function normalizeStatusKawin(val: string): string {
+  if (!val) return 'belum_kawin';
+  const clean = val.toUpperCase().trim();
+  if (clean === 'BELUM KAWIN') return 'belum_kawin';
+  if (clean === 'KAWIN') return 'kawin';
+  if (clean === 'CERAI HIDUP') return 'cerai_hidup';
+  if (clean === 'CERAI MATI') return 'cerai_mati';
+  return val.toLowerCase().replace(' ', '_');
+}
+
+function normalizeHubungan(val: string): string {
+  if (!val) return 'lainnya';
+  const clean = val.toUpperCase().trim();
+  if (clean === 'KEPALA KELUARGA') return 'kepala_keluarga';
+  if (clean === 'ISTERI' || clean === 'ISTRI') return 'istri';
+  if (clean === 'ANAK') return 'anak';
+  if (clean === 'MERTUA') return 'mertua';
+  if (clean === 'ORANG TUA') return 'orang_tua';
+  if (clean === 'LAINNYA') return 'lainnya';
+  return val.toLowerCase().replace(' ', '_');
+}
+
+function normalizeWargaData(input: any) {
+  const normalized = { ...input };
+  
+  let statusKawinRaw = normalized.status_kawin || normalized.status_perkawinan;
+  if (statusKawinRaw !== undefined) {
+    normalized.status_perkawinan = normalizeStatusKawin(statusKawinRaw);
+  }
+  delete normalized.status_kawin;
+
+  let hubunganRaw = normalized.hubungan_keluarga || normalized.status_dalam_keluarga;
+  if (hubunganRaw !== undefined) {
+    normalized.status_dalam_keluarga = normalizeHubungan(hubunganRaw);
+  }
+  delete normalized.hubungan_keluarga;
+
+  return normalized;
+}
+
 export function useWargaDetail(id: string) {
   return useQuery({
     queryKey: ['warga', id],
@@ -27,9 +67,10 @@ export function useUpdateWarga() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: { id: string; [key: string]: any }) => {
+      const normalizedUpdates = normalizeWargaData(updates);
       const { data, error } = await supabase
         .from('wargas')
-        .update(updates)
+        .update(normalizedUpdates)
         .eq('id', id)
         .select()
         .single();
@@ -97,11 +138,12 @@ export function useTambahWarga() {
       }
 
       const { is_new_kk, no_kk_baru, nama_kepala_keluarga_baru, ...wargaData } = data;
+      const normalizedWargaData = normalizeWargaData(wargaData);
       
       const { error } = await supabase
         .from('wargas')
         .insert([{
-          ...wargaData,
+          ...normalizedWargaData,
           rumah_tangga_id: rumahTanggaId
         }]);
 

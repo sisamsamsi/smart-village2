@@ -109,36 +109,6 @@ export default function DashboardScreen() {
     }
   });
 
-  // 2. Fetch Latest Laporan Kejadian (Top 3)
-  const { data: latestLaporan, isLoading: isLaporanLoading } = useQuery({
-    queryKey: ['latest_laporan_kejadian_dashboard'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('laporan_kejadian')
-        .select('*, rts(nomor_rt)')
-        .order('created_at', { ascending: false })
-        .limit(3);
-      if (error) throw error;
-      return data || [];
-    }
-  });
-
-  // 3. Fetch Upcoming Activities (Top 3)
-  const { data: upcomingAgendas, isLoading: isAgendasLoading } = useQuery({
-    queryKey: ['upcoming_kegiatan_dashboard'],
-    queryFn: async () => {
-      const today = new Date().toISOString().split('T')[0];
-      const { data, error } = await supabase
-        .from('kegiatan')
-        .select('*')
-        .order('tanggal', { ascending: true })
-        .gte('tanggal', today)
-        .limit(3);
-      if (error) throw error;
-      return data || [];
-    }
-  });
-
   // 4. Fetch Announcements (top 3)
   const { data: announcementsData, isLoading: isAnnouncementsLoading } = useAnnouncements({ activeOnly: true });
   const announcements = (announcementsData || []).slice(0, 3);
@@ -333,7 +303,7 @@ export default function DashboardScreen() {
                     <FileText size={20} color="#DB2777" />
                   </View>
                   <Text style={styles.statValue}>{formatNumber(stats?.totalLaporan ?? 0)}</Text>
-                  <Text style={styles.statLabel}>Laporan Baru</Text>
+                  <Text style={styles.statLabel}>Surat Aktif</Text>
                   <View style={styles.statGrowthRow}>
                     <TrendingUp size={10} color="#EF4444" />
                     <Text style={[styles.statGrowthText, { color: '#EF4444' }]}>+6 bln lalu</Text>
@@ -408,14 +378,14 @@ export default function DashboardScreen() {
               <Text style={styles.menuLabel}>Kependudukan</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/mutasi' as any)} disabled={isKader}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/mutasi' as any)}>
               <View style={[styles.menuIconBox, { backgroundColor: '#EDF2F7' }]}>
                 <ArrowRightLeft size={24} color="#4A5568" />
               </View>
               <Text style={styles.menuLabel}>Mutasi</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/surat' as any)} disabled={isKader}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/surat' as any)}>
               <View style={[styles.menuIconBox, { backgroundColor: '#FEEBC8' }]}>
                 <FileText size={24} color="#C05621" />
               </View>
@@ -429,7 +399,7 @@ export default function DashboardScreen() {
               <Text style={styles.menuLabel}>Pengumuman</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/program' as any)} disabled={isKader}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/program' as any)}>
               <View style={[styles.menuIconBox, { backgroundColor: '#E6FFFA' }]}>
                 <Construction size={24} color="#319795" />
               </View>
@@ -441,20 +411,6 @@ export default function DashboardScreen() {
                 <Heart size={24} color="#C53030" />
               </View>
               <Text style={styles.menuLabel}>PKK / Dasawisma</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/aktivitas' as any)}>
-              <View style={[styles.menuIconBox, { backgroundColor: '#FFF5F5' }]}>
-                <AlertTriangle size={24} color="#C53030" />
-              </View>
-              <Text style={styles.menuLabel}>Laporan</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <View style={[styles.menuIconBox, { backgroundColor: '#EDF2F7' }]}>
-                <Grid size={24} color="#4A5568" />
-              </View>
-              <Text style={styles.menuLabel}>Lainnya</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -658,97 +614,6 @@ export default function DashboardScreen() {
                   </Text>
                 </TouchableOpacity>
               ))
-            )}
-          </View>
-        </View>
-
-        {/* LAPORAN TERBARU */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionTitle}>Laporan Terbaru</Text>
-            <TouchableOpacity onPress={() => router.push('/aktivitas' as any)}>
-              <Text style={styles.sectionLinkText}>Lihat semua</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.listCardWrapper}>
-            {isLaporanLoading ? (
-              <ActivityIndicator color={PALETTE.tealBlueGreen} style={{ padding: 20 }} />
-            ) : !latestLaporan || latestLaporan.length === 0 ? (
-              <View style={styles.emptyStateCard}>
-                <AlertTriangle size={32} color={PALETTE.textMuted} style={{ marginBottom: 8 }} />
-                <Text style={styles.emptyText}>Belum ada laporan kejadian.</Text>
-              </View>
-            ) : (
-              latestLaporan.map((item: any) => {
-                const statusCfg = getStatusConfig(item.status);
-                return (
-                  <TouchableOpacity 
-                    key={item.id} 
-                    style={styles.listItemRow}
-                    onPress={() => router.push(`/aktivitas` as any)}
-                  >
-                    <View style={[styles.listItemIconWrapper, { backgroundColor: '#FEE2E2' }]}>
-                      <AlertTriangle size={18} color="#DC2626" />
-                    </View>
-                    <View style={styles.listItemContent}>
-                      <Text style={styles.listItemTitle}>{item.judul}</Text>
-                      <Text style={styles.listItemSubText}>
-                        {item.rts?.nomor_rt ? `RT 0${item.rts.nomor_rt}` : 'Umum'}, Padukuhan Mandingan
-                      </Text>
-                    </View>
-                    <View style={[styles.statusBadgeTextWrapper, { backgroundColor: statusCfg.bg }]}>
-                      <Text style={[styles.statusBadgeText, { color: statusCfg.text }]}>{statusCfg.label}</Text>
-                    </View>
-                  </TouchableOpacity>
-                )
-              })
-            )}
-          </View>
-        </View>
-
-        {/* AGENDA MENDATANG */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionTitle}>Agenda Mendatang</Text>
-            <TouchableOpacity onPress={() => router.push('/program' as any)}>
-              <Text style={styles.sectionLinkText}>Lihat semua</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.listCardWrapper}>
-            {isAgendasLoading ? (
-              <ActivityIndicator color={PALETTE.tealBlueGreen} style={{ padding: 20 }} />
-            ) : !upcomingAgendas || upcomingAgendas.length === 0 ? (
-              <View style={styles.emptyStateCard}>
-                <Calendar size={32} color={PALETTE.textMuted} style={{ marginBottom: 8 }} />
-                <Text style={styles.emptyText}>Belum ada agenda mendatang.</Text>
-              </View>
-            ) : (
-              upcomingAgendas.map((item: any) => {
-                const dateObj = new Date(item.tanggal);
-                return (
-                  <View key={item.id} style={styles.agendaItemRow}>
-                    <View style={styles.agendaCalendarBadge}>
-                      <Text style={styles.agendaCalDay}>{dateObj.getDate()}</Text>
-                      <Text style={styles.agendaCalMonth}>
-                        {dateObj.toLocaleDateString('id-ID', { month: 'short' }).toUpperCase()}
-                      </Text>
-                    </View>
-                    <View style={styles.agendaContent}>
-                      <Text style={styles.agendaTitle}>{item.judul}</Text>
-                      <View style={styles.agendaMetaRow}>
-                        <Clock size={12} color={PALETTE.textMuted} style={{ marginRight: 4 }} />
-                        <Text style={styles.agendaMetaText}>{item.waktu_mulai || '07:00'} WIB - Selesai</Text>
-                      </View>
-                      <View style={[styles.agendaMetaRow, { marginTop: 2 }]}>
-                        <MapPin size={12} color={PALETTE.textMuted} style={{ marginRight: 4 }} />
-                        <Text style={styles.agendaMetaText} numberOfLines={1}>{item.lokasi || 'Balai Padukuhan'}</Text>
-                      </View>
-                    </View>
-                  </View>
-                )
-              })
             )}
           </View>
         </View>

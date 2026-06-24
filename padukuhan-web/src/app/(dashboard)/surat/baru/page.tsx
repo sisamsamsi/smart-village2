@@ -36,6 +36,7 @@ export default function SuratBaruRtPage() {
     jenis_surat: 'pengantar_rt' as 'pengantar_rt' | 'domisili',
     keperluan: '',
     keterangan_tambahan: '',
+    nomor_surat: '',
   })
 
   useEffect(() => {
@@ -78,6 +79,8 @@ export default function SuratBaruRtPage() {
           jenis_surat: form.jenis_surat,
           keperluan: form.keperluan || null,
           keterangan_tambahan: form.keterangan_tambahan || null,
+          nomor_surat: form.nomor_surat || null,
+          status: 'selesai',
           diajukan_via: 'rt',
           created_by: user?.id ?? null,
         },
@@ -155,7 +158,7 @@ export default function SuratBaruRtPage() {
                   )}
                 </div>
 
-                <div className="grid gap-6 sm:grid-cols-2">
+                <div className="grid gap-6 sm:grid-cols-3">
                   <div className="space-y-2">
                     <Label>Jenis Surat</Label>
                     <select
@@ -169,6 +172,16 @@ export default function SuratBaruRtPage() {
                       <option value="pengantar_rt">Surat Pengantar RT</option>
                       <option value="domisili">Surat Keterangan Domisili</option>
                     </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Nomor Surat</Label>
+                    <Input
+                      placeholder="Contoh: 001/RT-01/VI/2026"
+                      value={form.nomor_surat}
+                      onChange={(e) => setForm({ ...form, nomor_surat: e.target.value })}
+                      required
+                    />
                   </div>
 
                   <div className="space-y-2">

@@ -210,7 +210,7 @@ export default function WargaDetailScreen() {
           onToggle={() => toggleSection('sosialEkonomi')}
         >
           <InfoRow label="Pekerjaan" value={warga.pekerjaan ?? '-'} />
-          <InfoRow label="Pendidikan Terakhir" value={warga.pendidikan_terakhir ?? '-'} isLast />
+          <InfoRow label="Pendidikan Terakhir" value={warga.pendidikan ?? '-'} isLast />
         </CollapsibleSection>
 
         {/* Collapsible Section: Kesehatan & PKK */}

@@ -36,7 +36,7 @@ export function useDashboardStats() {
       ] = await Promise.all([
         supabase.from('wargas').select('id', { count: 'exact', head: true }).eq('status_warga', 'aktif'),
         supabase.from('rumah_tanggas').select('id', { count: 'exact', head: true }).eq('status_aktif', true),
-        supabase.from('laporan_kejadian').select('id', { count: 'exact', head: true }).eq('status', 'baru'),
+        supabase.from('surat_pengajuan').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
         supabase.from('wargas').select('id', { count: 'exact', head: true }).eq('status_warga', 'aktif').gte('tanggal_lahir', fiveYearsAgoStr),
         supabase.from('wargas').select('id', { count: 'exact', head: true }).eq('status_warga', 'aktif').lte('tanggal_lahir', sixtyYearsAgoStr),
         supabase.from('wargas').select('id', { count: 'exact', head: true }).eq('status_warga', 'aktif').eq('jenis_kelamin', 'P').gte('tanggal_lahir', fortyNineYearsAgoStr).lte('tanggal_lahir', fifteenYearsAgoStr),

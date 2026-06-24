@@ -60,7 +60,8 @@ export default function RootLayout() {
         }
       } else {
         // Keep mock user if already set client-side via Google SSO bypass
-        if (!user) {
+        const currentUser = useAuthStore.getState().user;
+        if (!currentUser) {
           setUser(null);
           setProfile(null);
         }
@@ -102,7 +103,8 @@ export default function RootLayout() {
         }
       } else {
         // Keep mock user if already set client-side via Google SSO bypass
-        if (!user || user.id !== 'demo-developer-id') {
+        const currentUser = useAuthStore.getState().user;
+        if (!currentUser || currentUser.id !== 'demo-developer-id') {
           setUser(null);
           setProfile(null);
         }
@@ -110,7 +112,7 @@ export default function RootLayout() {
     });
 
     return () => subscription.unsubscribe();
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     if (!initialized) return;

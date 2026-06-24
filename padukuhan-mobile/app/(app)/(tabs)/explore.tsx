@@ -19,9 +19,13 @@ export default function RangkumanScreen() {
     queryKey: ['rangkuman_demografi', role, rtId, dasawismaId],
     queryFn: async () => {
       // 1. Ambil Warga
-      let wargaQuery: any = supabase
+      let selectFields = 'id, tanggal_lahir, jenis_kelamin, status_perkawinan, status_kehamilan, status_menyusui, rt_id';
+      if (role === 'kader_dasawisma' && dasawismaId) {
+        selectFields = 'id, tanggal_lahir, jenis_kelamin, status_perkawinan, status_kehamilan, status_menyusui, rumah_tanggas!inner(dasawisma_id)';
+      }
+      let wargaQuery = supabase
         .from('wargas')
-        .select('id, tanggal_lahir, jenis_kelamin, status_perkawinan, status_kehamilan, status_menyusui, rt_id')
+        .select(selectFields)
         .eq('status_warga', 'aktif');
 
       // 2. Ambil KK (rumah_tanggas)
@@ -32,10 +36,7 @@ export default function RangkumanScreen() {
 
       // Terapkan filter hak akses
       if (role === 'kader_dasawisma' && dasawismaId) {
-        wargaQuery = wargaQuery
-          .select('id, tanggal_lahir, jenis_kelamin, status_perkawinan, status_kehamilan, status_menyusui, rumah_tanggas!inner(dasawisma_id)')
-          .eq('rumah_tanggas.dasawisma_id', dasawismaId);
-        
+        wargaQuery = wargaQuery.eq('rumah_tanggas.dasawisma_id', dasawismaId);
         kkQuery = kkQuery.eq('dasawisma_id', dasawismaId);
       } else if (role === 'ketua_rt' && rtId) {
         wargaQuery = wargaQuery.eq('rt_id', rtId);

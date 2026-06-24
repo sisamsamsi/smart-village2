@@ -189,12 +189,14 @@ export default function WargaTabScreen() {
         />
       )}
 
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => router.push('/kependudukan/tambah')}
-      >
-        <Plus size={24} color="#fff" />
-      </TouchableOpacity>
+      {role !== 'kader_dasawisma' && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => router.push('/kependudukan/tambah')}
+        >
+          <Plus size={24} color="#fff" />
+        </TouchableOpacity>
+      )}
     </SafeAreaView>
   );
 }

@@ -3,407 +3,236 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshCon
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSuratList } from '@/hooks/useSurat';
 import { useAuthStore } from '@/stores/authStore';
-import { 
-  ArrowLeft, 
-  Plus, 
-  FileText, 
-  Clock, 
-  CheckCircle2, 
-  XCircle,
-  Search,
-  MessageSquare,
-  Calendar,
-  ChevronRight
-} from 'lucide-react-native';
+import { ArrowLeft, Plus, FileText, Clock, CheckCircle2, XCircle, Calendar, ChevronRight } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { formatTanggal } from '@/lib/format';
 
-const { width } = Dimensions.get('window');
-
 export default function SuratListScreen() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'pending' | 'selesai'>('pending');
-  const { data: surat, isLoading, refetch } = useSuratList({ 
-    status: activeTab === 'pending' ? 'pending' : undefined 
+  const { profile } = useAuthStore();
+  const isRT = profile?.role === 'ketua_rt';
+  const [activeTab, setActiveTab] = useState<'pending' | 'selesai'>('selesai');
+  const { data: surat, isLoading, refetch } = useSuratList({
+    status: activeTab === 'pending' ? 'pending' : undefined
   });
 
-  const displayedSurat = activeTab === 'pending' 
-    ? surat 
+  const displayedSurat = activeTab === 'pending'
+    ? surat
     : surat?.filter(s => s.status !== 'pending');
+
+  const pendingCount = surat?.filter(s => s.status === 'pending').length ?? 0;
+  const selesaiCount = surat?.filter(s => s.status !== 'pending').length ?? 0;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header Section */}
+      {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft color="#67C090" size={20} />
-          </TouchableOpacity>
-          <Text style={styles.title}>Layanan Surat</Text>
-          <View style={{ width: 40 }} />
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <ArrowLeft size={20} color="#1E293B" />
+        </TouchableOpacity>
+        <View style={styles.headerCenter}>
+          <Text style={styles.headerTitle}>Layanan Surat</Text>
+          <Text style={styles.headerSub}>Pengantar & Domisili RT</Text>
         </View>
-        <Text style={styles.subtitle}>Kelola pengajuan surat keterangan warga</Text>
+        {isRT ? (
+          <TouchableOpacity onPress={() => router.push('/surat/tambah')} style={styles.addBtn}>
+            <Plus size={18} color="#fff" />
+          </TouchableOpacity>
+        ) : <View style={{ width: 36 }} />}
       </View>
 
-      {/* Summary Area */}
-      <View style={styles.summarySection}>
-        <View style={styles.summaryCard}>
-          <View>
-            <Text style={styles.summaryLabel}>TOTAL PENGAJUAN</Text>
-            <Text style={styles.summaryValue}>{displayedSurat?.length || 0}</Text>
-          </View>
-          <TouchableOpacity 
-            onPress={() => router.push('/surat/tambah')}
-            style={styles.addButton}
-          >
-            <Plus color="white" size={24} />
-            <Text style={styles.addButtonText}>Baru</Text>
-          </TouchableOpacity>
+      {/* Stats Row */}
+      <View style={styles.statsRow}>
+        <View style={styles.statItem}>
+          <Text style={styles.statNum}>{surat?.length ?? 0}</Text>
+          <Text style={styles.statLabel}>Total</Text>
         </View>
-      </View>
-
-      {/* Tab Switcher */}
-      <View style={styles.tabSection}>
-        <View style={styles.tabContainer}>
-          <TouchableOpacity 
-            onPress={() => setActiveTab('pending')}
-            style={[styles.tab, activeTab === 'pending' && styles.tabActive]}
-          >
-            <Text style={[styles.tabText, activeTab === 'pending' && styles.tabTextActive]}>ANTREAN</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            onPress={() => setActiveTab('selesai')}
-            style={[styles.tab, activeTab === 'selesai' && styles.tabActive]}
-          >
-            <Text style={[styles.tabText, activeTab === 'selesai' && styles.tabTextActive]}>SELESAI</Text>
-          </TouchableOpacity>
+        <View style={styles.statDivider} />
+        <View style={styles.statItem}>
+          <Text style={[styles.statNum, { color: '#F59E0B' }]}>{pendingCount}</Text>
+          <Text style={styles.statLabel}>Pending</Text>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statItem}>
+          <Text style={[styles.statNum, { color: '#10B981' }]}>{selesaiCount}</Text>
+          <Text style={styles.statLabel}>Selesai</Text>
         </View>
       </View>
 
-      {/* List Section */}
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.listContainer}
+      {/* Tab Pills */}
+      <View style={styles.tabRow}>
+        <TouchableOpacity
+          onPress={() => setActiveTab('pending')}
+          style={[styles.tabPill, activeTab === 'pending' && styles.tabPillActive]}
+        >
+          <Text style={[styles.tabText, activeTab === 'pending' && styles.tabTextActive]}>Pending</Text>
+          {pendingCount > 0 && (
+            <View style={styles.badge}><Text style={styles.badgeText}>{pendingCount}</Text></View>
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setActiveTab('selesai')}
+          style={[styles.tabPill, activeTab === 'selesai' && styles.tabPillActive]}
+        >
+          <Text style={[styles.tabText, activeTab === 'selesai' && styles.tabTextActive]}>Selesai</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* List */}
+      <ScrollView
+        style={styles.list}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={false} onRefresh={refetch} tintColor="#67C090" />}
       >
         {isLoading ? (
-          <View style={styles.loaderContainer}>
-            <ActivityIndicator color="#67C090" size="large" />
-          </View>
+          <ActivityIndicator color="#67C090" style={{ marginTop: 40 }} />
         ) : displayedSurat?.length === 0 ? (
-          <View style={styles.emptyState}>
-            <View style={styles.emptyIconWrapper}>
-              <FileText size={48} color="#E2E8F0" />
-            </View>
-            <Text style={styles.emptyText}>Tidak Ada Pengajuan</Text>
-            <Text style={styles.emptySubtext}>
-              Pengajuan surat dari warga akan muncul di sini.
+          <View style={styles.empty}>
+            <FileText size={36} color="#E2E8F0" />
+            <Text style={styles.emptyTitle}>Belum ada surat</Text>
+            <Text style={styles.emptySub}>
+              {activeTab === 'pending' ? 'Tidak ada surat pending saat ini.' : 'Surat yang diterbitkan RT akan muncul di sini.'}
             </Text>
           </View>
         ) : (
-          <View style={{ paddingBottom: 40 }}>
-            {displayedSurat?.map((item) => (
-              <SuratCard 
-                key={item.id} 
-                item={item} 
-                onPress={() => router.push(`/surat/${item.id}`)} 
+          <View style={styles.listInner}>
+            {displayedSurat?.map((item, idx) => (
+              <SuratRow
+                key={item.id}
+                item={item}
+                isLast={idx === (displayedSurat?.length ?? 0) - 1}
+                onPress={() => router.push(`/surat/${item.id}` as any)}
               />
             ))}
           </View>
         )}
+        <View style={{ height: 32 }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function SuratCard({ item, onPress }: { item: any, onPress: () => void }) {
-  return (
-    <TouchableOpacity onPress={onPress} style={styles.card}>
-      <View style={styles.cardHeader}>
-        <View style={styles.typeBadge}>
-          <Text style={styles.typeText}>{item.jenis_surat?.replace(/_/g, ' ')}</Text>
-        </View>
-        <StatusBadge status={item.status} />
-      </View>
+function SuratRow({ item, isLast, onPress }: { item: any; isLast: boolean; onPress: () => void }) {
+  const getStatus = () => {
+    const s = item.status?.toLowerCase();
+    if (s === 'approved' || s === 'selesai') return { color: '#10B981', bg: '#ECFDF5', label: 'Selesai', icon: <CheckCircle2 size={11} color="#10B981" /> };
+    if (s === 'rejected') return { color: '#EF4444', bg: '#FEF2F2', label: 'Ditolak', icon: <XCircle size={11} color="#EF4444" /> };
+    return { color: '#F59E0B', bg: '#FFFBEB', label: 'Pending', icon: <Clock size={11} color="#F59E0B" /> };
+  };
+  const st = getStatus();
 
-      <Text style={styles.cardTitle}>{item.wargas?.nama_lengkap}</Text>
-      <Text style={styles.cardSubtitle}>NIK: {item.wargas?.nik}</Text>
-      
-      <View style={styles.divider} />
-      
-      <View style={styles.cardFooter}>
-        <View style={styles.dateInfo}>
-          <Calendar size={14} color="#94A3B8" />
-          <Text style={styles.dateText}>{formatTanggal(item.created_at)}</Text>
+  return (
+    <TouchableOpacity onPress={onPress} style={[styles.row, isLast && { borderBottomWidth: 0 }]}>
+      <View style={styles.rowIconBox}>
+        <FileText size={16} color="#67C090" />
+      </View>
+      <View style={styles.rowContent}>
+        <View style={styles.rowTop}>
+          <Text style={styles.rowName} numberOfLines={1}>{item.wargas?.nama_lengkap ?? '—'}</Text>
+          <View style={[styles.statusPill, { backgroundColor: st.bg }]}>
+            {st.icon}
+            <Text style={[styles.statusText, { color: st.color }]}>{st.label}</Text>
+          </View>
         </View>
-        <View style={styles.rtBadge}>
-          <Text style={styles.rtText}>RT {item.wargas?.rts?.nomor_rt}</Text>
+        <View style={styles.rowBottom}>
+          <Text style={styles.rowType}>{item.jenis_surat?.replace(/_/g, ' ')}</Text>
+          <Text style={styles.rowDot}>·</Text>
+          <Calendar size={11} color="#94A3B8" />
+          <Text style={styles.rowDate}>{formatTanggal(item.created_at)}</Text>
         </View>
       </View>
+      <ChevronRight size={16} color="#CBD5E1" />
     </TouchableOpacity>
-  )
-}
-
-function StatusBadge({ status }: { status: string }) {
-  let color = "#D97706";
-  let bgColor = "#FFFBEB";
-  let icon = <Clock size={12} color="#D97706" />;
-  let label = status;
-
-  if (status === 'approved' || status === 'selesai') {
-    color = "#059669";
-    bgColor = "#ECFDF5";
-    icon = <CheckCircle2 size={12} color="#059669" />;
-    label = 'Selesai';
-  } else if (status === 'rejected') {
-    color = "#DC2626";
-    bgColor = "#FEF2F2";
-    icon = <XCircle size={12} color="#DC2626" />;
-    label = 'Ditolak';
-  }
-
-  return (
-    <View style={[styles.statusBadge, { backgroundColor: bgColor }]}>
-      {icon}
-      <Text style={[styles.statusText, { color }]}>{label.toUpperCase()}</Text>
-    </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
+  container: { flex: 1, backgroundColor: '#F8FAFC' },
+
+  // Header
   header: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 20,
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#fff', paddingHorizontal: 16,
+    paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F1F5F9',
   },
-  headerTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  backBtn: {
+    width: 36, height: 36, borderRadius: 10,
+    backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center',
   },
-  backButton: {
-    height: 40,
-    width: 40,
-    borderRadius: 12,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
-    justifyContent: 'center',
+  headerCenter: { flex: 1, marginHorizontal: 12 },
+  headerTitle: { fontSize: 15, fontWeight: '700', color: '#1E293B' },
+  headerSub: { fontSize: 11, color: '#94A3B8', marginTop: 1 },
+  addBtn: {
+    width: 36, height: 36, borderRadius: 10,
+    backgroundColor: '#67C090', alignItems: 'center', justifyContent: 'center',
   },
-  title: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: '#1E293B',
+
+  // Stats
+  statsRow: {
+    flexDirection: 'row', backgroundColor: '#fff',
+    paddingVertical: 14, paddingHorizontal: 16,
+    borderBottomWidth: 1, borderBottomColor: '#F1F5F9',
   },
-  subtitle: {
-    fontSize: 13,
-    color: '#64748B',
-    marginTop: 8,
+  statItem: { flex: 1, alignItems: 'center' },
+  statNum: { fontSize: 20, fontWeight: '700', color: '#1E293B' },
+  statLabel: { fontSize: 11, color: '#94A3B8', marginTop: 2 },
+  statDivider: { width: 1, backgroundColor: '#F1F5F9', marginVertical: 4 },
+
+  // Tabs
+  tabRow: {
+    flexDirection: 'row', paddingHorizontal: 16,
+    paddingVertical: 10, backgroundColor: '#fff',
+    borderBottomWidth: 1, borderBottomColor: '#F1F5F9',
+    gap: 8,
   },
-  summarySection: {
-    paddingHorizontal: 24,
-    marginTop: -10,
-    zIndex: 10,
+  tabPill: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 14, paddingVertical: 6,
+    borderRadius: 20, backgroundColor: '#F8FAFC',
+    borderWidth: 1, borderColor: '#F1F5F9',
   },
-  summaryCard: {
-    backgroundColor: '#67C090',
-    borderRadius: 24,
-    padding: 24,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    shadowColor: '#67C090',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 15,
-    elevation: 8,
+  tabPillActive: { backgroundColor: '#EDF7F2', borderColor: '#67C090' },
+  tabText: { fontSize: 13, fontWeight: '600', color: '#94A3B8' },
+  tabTextActive: { color: '#67C090' },
+  badge: {
+    marginLeft: 6, backgroundColor: '#F59E0B',
+    borderRadius: 8, paddingHorizontal: 5, paddingVertical: 1,
   },
-  summaryLabel: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 1,
+  badgeText: { fontSize: 9, fontWeight: '700', color: '#fff' },
+
+  // List
+  list: { flex: 1 },
+  listInner: {
+    marginHorizontal: 16, marginTop: 12,
+    backgroundColor: '#fff', borderRadius: 16,
+    borderWidth: 1, borderColor: '#F1F5F9',
+    overflow: 'hidden',
   },
-  summaryValue: {
-    color: '#fff',
-    fontSize: 32,
-    fontWeight: '900',
-    marginTop: 2,
+  row: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 14, paddingVertical: 12,
+    borderBottomWidth: 1, borderBottomColor: '#F8FAFC',
   },
-  addButton: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+  rowIconBox: {
+    width: 36, height: 36, borderRadius: 10,
+    backgroundColor: '#F0FDF4', alignItems: 'center',
+    justifyContent: 'center', marginRight: 12,
   },
-  addButtonText: {
-    color: '#fff',
-    fontWeight: '800',
-    marginLeft: 8,
-    fontSize: 14,
+  rowContent: { flex: 1 },
+  rowTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 },
+  rowName: { fontSize: 14, fontWeight: '600', color: '#1E293B', flex: 1, marginRight: 8 },
+  rowBottom: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  rowType: { fontSize: 11, color: '#94A3B8', textTransform: 'capitalize' },
+  rowDot: { fontSize: 11, color: '#CBD5E1' },
+  rowDate: { fontSize: 11, color: '#94A3B8', marginLeft: 2 },
+  statusPill: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6, gap: 3,
   },
-  tabSection: {
-    paddingHorizontal: 24,
-    marginTop: 24,
-    marginBottom: 10,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    padding: 6,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: 'center',
-    borderRadius: 12,
-  },
-  tabActive: {
-    backgroundColor: '#F1F5F9',
-  },
-  tabText: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: '#94A3B8',
-    letterSpacing: 1,
-  },
-  tabTextActive: {
-    color: '#67C090',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  listContainer: {
-    padding: 24,
-    paddingTop: 10,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  typeBadge: {
-    backgroundColor: '#F0F9FF',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  typeText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#0369A1',
-    textTransform: 'uppercase',
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-  },
-  statusText: {
-    fontSize: 9,
-    fontWeight: '900',
-    marginLeft: 4,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#1E293B',
-  },
-  cardSubtitle: {
-    fontSize: 11,
-    color: '#94A3B8',
-    fontWeight: '600',
-    marginTop: 2,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#F8FAFC',
-    marginVertical: 16,
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  dateInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  dateText: {
-    fontSize: 11,
-    color: '#64748B',
-    marginLeft: 6,
-    fontWeight: '600',
-  },
-  rtBadge: {
-    backgroundColor: '#F8FAFC',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  rtText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#475569',
-  },
-  loaderContainer: {
-    paddingVertical: 40,
-    alignItems: 'center',
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-  },
-  emptyIconWrapper: {
-    height: 80,
-    width: 80,
-    borderRadius: 40,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#475569',
-  },
-  emptySubtext: {
-    fontSize: 13,
-    color: '#94A3B8',
-    marginTop: 8,
-    textAlign: 'center',
-    paddingHorizontal: 40,
-  }
+  statusText: { fontSize: 10, fontWeight: '600' },
+
+  // Empty
+  empty: { alignItems: 'center', paddingVertical: 60, paddingHorizontal: 32 },
+  emptyTitle: { fontSize: 15, fontWeight: '600', color: '#475569', marginTop: 12 },
+  emptySub: { fontSize: 12, color: '#94A3B8', marginTop: 4, textAlign: 'center', lineHeight: 18 },
 });

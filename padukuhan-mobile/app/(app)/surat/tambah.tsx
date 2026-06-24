@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, StyleSheet, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useCreateSurat, useSuratTemplates } from '@/hooks/useSurat';
+import { useCreateSurat } from '@/hooks/useSurat';
 import { supabase } from '@/lib/supabase';
 import { 
   ArrowLeft, 
@@ -22,7 +22,10 @@ const { width } = Dimensions.get('window');
 export default function AddSuratScreen() {
   const router = useRouter();
   const createSurat = useCreateSurat();
-  const { data: templates } = useSuratTemplates();
+  const templates = [
+    { id: '1', jenis_surat: 'pengantar_rt', judul: 'Surat Pengantar RT' },
+    { id: '2', jenis_surat: 'domisili', judul: 'Surat Keterangan Domisili' }
+  ];
   
   const [wargaSearch, setWargaSearch] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -32,7 +35,8 @@ export default function AddSuratScreen() {
   const [form, setForm] = useState({
     jenis_surat: 'pengantar_rt',
     keperluan: '',
-    warga_id: ''
+    warga_id: '',
+    nomor_surat: ''
   });
 
   const handleSearchWarga = async (text: string) => {
@@ -69,6 +73,11 @@ export default function AddSuratScreen() {
       return;
     }
 
+    if (!form.nomor_surat) {
+      Alert.alert('Eror', 'Silakan isi nomor surat.');
+      return;
+    }
+
     if (!form.keperluan) {
       Alert.alert('Eror', 'Silakan isi keperluan surat.');
       return;
@@ -76,10 +85,10 @@ export default function AddSuratScreen() {
 
     try {
       await createSurat.mutateAsync(form);
-      Alert.alert('Berhasil', 'Pengajuan surat berhasil dibuat. Silakan cek di daftar antrean.');
+      Alert.alert('Berhasil', 'Surat berhasil diterbitkan.');
       router.back();
     } catch (err: any) {
-      Alert.alert('Gagal', err.message || 'Gagal membuat pengajuan.');
+      Alert.alert('Gagal', err.message || 'Gagal menerbitkan surat.');
     }
   };
 
@@ -106,8 +115,8 @@ export default function AddSuratScreen() {
                 <Stamp size={32} color="#fff" />
               </View>
               <View style={styles.heroText}>
-                <Text style={styles.heroTitle}>Pengajuan Mandiri</Text>
-                <Text style={styles.heroSubtitle}>Proses cepat & transparan melalui layanan digital RT.</Text>
+                <Text style={styles.heroTitle}>Terbitkan Surat RT</Text>
+                <Text style={styles.heroSubtitle}>Buat surat pengantar atau domisili untuk warga wilayah RT Anda.</Text>
               </View>
             </View>
 
@@ -180,6 +189,17 @@ export default function AddSuratScreen() {
                 </ScrollView>
               </View>
 
+              {/* Nomor Surat */}
+              <View style={styles.field}>
+                <Text style={styles.fieldLabel}>NOMOR SURAT</Text>
+                <TextInput
+                  placeholder="Contoh: 001/RT-01/VI/2026"
+                  style={styles.input}
+                  value={form.nomor_surat}
+                  onChangeText={(val) => setForm({...form, nomor_surat: val})}
+                />
+              </View>
+
               {/* Keperluan */}
               <View style={styles.field}>
                 <Text style={styles.fieldLabel}>KEPERLUAN / TUJUAN</Text>
@@ -203,7 +223,7 @@ export default function AddSuratScreen() {
                 ) : (
                   <>
                     <CheckCircle2 size={20} color="#fff" />
-                    <Text style={styles.submitButtonText}>BUAT PENGAJUAN</Text>
+                    <Text style={styles.submitButtonText}>TERBITKAN SURAT</Text>
                   </>
                 )}
               </TouchableOpacity>

@@ -77,14 +77,16 @@ export default function SuratDashboardPage() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <Link href="/surat/baru">
-            <Button size="default" className="bg-emerald-600 hover:bg-emerald-700 font-medium">
-              <Plus className="mr-2 h-4 w-4" />
-              Buat Surat (RT)
-            </Button>
-          </Link>
-        </div>
+        {isKetuaRT() && (
+          <div className="flex items-center gap-4">
+            <Link href="/surat/baru">
+              <Button size="default" className="bg-emerald-600 hover:bg-emerald-700 font-medium">
+                <Plus className="mr-2 h-4 w-4" />
+                Buat Surat (RT)
+              </Button>
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Main Content with Tabs */}

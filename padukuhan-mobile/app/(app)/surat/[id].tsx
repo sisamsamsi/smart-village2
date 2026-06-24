@@ -124,7 +124,7 @@ export default function SuratDetailScreen() {
           <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/' as any)} style={styles.backButton}>
             <ArrowLeft color="#67C090" size={24} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Verifikasi Layanan</Text>
+          <Text style={styles.headerTitle}>Detail Surat RT</Text>
           <View style={{ width: 44 }} />
         </View>
 
@@ -212,7 +212,7 @@ export default function SuratDetailScreen() {
               ) : (
                 <View style={styles.infoBoxYellow}>
                   <Info size={18} color="#D97706" style={{ marginRight: 8 }} />
-                  <Text style={styles.infoTextYellow}>Menunggu persetujuan dari Ketua RT setempat.</Text>
+                  <Text style={styles.infoTextYellow}>Surat ini belum diproses atau disetujui.</Text>
                 </View>
               )
             ) : isApproved && (

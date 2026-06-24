@@ -1,23 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, TextInput, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCreateAnnouncement } from '@/hooks/useAnnouncements';
-import { 
-  ArrowLeft, 
-  Send,
-  Image as ImageIcon,
-  Target,
-  Globe,
-  Check
-} from 'lucide-react-native';
+import { ArrowLeft, Send, Globe, Target, Image as ImageIcon } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-
-const { width } = Dimensions.get('window');
 
 export default function AddAnnouncementScreen() {
   const router = useRouter();
   const createAnnouncement = useCreateAnnouncement();
-  
+
   const [form, setForm] = useState({
     judul: '',
     isi: '',
@@ -28,10 +20,9 @@ export default function AddAnnouncementScreen() {
 
   const handleSubmit = async () => {
     if (!form.judul || !form.isi) {
-      Alert.alert('Eror', 'Silakan isi judul dan isi pengumuman.');
+      Alert.alert('Perhatian', 'Silakan isi judul dan isi pengumuman.');
       return;
     }
-
     try {
       await createAnnouncement.mutateAsync(form);
       Alert.alert('Berhasil', 'Pengumuman berhasil diterbitkan.');
@@ -42,100 +33,99 @@ export default function AddAnnouncementScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="dark" />
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}
-      >
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+
+        {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft color="#1E293B" size={24} />
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <ArrowLeft size={20} color="#1E293B" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Buat Pengumuman</Text>
-          <View style={{ width: 44 }} />
+          <View style={{ width: 36 }} />
         </View>
 
-        <ScrollView 
-          style={styles.scrollView} 
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.card}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>JUDUL PENGUMUMAN</Text>
-              <TextInput
-                placeholder="Masukkan judul..."
-                style={styles.textInput}
-                value={form.judul}
-                onChangeText={(val) => setForm({...form, judul: val})}
-                placeholderTextColor="#94A3B8"
-              />
-            </View>
+        <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+          {/* Judul */}
+          <View style={styles.field}>
+            <Text style={styles.label}>JUDUL</Text>
+            <TextInput
+              placeholder="Masukkan judul pengumuman..."
+              style={styles.input}
+              value={form.judul}
+              onChangeText={(v) => setForm({ ...form, judul: v })}
+              placeholderTextColor="#CBD5E1"
+            />
+          </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>ISI PENGUMUMAN</Text>
-              <TextInput
-                placeholder="Tulis informasi selengkap mungkin..."
-                multiline
-                style={[styles.textInput, styles.textArea]}
-                textAlignVertical="top"
-                value={form.isi}
-                onChangeText={(val) => setForm({...form, isi: val})}
-                placeholderTextColor="#94A3B8"
-              />
-            </View>
+          {/* Isi */}
+          <View style={styles.field}>
+            <Text style={styles.label}>ISI PENGUMUMAN</Text>
+            <TextInput
+              placeholder="Tulis informasi selengkap mungkin..."
+              style={[styles.input, styles.textarea]}
+              multiline
+              textAlignVertical="top"
+              value={form.isi}
+              onChangeText={(v) => setForm({ ...form, isi: v })}
+              placeholderTextColor="#CBD5E1"
+            />
+          </View>
 
-            <View style={styles.inputGroup}>
-              <View style={styles.labelWithIcon}>
-                <ImageIcon size={12} color="#94A3B8" style={{ marginRight: 6 }} />
-                <Text style={styles.inputLabel}>URL GAMBAR (OPSIONAL)</Text>
-              </View>
+          {/* URL Gambar */}
+          <View style={styles.field}>
+            <Text style={styles.label}>URL GAMBAR (OPSIONAL)</Text>
+            <View style={styles.inputWithIcon}>
+              <ImageIcon size={14} color="#94A3B8" style={{ marginRight: 8 }} />
               <TextInput
                 placeholder="https://..."
-                style={[styles.textInput, styles.smallInput]}
+                style={styles.inputInline}
                 value={form.foto_url}
-                onChangeText={(val) => setForm({...form, foto_url: val})}
-                placeholderTextColor="#94A3B8"
+                onChangeText={(v) => setForm({ ...form, foto_url: v })}
+                placeholderTextColor="#CBD5E1"
+                keyboardType="url"
+                autoCapitalize="none"
               />
             </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>TARGET PENERIMA</Text>
-              <View style={styles.targetGrid}>
-                <TouchableOpacity 
-                  onPress={() => setForm({...form, target: 'semua'})}
-                  style={[styles.targetOption, form.target === 'semua' && styles.targetActive]}
-                >
-                  <Globe size={18} color={form.target === 'semua' ? 'white' : '#94A3B8'} />
-                  <Text style={[styles.targetText, form.target === 'semua' && styles.targetTextActive]}>Publik</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  onPress={() => setForm({...form, target: 'rt_tertentu'})}
-                  style={[styles.targetOption, form.target === 'rt_tertentu' && styles.targetActive]}
-                >
-                  <Target size={18} color={form.target === 'rt_tertentu' ? 'white' : '#94A3B8'} />
-                  <Text style={[styles.targetText, form.target === 'rt_tertentu' && styles.targetTextActive]}>Internal</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <TouchableOpacity 
-              onPress={handleSubmit}
-              disabled={createAnnouncement.isPending}
-              style={[styles.submitButton, createAnnouncement.isPending && styles.submitDisabled]}
-            >
-              {createAnnouncement.isPending ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <View style={styles.submitContent}>
-                  <Send size={20} color="white" style={{ marginRight: 10 }} />
-                  <Text style={styles.submitText}>Terbitkan Pengumuman</Text>
-                </View>
-              )}
-            </TouchableOpacity>
           </View>
-          <View style={{ height: 40 }} />
+
+          {/* Target */}
+          <View style={styles.field}>
+            <Text style={styles.label}>TARGET PENERIMA</Text>
+            <View style={styles.segmentRow}>
+              <TouchableOpacity
+                onPress={() => setForm({ ...form, target: 'semua' })}
+                style={[styles.segment, form.target === 'semua' && styles.segmentActive]}
+              >
+                <Globe size={14} color={form.target === 'semua' ? '#67C090' : '#94A3B8'} />
+                <Text style={[styles.segmentText, form.target === 'semua' && styles.segmentTextActive]}>Semua Warga</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setForm({ ...form, target: 'rt_tertentu' })}
+                style={[styles.segment, form.target === 'rt_tertentu' && styles.segmentActive]}
+              >
+                <Target size={14} color={form.target === 'rt_tertentu' ? '#67C090' : '#94A3B8'} />
+                <Text style={[styles.segmentText, form.target === 'rt_tertentu' && styles.segmentTextActive]}>RT Tertentu</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Submit */}
+          <TouchableOpacity
+            onPress={handleSubmit}
+            disabled={createAnnouncement.isPending}
+            style={[styles.submitBtn, createAnnouncement.isPending && { opacity: 0.6 }]}
+          >
+            {createAnnouncement.isPending ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Send size={16} color="#fff" />
+                <Text style={styles.submitText}>Terbitkan Pengumuman</Text>
+              </>
+            )}
+          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -143,142 +133,55 @@ export default function AddAnnouncementScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
+  container: { flex: 1, backgroundColor: '#F8FAFC' },
+
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'android' ? 40 : 10,
-    paddingBottom: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#fff', paddingHorizontal: 16,
+    paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F1F5F9',
   },
-  backButton: {
-    height: 44,
-    width: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F1F5F9',
+  backBtn: {
+    width: 36, height: 36, borderRadius: 10,
+    backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center',
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#1E293B',
+  headerTitle: { flex: 1, textAlign: 'center', fontSize: 15, fontWeight: '700', color: '#1E293B' },
+
+  scroll: { flex: 1 },
+  scrollContent: { padding: 16, paddingBottom: 32 },
+
+  field: { marginBottom: 20 },
+  label: { fontSize: 10, fontWeight: '700', color: '#94A3B8', letterSpacing: 1, marginBottom: 8 },
+
+  input: {
+    backgroundColor: '#fff', borderRadius: 12,
+    borderWidth: 1, borderColor: '#E2E8F0',
+    paddingHorizontal: 14, paddingVertical: 12,
+    fontSize: 14, color: '#1E293B',
   },
-  scrollView: {
-    flex: 1,
+  textarea: { height: 130, paddingTop: 12 },
+  inputWithIcon: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#fff', borderRadius: 12,
+    borderWidth: 1, borderColor: '#E2E8F0',
+    paddingHorizontal: 14, paddingVertical: 12,
   },
-  scrollContent: {
-    padding: 24,
+  inputInline: { flex: 1, fontSize: 13, color: '#1E293B' },
+
+  segmentRow: { flexDirection: 'row', gap: 10 },
+  segment: {
+    flex: 1, flexDirection: 'row', alignItems: 'center',
+    justifyContent: 'center', gap: 6,
+    paddingVertical: 10, borderRadius: 10,
+    backgroundColor: '#fff', borderWidth: 1, borderColor: '#E2E8F0',
   },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 32,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 15,
-    elevation: 5,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
+  segmentActive: { borderColor: '#67C090', backgroundColor: '#F0FDF4' },
+  segmentText: { fontSize: 13, fontWeight: '600', color: '#94A3B8' },
+  segmentTextActive: { color: '#67C090' },
+
+  submitBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 8, backgroundColor: '#67C090',
+    paddingVertical: 14, borderRadius: 12, marginTop: 4,
   },
-  inputGroup: {
-    marginBottom: 24,
-  },
-  inputLabel: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: '#94A3B8',
-    letterSpacing: 1.5,
-    marginBottom: 8,
-    marginLeft: 4,
-  },
-  labelWithIcon: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  textInput: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    padding: 18,
-    fontSize: 15,
-    color: '#1E293B',
-    fontWeight: '600',
-  },
-  textArea: {
-    height: 150,
-  },
-  smallInput: {
-    padding: 14,
-    fontSize: 13,
-  },
-  targetGrid: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  targetOption: {
-    flex: 1,
-    height: 56,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    backgroundColor: '#F8FAFC',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  targetActive: {
-    backgroundColor: '#1E293B',
-    borderColor: '#1E293B',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 4,
-  },
-  targetText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#94A3B8',
-    marginLeft: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  targetTextActive: {
-    color: '#fff',
-  },
-  submitButton: {
-    backgroundColor: '#67C090',
-    height: 64,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 10,
-    shadowColor: '#67C090',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
-    elevation: 8,
-  },
-  submitDisabled: {
-    opacity: 0.7,
-  },
-  submitContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  submitText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '900',
-  }
+  submitText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 });
