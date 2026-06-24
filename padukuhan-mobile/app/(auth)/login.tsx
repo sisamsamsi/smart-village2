@@ -58,6 +58,7 @@ export default function LoginScreen() {
           rt_id: null,
           dasawisma_id: null,
         });
+        router.replace('/(app)' as any);
       } else if (data.user) {
         setUser(data.user);
         const { data: dbProfile } = await supabase
@@ -73,6 +74,7 @@ export default function LoginScreen() {
           rt_id: null,
           dasawisma_id: null,
         });
+        router.replace('/(app)' as any);
       }
     } catch (err: unknown) {
       console.log('Error in login bypass, applying client-side mock credentials');
@@ -87,6 +89,7 @@ export default function LoginScreen() {
         rt_id: null,
         dasawisma_id: null,
       });
+      router.replace('/(app)' as any);
     } finally {
       setLoading(false);
     }
