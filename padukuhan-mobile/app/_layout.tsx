@@ -23,19 +23,69 @@ export default function RootLayout() {
   const router = useRouter();
 
   useEffect(() => {
-    // Auto-login bypass: immediately set mock session to go straight to dashboard
-    setUser({
-      id: 'demo-developer-id',
-      email: 'dev@mandingan.id',
-    } as any);
-    setProfile({
-      id: 'demo-developer-id',
-      nama_lengkap: 'Developer Mandingan',
-      role: 'dukuh',
-      rt_id: null,
-      dasawisma_id: null,
+    // Check initial session
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUser(session.user);
+          const { data: dbProfile } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          if (dbProfile) {
+            setProfile(dbProfile);
+          } else {
+            setProfile({
+              id: session.user.id,
+              nama_lengkap: session.user.email || 'Admin',
+              role: 'dukuh',
+              rt_id: null,
+              dasawisma_id: null,
+            });
+          }
+        } else {
+          // If not using demo bypass user, clear
+          if (user?.id !== 'demo-developer-id') {
+            setUser(null);
+            setProfile(null);
+          }
+        }
+      } catch (err) {
+        console.error('Error checking initial session:', err);
+      } finally {
+        setInitialized(true);
+      }
+    };
+
+    checkSession();
+
+    // Listen to changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setProfile(null);
+      } else if (session?.user) {
+        setUser(session.user);
+        try {
+          const { data: dbProfile } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          if (dbProfile) {
+            setProfile(dbProfile);
+          }
+        } catch (err) {
+          console.error('Error updating profile on auth change:', err);
+        }
+      }
     });
-    setInitialized(true);
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {

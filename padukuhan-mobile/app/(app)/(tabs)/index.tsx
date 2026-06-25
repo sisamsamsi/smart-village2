@@ -59,7 +59,7 @@ const PALETTE = {
 };
 
 export default function DashboardScreen() {
-  const { profile } = useAuthStore();
+  const { profile, setUser, setProfile } = useAuthStore();
   const router = useRouter();
   const { data: stats, isLoading: isStatsLoading } = useDashboardStats();
   const [activeChartTab, setActiveChartTab] = useState<'umur' | 'gender' | 'pekerjaan'>('umur');
@@ -100,6 +100,8 @@ export default function DashboardScreen() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    setUser(null);
+    setProfile(null);
   };
 
   const isKader = profile?.role === 'kader_dasawisma';
