@@ -45,8 +45,10 @@ export default function LoginScreen() {
         password: 'adminmandingan',
       });
 
+      // Increase timeout to 10s in production/preview, 2s in development
+      const timeoutMs = __DEV__ ? 2000 : 10000;
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout')), 1500)
+        setTimeout(() => reject(new Error('Timeout')), timeoutMs)
       );
 
       const { data, error: authError } = await Promise.race([loginPromise, timeoutPromise]) as any;
@@ -77,7 +79,7 @@ export default function LoginScreen() {
 
         const { data: dbProfile, error: profileError } = await Promise.race([
           profilePromise,
-          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 1500))
+          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Timeout')), timeoutMs))
         ]);
 
         if (profileError || !dbProfile) {
