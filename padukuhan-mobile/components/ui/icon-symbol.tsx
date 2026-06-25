@@ -13,6 +13,7 @@ const MAPPING = {
   'person.2.fill': 'people',
   'doc.plaintext.fill': 'description',
   'chart.bar.fill': 'insert-chart',
+  'family.fill': 'groups',
 } as const;
 
 type IconSymbolName = keyof typeof MAPPING;

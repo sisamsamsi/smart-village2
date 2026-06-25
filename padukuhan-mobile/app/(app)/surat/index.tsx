@@ -82,10 +82,10 @@ export default function SuratListScreen() {
       <ScrollView
         style={styles.list}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={false} onRefresh={refetch} tintColor="#67C090" />}
+        refreshControl={<RefreshControl refreshing={false} onRefresh={refetch} tintColor="#124170" />}
       >
         {isLoading ? (
-          <ActivityIndicator color="#67C090" style={{ marginTop: 40 }} />
+          <ActivityIndicator color="#124170" style={{ marginTop: 40 }} />
         ) : displayedSurat?.length === 0 ? (
           <View style={styles.empty}>
             <FileText size={36} color="#E2E8F0" />
@@ -115,7 +115,7 @@ export default function SuratListScreen() {
 function SuratRow({ item, isLast, onPress }: { item: any; isLast: boolean; onPress: () => void }) {
   const getStatus = () => {
     const s = item.status?.toLowerCase();
-    if (s === 'approved' || s === 'selesai') return { color: '#10B981', bg: '#ECFDF5', label: 'Selesai', icon: <CheckCircle2 size={11} color="#10B981" /> };
+    if (s === 'approved' || s === 'selesai') return { color: '#10B981', bg: '#EFF6FF', label: 'Selesai', icon: <CheckCircle2 size={11} color="#10B981" /> };
     if (s === 'rejected') return { color: '#EF4444', bg: '#FEF2F2', label: 'Ditolak', icon: <XCircle size={11} color="#EF4444" /> };
     return { color: '#F59E0B', bg: '#FFFBEB', label: 'Pending', icon: <Clock size={11} color="#F59E0B" /> };
   };
@@ -124,7 +124,7 @@ function SuratRow({ item, isLast, onPress }: { item: any; isLast: boolean; onPre
   return (
     <TouchableOpacity onPress={onPress} style={[styles.row, isLast && { borderBottomWidth: 0 }]}>
       <View style={styles.rowIconBox}>
-        <FileText size={16} color="#67C090" />
+        <FileText size={16} color="#124170" />
       </View>
       <View style={styles.rowContent}>
         <View style={styles.rowTop}>
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
   headerSub: { fontSize: 11, color: '#94A3B8', marginTop: 1 },
   addBtn: {
     width: 36, height: 36, borderRadius: 10,
-    backgroundColor: '#67C090', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#124170', alignItems: 'center', justifyContent: 'center',
   },
 
   // Stats
@@ -191,9 +191,9 @@ const styles = StyleSheet.create({
     borderRadius: 20, backgroundColor: '#F8FAFC',
     borderWidth: 1, borderColor: '#F1F5F9',
   },
-  tabPillActive: { backgroundColor: '#EDF7F2', borderColor: '#67C090' },
+  tabPillActive: { backgroundColor: '#EFF6FF', borderColor: '#124170' },
   tabText: { fontSize: 13, fontWeight: '600', color: '#94A3B8' },
-  tabTextActive: { color: '#67C090' },
+  tabTextActive: { color: '#124170' },
   badge: {
     marginLeft: 6, backgroundColor: '#F59E0B',
     borderRadius: 8, paddingHorizontal: 5, paddingVertical: 1,
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
   },
   rowIconBox: {
     width: 36, height: 36, borderRadius: 10,
-    backgroundColor: '#F0FDF4', alignItems: 'center',
+    backgroundColor: '#EFF6FF', alignItems: 'center',
     justifyContent: 'center', marginRight: 12,
   },
   rowContent: { flex: 1 },

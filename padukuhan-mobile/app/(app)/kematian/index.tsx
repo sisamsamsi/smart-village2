@@ -55,7 +55,7 @@ export default function KematianListScreen() {
           <ChevronLeft size={18} color="#475569" />
         </TouchableOpacity>
         <View style={styles.yearDisplay}>
-          <Calendar size={14} color="#67C090" style={{ marginRight: 6 }} />
+          <Calendar size={14} color="#124170" style={{ marginRight: 6 }} />
           <Text style={styles.yearText}>Tahun Aktif: {activeYear}</Text>
         </View>
         <TouchableOpacity 
@@ -71,11 +71,11 @@ export default function KematianListScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={false} onRefresh={refetch} tintColor="#67C090" />}
+        refreshControl={<RefreshControl refreshing={false} onRefresh={refetch} tintColor="#124170" />}
       >
         {isLoading ? (
           <View style={styles.loaderContainer}>
-            <ActivityIndicator color="#67C090" size="large" />
+            <ActivityIndicator color="#124170" size="large" />
           </View>
         ) : !kematian || kematian.length === 0 ? (
           <View style={styles.emptyState}>
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     color: '#0F172A',
   },
   addButton: {
-    backgroundColor: '#67C090',
+    backgroundColor: '#124170',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,

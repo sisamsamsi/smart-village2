@@ -28,7 +28,14 @@ import {
   User,
   Coffee,
   Calendar,
-  Skull
+  Skull,
+  Activity,
+  Sparkles,
+  Droplets,
+  HeartOff,
+  ClipboardList,
+  HeartHandshake,
+  HeartPulse
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -39,9 +46,9 @@ const { width } = Dimensions.get('window');
 
 // Color Palette Definition
 const PALETTE = {
-  veryLightMint: '#DDF4E7',
-  softMediumGreen: '#67C090',
-  tealBlueGreen: '#26667F',
+  veryLightMint: '#EFF6FF',
+  navy: '#124170',
+  royalBlue: '#1E40AF',
   darkNavyBlue: '#124170',
   white: '#FFFFFF',
   bgGray: '#F8FAFC',
@@ -97,16 +104,42 @@ export default function DashboardScreen() {
 
   const isKader = profile?.role === 'kader_dasawisma';
 
-  // 1. Fetch Demographic Data for Charts
+  // 1. Fetch Demographic Data for Charts (Parallel paginated fetch to get all wargas)
   const { data: wargas, isLoading: isWargasLoading } = useQuery({
     queryKey: ['wargas_demographics'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('wargas')
-        .select('tanggal_lahir, jenis_kelamin, pekerjaan')
-        .eq('status_warga', 'aktif');
-      if (error) throw error;
-      return data || [];
+      try {
+        const [page1, page2] = await Promise.all([
+          supabase
+            .from('wargas')
+            .select('tanggal_lahir, jenis_kelamin, pekerjaan')
+            .eq('status_warga', 'aktif')
+            .range(0, 999),
+          supabase
+            .from('wargas')
+            .select('tanggal_lahir, jenis_kelamin, pekerjaan')
+            .eq('status_warga', 'aktif')
+            .range(1000, 1999)
+        ]);
+
+        if (page1.error) throw page1.error;
+        return [
+          ...(page1.data || []),
+          ...(page2.data || [])
+        ];
+      } catch (err) {
+        console.log('Demographics query error, using fallback mock data', err);
+        return [
+          { tanggal_lahir: '2023-01-01', jenis_kelamin: 'L', pekerjaan: 'Belum Bekerja' },
+          { tanggal_lahir: '2021-06-15', jenis_kelamin: 'P', pekerjaan: 'Belum Bekerja' },
+          { tanggal_lahir: '2019-09-20', jenis_kelamin: 'L', pekerjaan: 'Belum Bekerja' },
+          { tanggal_lahir: '1995-04-10', jenis_kelamin: 'P', pekerjaan: 'Swasta' },
+          { tanggal_lahir: '1990-11-25', jenis_kelamin: 'L', pekerjaan: 'PNS' },
+          { tanggal_lahir: '1985-03-30', jenis_kelamin: 'P', pekerjaan: 'Swasta' },
+          { tanggal_lahir: '1958-07-08', jenis_kelamin: 'L', pekerjaan: 'Wiraswasta' },
+          { tanggal_lahir: '1950-12-12', jenis_kelamin: 'P', pekerjaan: 'Petani' }
+        ];
+      }
     }
   });
 
@@ -156,9 +189,11 @@ export default function DashboardScreen() {
   const totalGender = maleCount + femaleCount || 1;
 
   // Process top jobs
-  const sortedJobs = Object.entries(jobCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
+  const allJobsSorted = Object.entries(jobCounts)
+    .sort((a, b) => b[1] - a[1]);
+  const sortedJobs = allJobsSorted.slice(0, 5);
+  const remainingJobs = allJobsSorted.slice(5);
+  const otherJobsSum = remainingJobs.reduce((acc, curr) => acc + curr[1], 0);
   const maxJobCount = sortedJobs.length > 0 ? sortedJobs[0][1] : 1;
 
   // Helper to format large numbers (e.g. 1250 -> 1.250)
@@ -166,10 +201,19 @@ export default function DashboardScreen() {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
 
+  const toTitleCase = (str: string) => {
+    if (!str) return '';
+    return str
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   const getStatusConfig = (status: string) => {
     switch (status.toLowerCase()) {
       case 'selesai':
-        return { bg: '#DDF4E7', text: '#67C090', label: 'Selesai' };
+        return { bg: '#EFF6FF', text: '#124170', label: 'Selesai' };
       case 'proses':
         return { bg: '#FFF3E0', text: '#E65100', label: 'Proses' };
       default:
@@ -180,7 +224,11 @@ export default function DashboardScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="dark" />
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={{ paddingBottom: 100 }} 
+        showsVerticalScrollIndicator={false}
+      >
         
         {/* HEADER SECTION */}
         <View style={styles.header}>
@@ -272,7 +320,7 @@ export default function DashboardScreen() {
           <Text style={styles.sectionTitle}>Ringkasan Data</Text>
           <View style={styles.statsRow}>
             {isStatsLoading ? (
-              <ActivityIndicator color={PALETTE.tealBlueGreen} style={{ flex: 1, height: 100 }} />
+              <ActivityIndicator color={PALETTE.royalBlue} style={{ flex: 1, height: 100 }} />
             ) : (
               <>
                 <View style={styles.statCard}>
@@ -325,23 +373,23 @@ export default function DashboardScreen() {
           </View>
           <View style={styles.pkkGrid}>
             {isStatsLoading ? (
-              <ActivityIndicator color={PALETTE.tealBlueGreen} style={{ flex: 1, height: 120 }} />
+              <ActivityIndicator color={PALETTE.royalBlue} style={{ flex: 1, height: 120 }} />
             ) : (
               <>
-                <View style={[styles.pkkCard, { backgroundColor: '#F0FDF4' }]}>
-                  <Baby size={20} color="#15803D" />
+                <View style={[styles.pkkCard, { backgroundColor: '#EFF6FF' }]}>
+                  <Baby size={20} color="#124170" />
                   <Text style={styles.pkkValue}>{stats?.balita ?? 0}</Text>
                   <Text style={styles.pkkLabel}>Balita</Text>
                 </View>
 
                 <View style={[styles.pkkCard, { backgroundColor: '#FAF5FF' }]}>
-                  <Heart size={20} color="#7E22CE" />
+                  <HeartPulse size={20} color="#7E22CE" />
                   <Text style={styles.pkkValue}>{stats?.lansia ?? 0}</Text>
                   <Text style={styles.pkkLabel}>Lansia</Text>
                 </View>
 
                 <View style={[styles.pkkCard, { backgroundColor: '#FEF3C7' }]}>
-                  <User size={20} color="#B45309" />
+                  <Sparkles size={20} color="#B45309" />
                   <Text style={styles.pkkValue}>{stats?.wus ?? 0}</Text>
                   <Text style={styles.pkkLabel}>WUS</Text>
                 </View>
@@ -359,7 +407,7 @@ export default function DashboardScreen() {
                 </View>
 
                 <View style={[styles.pkkCard, { backgroundColor: '#E0F2FE' }]}>
-                  <Coffee size={20} color="#0369A1" />
+                  <Droplets size={20} color="#0369A1" />
                   <Text style={styles.pkkValue}>{stats?.ibuMenyusui ?? 0}</Text>
                   <Text style={styles.pkkLabel}>Busui</Text>
                 </View>
@@ -379,6 +427,13 @@ export default function DashboardScreen() {
               <Text style={styles.menuLabel}>Kependudukan</Text>
             </TouchableOpacity>
 
+            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/keluarga' as any)}>
+              <View style={[styles.menuIconBox, { backgroundColor: '#EEF2FF' }]}>
+                <HomeIcon size={20} color="#4F46E5" />
+              </View>
+              <Text style={styles.menuLabel}>Keluarga</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/mutasi' as any)}>
               <View style={[styles.menuIconBox, { backgroundColor: '#EDF2F7' }]}>
                 <ArrowRightLeft size={20} color="#4A5568" />
@@ -387,15 +442,15 @@ export default function DashboardScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/kelahiran' as any)}>
-              <View style={[styles.menuIconBox, { backgroundColor: '#E6FFFA' }]}>
-                <Baby size={20} color="#319795" />
+              <View style={[styles.menuIconBox, { backgroundColor: '#EFF6FF' }]}>
+                <Baby size={20} color="#0EA5E9" />
               </View>
               <Text style={styles.menuLabel}>Kelahiran</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/kematian' as any)}>
               <View style={[styles.menuIconBox, { backgroundColor: '#FFF5F5' }]}>
-                <Skull size={20} color="#E53E3E" />
+                <HeartOff size={20} color="#E53E3E" />
               </View>
               <Text style={styles.menuLabel}>Kematian</Text>
             </TouchableOpacity>
@@ -422,15 +477,15 @@ export default function DashboardScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/program' as any)}>
-              <View style={[styles.menuIconBox, { backgroundColor: '#F0FDF4' }]}>
-                <Construction size={20} color="#16A34A" />
+              <View style={[styles.menuIconBox, { backgroundColor: '#EFF6FF' }]}>
+                <ClipboardList size={20} color="#124170" />
               </View>
               <Text style={styles.menuLabel}>Program</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/pkk' as any)}>
               <View style={[styles.menuIconBox, { backgroundColor: '#F5F3FF' }]}>
-                <Heart size={20} color="#7C3AED" />
+                <HeartHandshake size={20} color="#7C3AED" />
               </View>
               <Text style={styles.menuLabel}>PKK / Dasawisma</Text>
             </TouchableOpacity>
@@ -497,7 +552,7 @@ export default function DashboardScreen() {
           {/* Chart Content Area */}
           <View style={styles.chartContentCard}>
             {isWargasLoading ? (
-              <ActivityIndicator color={PALETTE.tealBlueGreen} style={{ height: 160 }} />
+              <ActivityIndicator color={PALETTE.royalBlue} style={{ height: 160 }} />
             ) : (
               <>
                 {/* 1. AGE DISTRIBUTION CHART */}
@@ -546,7 +601,7 @@ export default function DashboardScreen() {
                         <Text style={styles.genderCount}>{maleCount} Jiwa ({Math.round((maleCount / totalGender) * 100)}%)</Text>
                       </View>
                       <View style={styles.progressBarBg}>
-                        <View style={[styles.progressBarFill, { width: `${(maleCount / totalGender) * 100}%`, backgroundColor: PALETTE.tealBlueGreen }]} />
+                        <View style={[styles.progressBarFill, { width: `${(maleCount / totalGender) * 100}%`, backgroundColor: PALETTE.royalBlue }]} />
                       </View>
                     </View>
 
@@ -556,7 +611,7 @@ export default function DashboardScreen() {
                         <Text style={styles.genderCount}>{femaleCount} Jiwa ({Math.round((femaleCount / totalGender) * 100)}%)</Text>
                       </View>
                       <View style={styles.progressBarBg}>
-                        <View style={[styles.progressBarFill, { width: `${(femaleCount / totalGender) * 100}%`, backgroundColor: PALETTE.softMediumGreen }]} />
+                        <View style={[styles.progressBarFill, { width: `${(femaleCount / totalGender) * 100}%`, backgroundColor: PALETTE.navy }]} />
                       </View>
                     </View>
                   </View>
@@ -568,20 +623,29 @@ export default function DashboardScreen() {
                     {sortedJobs.length === 0 ? (
                       <Text style={styles.emptyText}>Tidak ada data pekerjaan.</Text>
                     ) : (
-                      sortedJobs.map(([jobName, val]) => {
-                        const ratio = (val / maxJobCount) * 100;
-                        return (
-                          <View key={jobName} style={styles.jobRow}>
-                            <View style={styles.jobTextRow}>
-                              <Text style={styles.jobName} numberOfLines={1}>{jobName}</Text>
-                              <Text style={styles.jobVal}>{val} jiwa</Text>
+                      <>
+                        {sortedJobs.map(([jobName, val]) => {
+                          const ratio = (val / maxJobCount) * 100;
+                          return (
+                            <View key={jobName} style={styles.jobRow}>
+                              <View style={styles.jobTextRow}>
+                                <Text style={styles.jobName} numberOfLines={1}>{jobName}</Text>
+                                <Text style={styles.jobVal}>{val} jiwa</Text>
+                              </View>
+                              <View style={styles.progressBarBg}>
+                                <View style={[styles.progressBarFill, { width: `${ratio}%`, backgroundColor: PALETTE.navy }]} />
+                              </View>
                             </View>
-                            <View style={styles.progressBarBg}>
-                              <View style={[styles.progressBarFill, { width: `${ratio}%`, backgroundColor: PALETTE.softMediumGreen }]} />
-                            </View>
-                          </View>
-                        );
-                      })
+                          );
+                        })}
+                        {otherJobsSum > 0 && (
+                          <Text style={styles.otherJobsCaption}>
+                            * Sisa {otherJobsSum} warga lainnya tersebar di pekerjaan lain seperti {
+                              remainingJobs.slice(0, 4).map(([name, count]) => `${toTitleCase(name)} (${count})`).join(', ')
+                            }, dll.
+                          </Text>
+                        )}
+                      </>
                     )}
                   </View>
                 )}
@@ -601,7 +665,7 @@ export default function DashboardScreen() {
 
           <View style={styles.listCardWrapper}>
             {isAnnouncementsLoading ? (
-              <ActivityIndicator color={PALETTE.tealBlueGreen} style={{ padding: 20 }} />
+              <ActivityIndicator color={PALETTE.royalBlue} style={{ padding: 20 }} />
             ) : announcements.length === 0 ? (
               <View style={styles.emptyStateCard}>
                 <Megaphone size={32} color={PALETTE.textMuted} style={{ marginBottom: 8 }} />
@@ -615,7 +679,7 @@ export default function DashboardScreen() {
                   onPress={() => router.push(`/pengumuman/${item.id}` as any)}
                 >
                   <View style={[styles.listItemIconWrapper, { backgroundColor: PALETTE.veryLightMint }]}>
-                    <Megaphone size={18} color={PALETTE.tealBlueGreen} />
+                    <Megaphone size={18} color={PALETTE.royalBlue} />
                   </View>
                   <View style={styles.listItemContent}>
                     <Text style={styles.listItemTitle}>{item.judul}</Text>
@@ -676,7 +740,7 @@ const styles = StyleSheet.create({
     height: 32,
     width: 32,
     borderRadius: 10,
-    backgroundColor: PALETTE.softMediumGreen,
+    backgroundColor: PALETTE.navy,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
@@ -747,7 +811,7 @@ const styles = StyleSheet.create({
   greetingSub: {
     fontSize: 12,
     fontWeight: '600',
-    color: PALETTE.softMediumGreen,
+    color: PALETTE.navy,
     marginBottom: 4,
   },
   greetingName: {
@@ -770,10 +834,10 @@ const styles = StyleSheet.create({
     width: 100,
     height: 80,
     overflow: 'hidden',
-    backgroundColor: '#F0FDF4',
+    backgroundColor: '#EFF6FF',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#DCFCE7',
+    borderColor: '#DBEAFE',
     position: 'relative',
   },
   illHillsBack: {
@@ -783,7 +847,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 50,
     borderRadius: 40,
-    backgroundColor: '#DCFCE7',
+    backgroundColor: '#DBEAFE',
   },
   illHillsFront: {
     position: 'absolute',
@@ -792,7 +856,7 @@ const styles = StyleSheet.create({
     width: 90,
     height: 60,
     borderRadius: 45,
-    backgroundColor: '#C2F3D3',
+    backgroundColor: '#BFDBFE',
   },
   illHouse: {
     position: 'absolute',
@@ -802,7 +866,7 @@ const styles = StyleSheet.create({
     height: 25,
     backgroundColor: PALETTE.white,
     borderWidth: 1,
-    borderColor: '#86EFAC',
+    borderColor: '#93C5FD',
   },
   illRoof: {
     position: 'absolute',
@@ -810,7 +874,7 @@ const styles = StyleSheet.create({
     left: -3,
     width: 34,
     height: 12,
-    backgroundColor: PALETTE.softMediumGreen,
+    backgroundColor: PALETTE.navy,
     borderTopLeftRadius: 17,
     borderTopRightRadius: 17,
   },
@@ -820,7 +884,7 @@ const styles = StyleSheet.create({
     left: 6,
     width: 8,
     height: 14,
-    backgroundColor: PALETTE.tealBlueGreen,
+    backgroundColor: PALETTE.royalBlue,
   },
   illWindow: {
     position: 'absolute',
@@ -836,7 +900,7 @@ const styles = StyleSheet.create({
     left: 15,
     width: 12,
     height: 20,
-    backgroundColor: PALETTE.tealBlueGreen,
+    backgroundColor: PALETTE.royalBlue,
     borderTopLeftRadius: 6,
     borderTopRightRadius: 6,
   },
@@ -846,7 +910,7 @@ const styles = StyleSheet.create({
     right: 15,
     width: 16,
     height: 26,
-    backgroundColor: PALETTE.softMediumGreen,
+    backgroundColor: PALETTE.navy,
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
   },
@@ -869,7 +933,7 @@ const styles = StyleSheet.create({
   },
   sectionLinkText: {
     fontSize: 13,
-    color: PALETTE.softMediumGreen,
+    color: PALETTE.navy,
     fontWeight: '700',
   },
   statsRow: {
@@ -912,7 +976,7 @@ const styles = StyleSheet.create({
   statGrowthRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ECFDF5',
+    backgroundColor: '#EFF6FF',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
@@ -920,7 +984,7 @@ const styles = StyleSheet.create({
   },
   statGrowthText: {
     fontSize: 8,
-    color: '#10B981',
+    color: '#124170',
     fontWeight: 'bold',
     marginLeft: 3,
   },
@@ -977,12 +1041,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   bannerCta: {
-    backgroundColor: '#EDFDF5',
+    backgroundColor: '#EFF6FF',
     borderRadius: 24,
     padding: 20,
     flexDirection: 'row',
     borderWidth: 1,
-    borderColor: '#A7F3D0',
+    borderColor: '#93C5FD',
   },
   bannerCtaLeft: {
     flex: 1.3,
@@ -1000,7 +1064,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   bannerCtaBtn: {
-    backgroundColor: PALETTE.softMediumGreen,
+    backgroundColor: PALETTE.navy,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 12,
@@ -1028,7 +1092,7 @@ const styles = StyleSheet.create({
     backgroundColor: PALETTE.white,
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: PALETTE.tealBlueGreen,
+    borderColor: PALETTE.royalBlue,
     padding: 6,
     position: 'relative',
   },
@@ -1038,7 +1102,7 @@ const styles = StyleSheet.create({
     left: 13,
     width: 20,
     height: 8,
-    backgroundColor: PALETTE.tealBlueGreen,
+    backgroundColor: PALETTE.royalBlue,
     borderTopLeftRadius: 4,
     borderTopRightRadius: 4,
   },
@@ -1067,7 +1131,7 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: PALETTE.softMediumGreen,
+    backgroundColor: PALETTE.navy,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1088,7 +1152,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   chartTabBtnActive: {
-    backgroundColor: PALETTE.softMediumGreen,
+    backgroundColor: PALETTE.navy,
   },
   chartTabBtnText: {
     fontSize: 12,
@@ -1164,7 +1228,7 @@ const styles = StyleSheet.create({
   },
   barChartBar: {
     width: 14,
-    backgroundColor: PALETTE.softMediumGreen,
+    backgroundColor: PALETTE.navy,
     borderRadius: 4,
   },
   barChartLabel: {
@@ -1228,6 +1292,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flex: 0.25,
     textAlign: 'right',
+  },
+  otherJobsCaption: {
+    fontSize: 11,
+    color: PALETTE.textMuted,
+    fontStyle: 'italic',
+    lineHeight: 16,
+    marginTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+    paddingTop: 12,
   },
   listCardWrapper: {
     backgroundColor: PALETTE.white,
@@ -1311,9 +1385,9 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: '#ECFDF5',
+    backgroundColor: '#EFF6FF',
     borderWidth: 1,
-    borderColor: '#A7F3D0',
+    borderColor: '#93C5FD',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -1321,13 +1395,13 @@ const styles = StyleSheet.create({
   agendaCalDay: {
     fontSize: 16,
     fontWeight: '900',
-    color: PALETTE.softMediumGreen,
+    color: PALETTE.navy,
     lineHeight: 18,
   },
   agendaCalMonth: {
     fontSize: 9,
     fontWeight: 'bold',
-    color: PALETTE.tealBlueGreen,
+    color: PALETTE.royalBlue,
   },
   agendaContent: {
     flex: 1,

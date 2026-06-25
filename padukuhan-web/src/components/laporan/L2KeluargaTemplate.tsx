@@ -137,6 +137,8 @@ export const L2KeluargaPage: React.FC<L2Props> = ({ data }) => {
       }
     }
     if (w.berkebutuhan_khusus) cButa++;
+    if (w.status_kehamilan === true || w.status_kehamilan === 'true' || w.status_kehamilan === 'hamil') cHamil++;
+    if (w.status_menyusui === true || w.status_menyusui === 'true') cMenyusui++;
   });
 
   const jumlahAnakStr = `a. Balita: ${cBalita} orang; b. PUS: ${cPus} orang; c. WUS: ${cWus} orang; d. Buta: ${cButa} orang; e. Ibu Hamil: ${cHamil} orang; f. Ibu Menyusui: ${cMenyusui} orang; g. Lansia: ${cLansia} orang`

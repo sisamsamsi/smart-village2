@@ -30,10 +30,10 @@ export default function AnnouncementListScreen() {
       <ScrollView
         style={styles.list}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={false} onRefresh={refetch} tintColor="#67C090" />}
+        refreshControl={<RefreshControl refreshing={false} onRefresh={refetch} tintColor="#124170" />}
       >
         {isLoading ? (
-          <ActivityIndicator color="#67C090" style={{ marginTop: 48 }} />
+          <ActivityIndicator color="#124170" style={{ marginTop: 48 }} />
         ) : announcements?.length === 0 ? (
           <View style={styles.empty}>
             <Megaphone size={36} color="#E2E8F0" />
@@ -50,7 +50,7 @@ export default function AnnouncementListScreen() {
                 activeOpacity={0.7}
               >
                 <View style={styles.rowIconBox}>
-                  <Megaphone size={16} color="#67C090" />
+                  <Megaphone size={16} color="#124170" />
                 </View>
                 <View style={styles.rowContent}>
                   <Text style={styles.rowTitle} numberOfLines={1}>{item.judul}</Text>
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   headerSub: { fontSize: 11, color: '#94A3B8', marginTop: 1 },
   addBtn: {
     width: 36, height: 36, borderRadius: 10,
-    backgroundColor: '#67C090', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#124170', alignItems: 'center', justifyContent: 'center',
   },
 
   list: { flex: 1 },
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   },
   rowIconBox: {
     width: 36, height: 36, borderRadius: 10,
-    backgroundColor: '#F0FDF4', alignItems: 'center',
+    backgroundColor: '#EFF6FF', alignItems: 'center',
     justifyContent: 'center', marginRight: 12,
   },
   rowContent: { flex: 1 },

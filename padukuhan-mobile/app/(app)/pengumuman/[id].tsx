@@ -37,7 +37,7 @@ export default function AnnouncementDetailScreen() {
 
   if (isLoading) return (
     <SafeAreaView style={styles.loaderContainer}>
-      <ActivityIndicator color="#67C090" size="large" />
+      <ActivityIndicator color="#124170" size="large" />
     </SafeAreaView>
   );
 
@@ -56,7 +56,7 @@ export default function AnnouncementDetailScreen() {
             <Image source={{ uri: item.foto_url }} style={styles.heroImage} resizeMode="cover" />
           ) : (
             <View style={styles.placeholderHero}>
-              <Megaphone size={60} color="#67C090" />
+              <Megaphone size={60} color="#124170" />
             </View>
           )}
           
@@ -96,7 +96,7 @@ export default function AnnouncementDetailScreen() {
           <View style={styles.infoBar}>
             <View style={styles.infoItem}>
               <View style={styles.infoIconWrapper}>
-                <User size={16} color="#67C090" />
+                <User size={16} color="#124170" />
               </View>
               <View>
                 <Text style={styles.infoLabel}>PENERBIT</Text>
@@ -106,7 +106,7 @@ export default function AnnouncementDetailScreen() {
             <View style={styles.infoDivider} />
             <View style={styles.infoItem}>
               <View style={styles.infoIconWrapper}>
-                <Globe size={16} color="#67C090" />
+                <Globe size={16} color="#124170" />
               </View>
               <View>
                 <Text style={styles.infoLabel}>VISIBILITAS</Text>
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   categoryBadge: {
-    backgroundColor: '#67C090',
+    backgroundColor: '#124170',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,

@@ -71,14 +71,14 @@ export function RoleSimulator() {
     <View style={styles.container}>
       <Text style={styles.title}>SIMULATOR AKSES PERAN (DEMO)</Text>
       {loading ? (
-        <ActivityIndicator color="#67C090" size="small" style={{ marginVertical: 10 }} />
+        <ActivityIndicator color="#124170" size="small" style={{ marginVertical: 10 }} />
       ) : (
         <View style={styles.buttonRow}>
           <TouchableOpacity
             style={[styles.button, profile?.role === 'dukuh' && styles.activeButton]}
             onPress={() => simulateRole('dukuh')}
           >
-            <Shield size={16} color={profile?.role === 'dukuh' ? '#fff' : '#67C090'} />
+            <Shield size={16} color={profile?.role === 'dukuh' ? '#fff' : '#124170'} />
             <Text style={[styles.buttonText, profile?.role === 'dukuh' && styles.activeButtonText]}>Dukuh</Text>
           </TouchableOpacity>
 
@@ -86,7 +86,7 @@ export function RoleSimulator() {
             style={[styles.button, profile?.role === 'ketua_rt' && styles.activeButton]}
             onPress={() => simulateRole('ketua_rt')}
           >
-            <User size={16} color={profile?.role === 'ketua_rt' ? '#fff' : '#67C090'} />
+            <User size={16} color={profile?.role === 'ketua_rt' ? '#fff' : '#124170'} />
             <Text style={[styles.buttonText, profile?.role === 'ketua_rt' && styles.activeButtonText]}>RT</Text>
           </TouchableOpacity>
 
@@ -94,7 +94,7 @@ export function RoleSimulator() {
             style={[styles.button, profile?.role === 'kader_dasawisma' && styles.activeButton]}
             onPress={() => simulateRole('kader_dasawisma')}
           >
-            <Users size={16} color={profile?.role === 'kader_dasawisma' ? '#fff' : '#67C090'} />
+            <Users size={16} color={profile?.role === 'kader_dasawisma' ? '#fff' : '#124170'} />
             <Text style={[styles.buttonText, profile?.role === 'kader_dasawisma' && styles.activeButtonText]}>Dasawisma</Text>
           </TouchableOpacity>
         </View>
@@ -142,13 +142,13 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   activeButton: {
-    backgroundColor: '#67C090',
-    borderColor: '#67C090',
+    backgroundColor: '#124170',
+    borderColor: '#124170',
   },
   buttonText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#67C090',
+    color: '#124170',
   },
   activeButtonText: {
     color: '#fff',

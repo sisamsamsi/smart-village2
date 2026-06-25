@@ -116,7 +116,7 @@ export default function RangkumanScreen() {
 
       {isLoading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator color="#67C090" size="large" />
+          <ActivityIndicator color="#124170" size="large" />
         </View>
       ) : error ? (
         <View style={styles.errorContainer}>
@@ -127,15 +127,15 @@ export default function RangkumanScreen() {
           {/* Info Scope */}
           <View style={styles.scopeBadgeContainer}>
             <View style={styles.scopeBadge}>
-              <Sparkles size={14} color="#67C090" style={{ marginRight: 6 }} />
+              <Sparkles size={14} color="#124170" style={{ marginRight: 6 }} />
               <Text style={styles.scopeText}>Cakupan: {getScopeLabel()}</Text>
             </View>
           </View>
 
           {/* Core Stats Row */}
           <View style={styles.coreStatsRow}>
-            <View style={[styles.coreCard, { backgroundColor: '#DDF4E7', borderColor: '#67C090' }]}>
-              <Users size={24} color="#67C090" style={{ marginBottom: 8 }} />
+            <View style={[styles.coreCard, { backgroundColor: '#EFF6FF', borderColor: '#124170' }]}>
+              <Users size={24} color="#124170" style={{ marginBottom: 8 }} />
               <Text style={styles.coreValue}>{stats?.totalWarga}</Text>
               <Text style={styles.coreLabel}>Total Jiwa</Text>
             </View>
@@ -250,15 +250,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
   },
   header: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 20,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
   },
   title: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#0F172A',
   },
@@ -292,26 +292,26 @@ const styles = StyleSheet.create({
   scopeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(27, 94, 32, 0.08)',
+    backgroundColor: '#EFF6FF',
     borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     alignSelf: 'flex-start',
   },
   scopeText: {
     fontSize: 11,
     fontWeight: 'bold',
-    color: '#67C090',
+    color: '#124170',
   },
   coreStatsRow: {
     flexDirection: 'row',
-    padding: 20,
+    padding: 12,
     gap: 16,
   },
   coreCard: {
     flex: 1,
-    borderRadius: 24,
-    padding: 20,
+    borderRadius: 16,
+    padding: 12,
     borderWidth: 1,
   },
   coreValue: {
@@ -343,8 +343,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 16,
+    borderRadius: 12,
+    padding: 12,
     borderLeftWidth: 5,
     borderWidth: 1,
     borderColor: '#E2E8F0',
@@ -380,8 +380,8 @@ const styles = StyleSheet.create({
   },
   genderCard: {
     backgroundColor: '#fff',
-    borderRadius: 24,
-    padding: 20,
+    borderRadius: 16,
+    padding: 12,
     marginHorizontal: 20,
     borderWidth: 1,
     borderColor: '#E2E8F0',

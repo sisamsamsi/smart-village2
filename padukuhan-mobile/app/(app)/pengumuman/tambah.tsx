@@ -98,14 +98,14 @@ export default function AddAnnouncementScreen() {
                 onPress={() => setForm({ ...form, target: 'semua' })}
                 style={[styles.segment, form.target === 'semua' && styles.segmentActive]}
               >
-                <Globe size={14} color={form.target === 'semua' ? '#67C090' : '#94A3B8'} />
+                <Globe size={14} color={form.target === 'semua' ? '#124170' : '#94A3B8'} />
                 <Text style={[styles.segmentText, form.target === 'semua' && styles.segmentTextActive]}>Semua Warga</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => setForm({ ...form, target: 'rt_tertentu' })}
                 style={[styles.segment, form.target === 'rt_tertentu' && styles.segmentActive]}
               >
-                <Target size={14} color={form.target === 'rt_tertentu' ? '#67C090' : '#94A3B8'} />
+                <Target size={14} color={form.target === 'rt_tertentu' ? '#124170' : '#94A3B8'} />
                 <Text style={[styles.segmentText, form.target === 'rt_tertentu' && styles.segmentTextActive]}>RT Tertentu</Text>
               </TouchableOpacity>
             </View>
@@ -174,13 +174,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10, borderRadius: 10,
     backgroundColor: '#fff', borderWidth: 1, borderColor: '#E2E8F0',
   },
-  segmentActive: { borderColor: '#67C090', backgroundColor: '#F0FDF4' },
+  segmentActive: { borderColor: '#124170', backgroundColor: '#EFF6FF' },
   segmentText: { fontSize: 13, fontWeight: '600', color: '#94A3B8' },
-  segmentTextActive: { color: '#67C090' },
+  segmentTextActive: { color: '#124170' },
 
   submitBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 8, backgroundColor: '#67C090',
+    gap: 8, backgroundColor: '#124170',
     paddingVertical: 14, borderRadius: 12, marginTop: 4,
   },
   submitText: { color: '#fff', fontSize: 14, fontWeight: '700' },

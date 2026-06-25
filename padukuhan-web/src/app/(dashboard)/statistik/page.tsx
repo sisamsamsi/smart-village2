@@ -24,6 +24,7 @@ export default function StatistikPage() {
       const { data: wargas, error } = await supabase
         .from('wargas')
         .select('id, jenis_kelamin, rt_id, tanggal_lahir, status_warga, rts(nomor_rt)')
+        .eq('status_warga', 'aktif')
       
       if (error) throw error
 

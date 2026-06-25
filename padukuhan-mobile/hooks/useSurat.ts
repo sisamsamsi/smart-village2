@@ -56,7 +56,6 @@ export const useSuratDetail = (id: string) => {
   return useQuery({
     queryKey: suratKeys.detail(id),
     queryFn: async () => {
-      console.log('Fetching surat detail for ID:', id);
       const { data, error } = await supabase
         .from('surat_pengajuan')
         .select(`
@@ -67,13 +66,11 @@ export const useSuratDetail = (id: string) => {
         .eq('id', id)
         .single()
       
-      if (error) {
-        console.error('Error fetching surat detail:', error);
-        throw error;
-      }
+      if (error) throw error;
       return data
     },
-    enabled: !!id
+    enabled: !!id,
+    staleTime: 30000
   })
 }
 

@@ -22,14 +22,37 @@ import {
   X,
   Check
 } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 const { width } = Dimensions.get('window');
 
 export default function TambahKelahiranScreen() {
   const router = useRouter();
+  const { ibuId } = useLocalSearchParams<{ ibuId?: string }>();
   const createKelahiran = useCreateKelahiran();
+  
+  React.useEffect(() => {
+    if (ibuId) {
+      const fetchMother = async () => {
+        const { data, error } = await supabase
+          .from('wargas')
+          .select('id, nama_lengkap, nik, rt_id, rumah_tangga_id, rts(nomor_rt), rumah_tanggas(no_kk, alamat_detail)')
+          .eq('id', ibuId)
+          .single();
+        if (!error && data) {
+          setSelectedIbu(data);
+          setForm(prev => ({
+            ...prev,
+            nama_ibu: data.nama_lengkap,
+            rumah_tangga_id: data.rumah_tangga_id || '',
+            rt_id: data.rt_id || ''
+          }));
+        }
+      };
+      fetchMother();
+    }
+  }, [ibuId]);
 
   const [loading, setLoading] = useState(false);
 
@@ -175,7 +198,11 @@ export default function TambahKelahiranScreen() {
         <View style={{ width: 36 }} />
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 80}
+        style={{ flex: 1 }}
+      >
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           
           {/* 1. Pilih Ibu Kandung */}
@@ -207,7 +234,7 @@ export default function TambahKelahiranScreen() {
                   value={ibuSearch} 
                   onChangeText={handleSearchIbu} 
                 />
-                {searching && <ActivityIndicator size="small" color="#67C090" style={{ marginRight: 12 }} />}
+                {searching && <ActivityIndicator size="small" color="#124170" style={{ marginRight: 12 }} />}
               </View>
               {searchResults.length > 0 && (
                 <View style={styles.searchResultsList}>
@@ -402,7 +429,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 40,
+    paddingBottom: 150,
   },
   field: {
     marginBottom: 16,
@@ -569,8 +596,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   genderBtnActive: {
-    backgroundColor: '#67C090',
-    borderColor: '#67C090',
+    backgroundColor: '#124170',
+    borderColor: '#124170',
   },
   genderBtnText: {
     fontSize: 13,
@@ -603,7 +630,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   btnSubmit: {
-    backgroundColor: '#67C090',
+    backgroundColor: '#124170',
   },
   btnSubmitText: {
     fontSize: 13,

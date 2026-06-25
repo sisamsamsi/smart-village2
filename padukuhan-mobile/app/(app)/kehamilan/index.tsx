@@ -11,7 +11,8 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
-  ShieldAlert
+  ShieldAlert,
+  Baby
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { format } from 'date-fns';
@@ -114,7 +115,7 @@ export default function KehamilanListScreen() {
             <ChevronLeft size={18} color="#475569" />
           </TouchableOpacity>
           <View style={styles.yearDisplay}>
-            <Calendar size={14} color="#67C090" style={{ marginRight: 6 }} />
+            <Calendar size={14} color="#124170" style={{ marginRight: 6 }} />
             <Text style={styles.yearText}>Tahun Laporan: {activeYear}</Text>
           </View>
           <TouchableOpacity 
@@ -131,11 +132,11 @@ export default function KehamilanListScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={false} onRefresh={handleRefetch} tintColor="#67C090" />}
+        refreshControl={<RefreshControl refreshing={false} onRefresh={handleRefetch} tintColor="#124170" />}
       >
         {activeTab === 'aktif' ? (
           isActiveLoading ? (
-            <ActivityIndicator color="#67C090" size="large" style={{ marginTop: 24 }} />
+            <ActivityIndicator color="#124170" size="large" style={{ marginTop: 24 }} />
           ) : !activeList || activeList.length === 0 ? (
             <View style={styles.emptyState}>
               <View style={styles.emptyIconWrapper}>
@@ -163,6 +164,22 @@ export default function KehamilanListScreen() {
                     {/* Action buttons */}
                     <View style={styles.rowActions}>
                       <TouchableOpacity 
+                        style={styles.melahirkanBtn} 
+                        onPress={() => router.push({
+                          pathname: '/kelahiran/tambah',
+                          params: {
+                            ibuId: warga.id,
+                            ibuNama: warga.nama_lengkap,
+                            rumahTanggaId: warga.rumah_tangga_id || '',
+                            rtId: warga.rt_id || ''
+                          }
+                        })}
+                      >
+                        <Baby size={14} color="#124170" style={{ marginRight: 4 }} />
+                        <Text style={styles.melahirkanBtnText}>Melahirkan</Text>
+                      </TouchableOpacity>
+                      <View style={{ width: 8 }} />
+                      <TouchableOpacity 
                         style={styles.gugurBtn} 
                         onPress={() => handleGugurKandungan(warga)}
                       >
@@ -177,7 +194,7 @@ export default function KehamilanListScreen() {
           )
         ) : (
           isHistoryLoading ? (
-            <ActivityIndicator color="#67C090" size="large" style={{ marginTop: 24 }} />
+            <ActivityIndicator color="#124170" size="large" style={{ marginTop: 24 }} />
           ) : !historyList || historyList.length === 0 ? (
             <View style={styles.emptyState}>
               <View style={styles.emptyIconWrapper}>
@@ -190,8 +207,8 @@ export default function KehamilanListScreen() {
             <View style={{ paddingBottom: 24 }}>
               {historyList.map((item: any) => (
                 <View key={item.id} style={styles.listItemRow}>
-                  <View style={[styles.iconWrapper, { backgroundColor: item.status_kehamilan === 'melahirkan' ? '#DDF4E7' : item.status_kehamilan === 'gugur' ? '#FEE2E2' : '#FCE7F3' }]}>
-                    <Heart size={16} color={item.status_kehamilan === 'melahirkan' ? '#67C090' : item.status_kehamilan === 'gugur' ? '#EF4444' : '#D53F8C'} />
+                  <View style={[styles.iconWrapper, { backgroundColor: item.status_kehamilan === 'melahirkan' ? '#EFF6FF' : item.status_kehamilan === 'gugur' ? '#FEE2E2' : '#FCE7F3' }]}>
+                    <Heart size={16} color={item.status_kehamilan === 'melahirkan' ? '#124170' : item.status_kehamilan === 'gugur' ? '#EF4444' : '#D53F8C'} />
                   </View>
                   <View style={styles.itemContent}>
                     <Text style={styles.itemName}>{item.wargas?.nama_lengkap || 'Warga'}</Text>
@@ -227,7 +244,7 @@ export default function KehamilanListScreen() {
 
 // Dynamic styling utility for badges
 const statusColors = (status: string) => {
-  if (status === 'melahirkan') return '#15803D';
+  if (status === 'melahirkan') return '#124170';
   if (status === 'gugur') return '#B91C1C';
   return '#BE185D';
 };
@@ -266,7 +283,7 @@ const styles = StyleSheet.create({
     color: '#0F172A',
   },
   addButton: {
-    backgroundColor: '#67C090',
+    backgroundColor: '#124170',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
@@ -400,6 +417,21 @@ const styles = StyleSheet.create({
   gugurBtnText: {
     fontSize: 11,
     color: '#EF4444',
+    fontWeight: '600',
+  },
+  melahirkanBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+  },
+  melahirkanBtnText: {
+    fontSize: 11,
+    color: '#124170',
     fontWeight: '600',
   },
   itemMetaRow: {

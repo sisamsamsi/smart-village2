@@ -8,8 +8,9 @@ import { StatusBar } from 'expo-status-bar';
 
 export default function PkkListScreen() {
   const router = useRouter();
+  const currentYear = new Date().getFullYear();
   const { data: dws, isLoading, error, refetch } = useDasawismaList();
-  const [selectedYear, setSelectedYear] = useState<number>(2025);
+  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -27,16 +28,16 @@ export default function PkkListScreen() {
         {/* Year Selector */}
         <View style={styles.yearSwitch}>
           <TouchableOpacity
-            onPress={() => setSelectedYear(2025)}
-            style={[styles.yearBtn, selectedYear === 2025 && styles.yearBtnActive]}
+            onPress={() => setSelectedYear(currentYear - 1)}
+            style={[styles.yearBtn, selectedYear === currentYear - 1 && styles.yearBtnActive]}
           >
-            <Text style={[styles.yearBtnText, selectedYear === 2025 && styles.yearBtnTextActive]}>2025</Text>
+            <Text style={[styles.yearBtnText, selectedYear === currentYear - 1 && styles.yearBtnTextActive]}>{currentYear - 1}</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => setSelectedYear(2026)}
-            style={[styles.yearBtn, selectedYear === 2026 && styles.yearBtnActive]}
+            onPress={() => setSelectedYear(currentYear)}
+            style={[styles.yearBtn, selectedYear === currentYear && styles.yearBtnActive]}
           >
-            <Text style={[styles.yearBtnText, selectedYear === 2026 && styles.yearBtnTextActive]}>2026</Text>
+            <Text style={[styles.yearBtnText, selectedYear === currentYear && styles.yearBtnTextActive]}>{currentYear}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -44,7 +45,7 @@ export default function PkkListScreen() {
       {/* Info bar */}
       <View style={styles.infoBar}>
         <View style={styles.infoItem}>
-          <Users size={13} color="#67C090" />
+          <Users size={13} color="#124170" />
           <Text style={styles.infoText}>{dws?.length ?? 0} Kelompok Dasawisma</Text>
         </View>
         <Text style={styles.infoSep}>·</Text>
@@ -54,7 +55,7 @@ export default function PkkListScreen() {
       {/* List */}
       <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
         {isLoading ? (
-          <ActivityIndicator color="#67C090" style={{ marginTop: 48 }} />
+          <ActivityIndicator color="#124170" style={{ marginTop: 48 }} />
         ) : error ? (
           <View style={styles.empty}>
             <Text style={styles.emptyTitle}>Gagal memuat data</Text>
@@ -72,7 +73,7 @@ export default function PkkListScreen() {
                 activeOpacity={0.7}
               >
                 <View style={styles.rowIconBox}>
-                  <ClipboardList size={16} color="#67C090" />
+                  <ClipboardList size={16} color="#124170" />
                 </View>
                 <View style={styles.rowContent}>
                   <Text style={styles.rowTitle}>{dw.nama_dasawisma}</Text>
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
   yearBtn: {
     paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6,
   },
-  yearBtnActive: { backgroundColor: '#67C090' },
+  yearBtnActive: { backgroundColor: '#124170' },
   yearBtnText: { fontSize: 11, fontWeight: '600', color: '#94A3B8' },
   yearBtnTextActive: { color: '#fff' },
 
@@ -144,7 +145,7 @@ const styles = StyleSheet.create({
   },
   rowIconBox: {
     width: 36, height: 36, borderRadius: 10,
-    backgroundColor: '#F0FDF4', alignItems: 'center',
+    backgroundColor: '#EFF6FF', alignItems: 'center',
     justifyContent: 'center', marginRight: 12,
   },
   rowContent: { flex: 1 },
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
   emptyTitle: { fontSize: 15, fontWeight: '600', color: '#475569' },
   retryBtn: {
     marginTop: 12, paddingHorizontal: 20, paddingVertical: 8,
-    backgroundColor: '#67C090', borderRadius: 10,
+    backgroundColor: '#124170', borderRadius: 10,
   },
   retryText: { color: '#fff', fontWeight: '700', fontSize: 13 },
 });

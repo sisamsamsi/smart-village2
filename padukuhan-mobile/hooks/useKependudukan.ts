@@ -99,6 +99,24 @@ export function useRTs() {
   });
 }
 
+export function useDasawismasByRt(rtId: string | null) {
+  return useQuery({
+    queryKey: ['dasawismas_by_rt', rtId],
+    queryFn: async () => {
+      if (!rtId) return [];
+      const { data, error } = await supabase
+        .from('dasawismas')
+        .select('id, nama_dasawisma, rt_id')
+        .eq('rt_id', rtId)
+        .order('nama_dasawisma', { ascending: true });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!rtId,
+  });
+}
+
 export function useKKs() {
   return useQuery({
     queryKey: ['kk_list'],
@@ -128,7 +146,8 @@ export function useTambahWarga() {
           .insert([{
             no_kk: data.no_kk_baru,
             nama_kepala_keluarga: data.nama_kepala_keluarga_baru || data.nama_lengkap,
-            rt_id: data.rt_id
+            rt_id: data.rt_id,
+            dasawisma_id: data.dasawisma_id
           }])
           .select()
           .single();

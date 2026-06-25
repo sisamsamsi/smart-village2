@@ -16,7 +16,9 @@ import {
   Shield, 
   MessageSquare, 
   Settings,
-  LogOut
+  LogOut,
+  Heart,
+  Shuffle
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
@@ -40,14 +42,13 @@ export default function MobileNav() {
   const menuItems = [
     { href: '/', icon: <Home size={20} />, label: 'Beranda' },
     { href: '/kependudukan', icon: <Users size={20} />, label: 'Data Warga' },
+    { href: '/keluarga', icon: <Heart size={20} />, label: 'Data Keluarga' },
+    { href: '/kependudukan/mutasi', icon: <Shuffle size={20} />, label: 'Mutasi Penduduk' },
     { href: '/pkk', icon: <ClipboardList size={20} />, label: 'PKK & Dasawisma' },
     { href: '/surat', icon: <FileText size={20} />, label: 'Layanan Surat' },
     { href: '/laporan', icon: <Printer size={20} />, label: 'Laporan PKK' },
     { href: '/program', icon: <LayoutTemplate size={20} />, label: 'Pembangunan' },
     { href: '/pengumuman', icon: <Megaphone size={20} />, label: 'Pengumuman' },
-    { href: '/kegiatan', icon: <Calendar size={20} />, label: 'Agenda Kegiatan' },
-    { href: '/keamanan', icon: <Shield size={20} />, label: 'Keamanan' },
-    { href: '/masukan', icon: <MessageSquare size={20} />, label: 'Masukan Warga' },
   ]
 
   return (

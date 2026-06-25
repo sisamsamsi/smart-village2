@@ -162,7 +162,7 @@ export default function TambahWargaScreen() {
             <View style={styles.stepBody}>
               <View style={styles.introSection}>
                 <View style={styles.iconWrapper}>
-                  <User color="#67C090" size={32} />
+                  <User color="#124170" size={32} />
                 </View>
                 <Text style={styles.introTitle}>Identitas Dasar</Text>
                 <Text style={styles.introSub}>Masukkan data identitas sesuai KTP atau Akta Kelahiran resmi.</Text>
@@ -268,7 +268,7 @@ export default function TambahWargaScreen() {
             <View style={styles.stepBody}>
               <View style={styles.introSection}>
                 <View style={styles.iconWrapper}>
-                  <Home color="#67C090" size={32} />
+                  <Home color="#124170" size={32} />
                 </View>
                 <Text style={styles.introTitle}>Keluarga & Domisili</Text>
                 <Text style={styles.introSub}>Tentukan domisili wilayah RT dan relasi Kartu Keluarga warga.</Text>
@@ -379,7 +379,7 @@ export default function TambahWargaScreen() {
             <View style={styles.stepBody}>
               <View style={styles.introSection}>
                 <View style={styles.iconWrapper}>
-                  <Briefcase color="#67C090" size={32} />
+                  <Briefcase color="#124170" size={32} />
                 </View>
                 <Text style={styles.introTitle}>Konfirmasi & Simpan</Text>
                 <Text style={styles.introSub}>Lengkapi status sosial dan periksa kembali data sebelum menyimpan.</Text>
@@ -592,7 +592,7 @@ const styles = StyleSheet.create({
   },
   progressBarActive: {
     height: '100%',
-    backgroundColor: '#67C090',
+    backgroundColor: '#124170',
   },
   stepsRow: {
     flexDirection: 'row',
@@ -618,8 +618,8 @@ const styles = StyleSheet.create({
     borderColor: '#A8E6CF',
   },
   stepCircleCurrent: {
-    backgroundColor: '#67C090',
-    borderColor: '#67C090',
+    backgroundColor: '#124170',
+    borderColor: '#124170',
   },
   stepCircleText: {
     color: '#fff',
@@ -637,7 +637,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   stepLabelActive: {
-    color: '#67C090',
+    color: '#124170',
     fontWeight: '700',
   },
   scrollView: {
@@ -658,7 +658,7 @@ const styles = StyleSheet.create({
     height: 64,
     width: 64,
     borderRadius: 24,
-    backgroundColor: 'rgba(103, 192, 144, 0.08)',
+    backgroundColor: 'rgba(18, 65, 112, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -732,9 +732,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   genderActive: {
-    backgroundColor: '#F0FDF4',
+    backgroundColor: '#EFF6FF',
     borderWidth: 1,
-    borderColor: '#67C090',
+    borderColor: '#124170',
   },
   genderText: {
     fontSize: 14,
@@ -742,7 +742,7 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
   },
   genderTextActive: {
-    color: '#67C090',
+    color: '#124170',
     fontWeight: '800',
   },
   field: {
@@ -757,8 +757,8 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   miniBadgeActive: {
-    backgroundColor: '#67C090',
-    borderColor: '#67C090',
+    backgroundColor: '#124170',
+    borderColor: '#124170',
   },
   miniBadgeText: {
     fontSize: 12,
@@ -795,7 +795,7 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   toggleBtnTextActive: {
-    color: '#67C090',
+    color: '#124170',
     fontWeight: '800',
   },
   searchContainer: {
@@ -829,7 +829,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#F1F5F9',
   },
   kkItemActive: {
-    backgroundColor: '#F0FDF4',
+    backgroundColor: '#EFF6FF',
   },
   kkItemText: {
     fontSize: 14,
@@ -837,7 +837,7 @@ const styles = StyleSheet.create({
     color: '#1E293B',
   },
   kkItemTextActive: {
-    color: '#67C090',
+    color: '#124170',
   },
   kkItemSub: {
     fontSize: 11,
@@ -896,12 +896,12 @@ const styles = StyleSheet.create({
   btnPrimary: {
     flex: 1.5,
     height: 52,
-    backgroundColor: '#67C090',
+    backgroundColor: '#124170',
     borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#67C090',
+    shadowColor: '#124170',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,

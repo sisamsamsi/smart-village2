@@ -32,19 +32,23 @@ export function QuickActionModal({ visible, onClose }: QuickActionModalProps) {
             <View style={[styles.iconWrapper, { backgroundColor: '#E3F2FD' }]}>
               <Users size={28} color="#1565C0" />
             </View>
-            <Text style={styles.actionTitle}>Update Data Warga</Text>
-            <Text style={styles.actionDesc}>Mutakhirkan profil warga binaan dasawisma</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.actionTitle}>Update Data Warga</Text>
+              <Text style={styles.actionDesc}>Mutakhirkan profil warga binaan dasawisma</Text>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.actionCard} 
             onPress={() => handleNavigate('/pkk')}
           >
-            <View style={[styles.iconWrapper, { backgroundColor: '#DDF4E7' }]}>
-              <ClipboardList size={28} color="#67C090" />
+            <View style={[styles.iconWrapper, { backgroundColor: '#EFF6FF' }]}>
+              <ClipboardList size={28} color="#124170" />
             </View>
-            <Text style={styles.actionTitle}>Input Partisipasi PKK</Text>
-            <Text style={styles.actionDesc}>Mencatat program PKK tahunan warga binaan</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.actionTitle}>Input Partisipasi PKK</Text>
+              <Text style={styles.actionDesc}>Mencatat program PKK tahunan warga binaan</Text>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -54,8 +58,10 @@ export function QuickActionModal({ visible, onClose }: QuickActionModalProps) {
             <View style={[styles.iconWrapper, { backgroundColor: '#FCE7F3' }]}>
               <Heart size={28} color="#C2185B" />
             </View>
-            <Text style={styles.actionTitle}>Catat Kehamilan</Text>
-            <Text style={styles.actionDesc}>Laporkan kehamilan baru warga binaan dasawisma</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.actionTitle}>Catat Kehamilan</Text>
+              <Text style={styles.actionDesc}>Laporkan kehamilan baru warga binaan dasawisma</Text>
+            </View>
           </TouchableOpacity>
         </View>
       );
@@ -68,11 +74,13 @@ export function QuickActionModal({ visible, onClose }: QuickActionModalProps) {
             style={styles.actionCard} 
             onPress={() => handleNavigate('/kependudukan/tambah')}
           >
-            <View style={[styles.iconWrapper, { backgroundColor: '#DDF4E7' }]}>
-              <UserPlus size={28} color="#67C090" />
+            <View style={[styles.iconWrapper, { backgroundColor: '#EFF6FF' }]}>
+              <UserPlus size={28} color="#124170" />
             </View>
-            <Text style={styles.actionTitle}>Tambah Warga</Text>
-            <Text style={styles.actionDesc}>Input data warga baru se-padukuhan Mandingan</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.actionTitle}>Tambah Warga</Text>
+              <Text style={styles.actionDesc}>Input data warga baru se-padukuhan Mandingan</Text>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -82,8 +90,10 @@ export function QuickActionModal({ visible, onClose }: QuickActionModalProps) {
             <View style={[styles.iconWrapper, { backgroundColor: '#FCE7F3' }]}>
               <Heart size={28} color="#C2185B" />
             </View>
-            <Text style={styles.actionTitle}>Catat Kehamilan</Text>
-            <Text style={styles.actionDesc}>Catat data ibu hamil baru tingkat padukuhan</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.actionTitle}>Catat Kehamilan</Text>
+              <Text style={styles.actionDesc}>Catat data ibu hamil baru tingkat padukuhan</Text>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -93,8 +103,10 @@ export function QuickActionModal({ visible, onClose }: QuickActionModalProps) {
             <View style={[styles.iconWrapper, { backgroundColor: '#F3E5F5' }]}>
               <ArrowRightLeft size={28} color="#6A1B9A" />
             </View>
-            <Text style={styles.actionTitle}>Catat Mutasi</Text>
-            <Text style={styles.actionDesc}>Catat perpindahan warga (pindah masuk/keluar) se-padukuhan</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.actionTitle}>Catat Mutasi</Text>
+              <Text style={styles.actionDesc}>Catat perpindahan warga (pindah masuk/keluar) se-padukuhan</Text>
+            </View>
           </TouchableOpacity>
         </View>
       );
@@ -107,11 +119,13 @@ export function QuickActionModal({ visible, onClose }: QuickActionModalProps) {
           style={styles.actionCard} 
           onPress={() => handleNavigate('/kependudukan/tambah')}
         >
-          <View style={[styles.iconWrapper, { backgroundColor: '#DDF4E7' }]}>
-            <UserPlus size={28} color="#67C090" />
+          <View style={[styles.iconWrapper, { backgroundColor: '#EFF6FF' }]}>
+            <UserPlus size={28} color="#124170" />
           </View>
-          <Text style={styles.actionTitle}>Tambah Warga RT</Text>
-          <Text style={styles.actionDesc}>Input data warga baru khusus di wilayah RT Anda</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.actionTitle}>Tambah Warga RT</Text>
+            <Text style={styles.actionDesc}>Input data warga baru khusus di wilayah RT Anda</Text>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity 
@@ -121,8 +135,10 @@ export function QuickActionModal({ visible, onClose }: QuickActionModalProps) {
           <View style={[styles.iconWrapper, { backgroundColor: '#FFF3E0' }]}>
             <FileText size={28} color="#E65100" />
           </View>
-          <Text style={styles.actionTitle}>Buat Surat RT</Text>
-          <Text style={styles.actionDesc}>Buat surat pengantar RT atau keterangan domisili warga</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.actionTitle}>Buat Surat RT</Text>
+            <Text style={styles.actionDesc}>Buat surat pengantar RT atau keterangan domisili warga</Text>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity 
@@ -132,8 +148,10 @@ export function QuickActionModal({ visible, onClose }: QuickActionModalProps) {
           <View style={[styles.iconWrapper, { backgroundColor: '#F3E5F5' }]}>
             <ArrowRightLeft size={28} color="#6A1B9A" />
           </View>
-          <Text style={styles.actionTitle}>Catat Mutasi RT</Text>
-          <Text style={styles.actionDesc}>Catat perpindahan warga (pindah masuk/keluar) di RT Anda</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.actionTitle}>Catat Mutasi RT</Text>
+            <Text style={styles.actionDesc}>Catat perpindahan warga (pindah masuk/keluar) di RT Anda</Text>
+          </View>
         </TouchableOpacity>
       </View>
     );

@@ -66,9 +66,11 @@ export const useCreateMutasi = () => {
       rumah_tangga_id?: string;
       no_kk_baru?: string;
       nama_kepala_keluarga_baru?: string;
+      dasawisma_id?: string;
     }) => {
       let targetWargaId = payload.warga_id;
       const targetRtId = payload.rt_id || profile?.rt_id;
+      const targetDasawismaId = payload.dasawisma_id;
 
       // 1. If pindah_masuk and no warga_id is provided, create the warga first
       if (payload.jenis_mutasi === 'pindah_masuk' && !targetWargaId) {
@@ -81,7 +83,8 @@ export const useCreateMutasi = () => {
             .insert([{
               no_kk: payload.no_kk_baru,
               nama_kepala_keluarga: payload.nama_kepala_keluarga_baru || payload.nama_lengkap,
-              rt_id: targetRtId
+              rt_id: targetRtId,
+              dasawisma_id: targetDasawismaId
             }])
             .select()
             .single();
@@ -103,7 +106,8 @@ export const useCreateMutasi = () => {
             status_perkawinan: 'belum_kawin',
             status_warga: 'aktif',
             rumah_tangga_id: rumahTanggaId,
-            rt_id: targetRtId
+            rt_id: targetRtId,
+            dasawisma_id: targetDasawismaId
           }])
           .select()
           .single();

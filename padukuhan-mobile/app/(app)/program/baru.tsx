@@ -193,13 +193,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20,
     backgroundColor: '#fff', borderWidth: 1, borderColor: '#E2E8F0',
   },
-  chipActive: { backgroundColor: '#EDF7F2', borderColor: '#67C090' },
+  chipActive: { backgroundColor: '#EFF6FF', borderColor: '#124170' },
   chipText: { fontSize: 12, fontWeight: '600', color: '#94A3B8' },
-  chipTextActive: { color: '#67C090' },
+  chipTextActive: { color: '#124170' },
 
   submitBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 8, backgroundColor: '#67C090',
+    gap: 8, backgroundColor: '#124170',
     paddingVertical: 14, borderRadius: 12, marginTop: 4,
   },
   submitText: { color: '#fff', fontSize: 14, fontWeight: '700' },

@@ -5,7 +5,7 @@ import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Plus, AlertTriangle } from 'lucide-react-native';
+import { Plus } from 'lucide-react-native';
 import { QuickActionModal } from '@/components/QuickActionModal';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -62,6 +62,13 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="keluarga"
+          options={{
+            title: 'Keluarga',
+            tabBarIcon: ({ color }) => <IconSymbol size={24} name="family.fill" color={color} />,
+          }}
+        />
+        <Tabs.Screen
           name="explore"
           options={{
             title: 'Rangkuman',
@@ -87,10 +94,10 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: 27,
-    backgroundColor: '#67C090',
+    backgroundColor: '#124170',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#67C090',
+    shadowColor: '#124170',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

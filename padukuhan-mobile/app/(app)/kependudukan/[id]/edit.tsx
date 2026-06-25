@@ -97,7 +97,7 @@ export default function EditWargaScreen() {
   if (isLoading) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#67C090" />
+        <ActivityIndicator size="large" color="#124170" />
       </View>
     );
   }
@@ -112,7 +112,7 @@ export default function EditWargaScreen() {
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <ArrowLeft color="#67C090" size={24} />
+              <ArrowLeft color="#124170" size={24} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Perbarui Data</Text>
             <View style={{ width: 44 }} />
@@ -186,7 +186,7 @@ export default function EditWargaScreen() {
                   <Text style={styles.fieldLabel}>TGL LAHIR</Text>
                   <TouchableOpacity 
                     onPress={() => setShowDatePicker(true)}
-                    style={[styles.inputWrapper, { height: 56, paddingLeft: 16, flexDirection: 'row', alignItems: 'center' }]}
+                    style={[styles.inputWrapper, { height: 44, paddingLeft: 12, flexDirection: 'row', alignItems: 'center' }]}
                   >
                     <Calendar size={18} color="#94A3B8" />
                     <Text style={{ fontSize: 15, fontWeight: '700', color: '#1E293B', marginLeft: 12, flex: 1 }}>
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 24,
-    height: 60,
+    height: 48,
   },
   backButton: {
     height: 44,
@@ -368,13 +368,13 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 24,
-    paddingTop: 10,
+    paddingTop: 0,
   },
   formCard: {
-    gap: 20,
+    gap: 12,
   },
   field: {
-    gap: 8,
+    gap: 4,
   },
   fieldLabel: {
     fontSize: 11,
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    padding: 16,
+    padding: 12,
     fontSize: 15,
     fontWeight: '700',
     color: '#1E293B',
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
   },
   genderButton: {
     flex: 1,
-    height: 54,
+    height: 44,
     borderRadius: 16,
     backgroundColor: '#F8FAFC',
     alignItems: 'center',
@@ -413,8 +413,8 @@ const styles = StyleSheet.create({
     borderColor: '#F1F5F9',
   },
   genderButtonActive: {
-    backgroundColor: '#67C090',
-    borderColor: '#67C090',
+    backgroundColor: '#124170',
+    borderColor: '#124170',
   },
   genderText: {
     fontSize: 14,
@@ -430,14 +430,14 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   submitButton: {
-    height: 64,
-    backgroundColor: '#67C090',
-    borderRadius: 20,
+    height: 48,
+    backgroundColor: '#124170',
+    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10,
-    shadowColor: '#67C090',
+    shadowColor: '#124170',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 15,
@@ -506,15 +506,15 @@ const styles = StyleSheet.create({
   },
   miniBadge: {
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 8,
     backgroundColor: '#F8FAFC',
     borderRadius: 14,
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
   miniBadgeActive: {
-    backgroundColor: '#67C090',
-    borderColor: '#67C090',
+    backgroundColor: '#124170',
+    borderColor: '#124170',
   },
   miniBadgeText: {
     fontSize: 12,

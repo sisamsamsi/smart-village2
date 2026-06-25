@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router';
 
 const STATUS_CONFIG: Record<string, { color: string; bg: string; label: string }> = {
   diusulkan:    { color: '#F59E0B', bg: '#FFFBEB', label: 'Usulan' },
-  disetujui:    { color: '#10B981', bg: '#ECFDF5', label: 'Disetujui' },
+  disetujui:    { color: '#10B981', bg: '#EFF6FF', label: 'Disetujui' },
   dilaksanakan: { color: '#3B82F6', bg: '#EFF6FF', label: 'Berjalan' },
   selesai:      { color: '#6366F1', bg: '#EEF2FF', label: 'Selesai' },
   ditolak:      { color: '#EF4444', bg: '#FEF2F2', label: 'Ditolak' },
@@ -63,10 +63,10 @@ export default function ProgramListScreen() {
       <ScrollView
         style={styles.list}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={false} onRefresh={refetch} tintColor="#67C090" />}
+        refreshControl={<RefreshControl refreshing={false} onRefresh={refetch} tintColor="#124170" />}
       >
         {isLoading ? (
-          <ActivityIndicator color="#67C090" style={{ marginTop: 48 }} />
+          <ActivityIndicator color="#124170" style={{ marginTop: 48 }} />
         ) : proposals?.length === 0 ? (
           <View style={styles.empty}>
             <Construction size={36} color="#E2E8F0" />
@@ -85,7 +85,7 @@ export default function ProgramListScreen() {
                   activeOpacity={0.7}
                 >
                   <View style={styles.rowIconBox}>
-                    <Construction size={16} color="#67C090" />
+                    <Construction size={16} color="#124170" />
                   </View>
                   <View style={styles.rowContent}>
                     <View style={styles.rowTop}>
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   headerSub: { fontSize: 11, color: '#94A3B8', marginTop: 1 },
   addBtn: {
     width: 36, height: 36, borderRadius: 10,
-    backgroundColor: '#67C090', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#124170', alignItems: 'center', justifyContent: 'center',
   },
 
   filterBar: {
@@ -153,9 +153,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20,
     backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#F1F5F9',
   },
-  chipActive: { backgroundColor: '#EDF7F2', borderColor: '#67C090' },
+  chipActive: { backgroundColor: '#EFF6FF', borderColor: '#124170' },
   chipText: { fontSize: 12, fontWeight: '600', color: '#94A3B8' },
-  chipTextActive: { color: '#67C090' },
+  chipTextActive: { color: '#124170' },
 
   list: { flex: 1 },
   listCard: {
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
   },
   rowIconBox: {
     width: 36, height: 36, borderRadius: 10,
-    backgroundColor: '#F0FDF4', alignItems: 'center',
+    backgroundColor: '#EFF6FF', alignItems: 'center',
     justifyContent: 'center', marginRight: 12,
   },
   rowContent: { flex: 1 },

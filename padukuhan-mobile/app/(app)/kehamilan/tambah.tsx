@@ -221,7 +221,11 @@ export default function TambahKehamilanScreen() {
         </View>
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 80}
+        style={{ flex: 1 }}
+      >
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           
           {/* STEP 1: PILIH IBU HAMIL */}
@@ -263,7 +267,7 @@ export default function TambahKehamilanScreen() {
                       value={wargaSearch} 
                       onChangeText={handleSearchWarga} 
                     />
-                    {searching && <ActivityIndicator size="small" color="#67C090" style={{ marginRight: 12 }} />}
+                    {searching && <ActivityIndicator size="small" color="#124170" style={{ marginRight: 12 }} />}
                   </View>
                   {searchResults.length > 0 && (
                     <View style={styles.searchResultsList}>
@@ -588,7 +592,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 40,
+    paddingBottom: 150,
   },
   field: {
     marginBottom: 16,
@@ -789,8 +793,8 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   selectOptionActive: {
-    backgroundColor: '#67C090',
-    borderColor: '#67C090',
+    backgroundColor: '#124170',
+    borderColor: '#124170',
   },
   selectOptionText: {
     fontSize: 12,
@@ -823,7 +827,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   btnSubmit: {
-    backgroundColor: '#67C090',
+    backgroundColor: '#124170',
   },
   btnSubmitText: {
     fontSize: 13,

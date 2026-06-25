@@ -99,10 +99,10 @@ export const useCreateKehamilan = () => {
 
       if (error) throw error;
 
-      // 2. Update status_kehamilan in wargas table
+      // 2. Update status_kehamilan and set akseptor_kb to false in wargas table
       const { error: wargaError } = await supabase
         .from('wargas')
-        .update({ status_kehamilan: true, status_menyusui: false })
+        .update({ status_kehamilan: true, status_menyusui: false, akseptor_kb: false })
         .eq('id', payload.warga_id);
 
       if (wargaError) throw wargaError;

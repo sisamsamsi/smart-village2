@@ -13,9 +13,9 @@ WebBrowser.maybeCompleteAuthSession();
 
 // Color Palette Definition
 const PALETTE = {
-  veryLightMint: '#DDF4E7',
-  softMediumGreen: '#67C090',
-  tealBlueGreen: '#26667F',
+  veryLightMint: '#EFF6FF',
+  navy: '#124170',
+  royalBlue: '#26667F',
   darkNavyBlue: '#124170',
   white: '#FFFFFF',
   bgGray: '#F8FAFC',
@@ -40,10 +40,16 @@ export default function LoginScreen() {
     try {
       // Buka dulu Google SSO - Placeholder Login untuk mempermudah pengerjaan
       console.log('Google SSO bypass triggered: logging in using admin account...');
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
+      const loginPromise = supabase.auth.signInWithPassword({
         email: 'admin@mandingan.id',
         password: 'adminmandingan',
       });
+
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout')), 1500)
+      );
+
+      const { data, error: authError } = await Promise.race([loginPromise, timeoutPromise]) as any;
 
       if (authError) {
         console.log('Supabase Auth failed (offline?), using mock developer credentials');
@@ -61,19 +67,30 @@ export default function LoginScreen() {
         router.replace('/(app)' as any);
       } else if (data.user) {
         setUser(data.user);
-        const { data: dbProfile } = await supabase
+        
+        // Also race the profile fetch
+        const profilePromise = supabase
           .from('user_profiles')
           .select('*')
           .eq('id', data.user.id)
           .single();
 
-        setProfile(dbProfile || {
-          id: data.user.id,
-          nama_lengkap: 'Admin Mandingan (Demo)',
-          role: 'dukuh',
-          rt_id: null,
-          dasawisma_id: null,
-        });
+        const { data: dbProfile, error: profileError } = await Promise.race([
+          profilePromise,
+          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 1500))
+        ]);
+
+        if (profileError || !dbProfile) {
+          setProfile({
+            id: data.user.id,
+            nama_lengkap: 'Admin Mandingan (Offline)',
+            role: 'dukuh',
+            rt_id: null,
+            dasawisma_id: null,
+          });
+        } else {
+          setProfile(dbProfile);
+        }
         router.replace('/(app)' as any);
       }
     } catch (err: unknown) {
@@ -163,7 +180,7 @@ export default function LoginScreen() {
                 <ActivityIndicator color={PALETTE.textDark} />
               ) : (
                 <>
-                  <Globe size={20} color={PALETTE.softMediumGreen} style={{ marginRight: 10 }} />
+                  <Globe size={20} color={PALETTE.navy} style={{ marginRight: 10 }} />
                   <Text style={styles.googleButtonText}>Masuk dengan Google</Text>
                 </>
               )}
@@ -279,11 +296,11 @@ const styles = StyleSheet.create({
   logoContainer: {
     height: 64,
     width: 64,
-    backgroundColor: PALETTE.softMediumGreen,
+    backgroundColor: PALETTE.navy,
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: PALETTE.softMediumGreen,
+    shadowColor: PALETTE.navy,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
     shadowRadius: 10,
@@ -373,7 +390,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   expandEmailButtonText: {
-    color: PALETTE.softMediumGreen,
+    color: PALETTE.navy,
     fontSize: 13,
     fontWeight: '700',
   },
@@ -418,14 +435,14 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   loginButton: {
-    backgroundColor: PALETTE.softMediumGreen,
+    backgroundColor: PALETTE.navy,
     height: 48,
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
-    shadowColor: PALETTE.softMediumGreen,
+    shadowColor: PALETTE.navy,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
@@ -462,7 +479,7 @@ const styles = StyleSheet.create({
     color: PALETTE.textMuted,
   },
   footerLinkText: {
-    color: PALETTE.tealBlueGreen,
+    color: PALETTE.royalBlue,
     fontWeight: '700',
   },
   versionText: {

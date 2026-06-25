@@ -53,6 +53,7 @@ export default function SuratBaruRtPage() {
         .from('wargas')
         .select('id, nama_lengkap, nik')
         .eq('rt_id', rtId)
+        .eq('status_warga', 'aktif')
         .order('nama_lengkap', { ascending: true })
         .limit(500)
       if (qErr) throw qErr

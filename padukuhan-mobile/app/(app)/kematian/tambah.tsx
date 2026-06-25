@@ -61,7 +61,7 @@ export default function TambahKematianScreen() {
     // Fetch active residents
     const { data, error } = await supabase
       .from('wargas')
-      .select('id, nama_lengkap, nik, rts(nomor_rt), hubungan_keluarga')
+      .select('id, nama_lengkap, nik, rts(nomor_rt), status_dalam_keluarga')
       .eq('status_warga', 'aktif')
       .or(`nama_lengkap.ilike.%${text}%,nik.like.%${text}%`)
       .limit(5);
@@ -135,7 +135,11 @@ export default function TambahKematianScreen() {
         <View style={{ width: 36 }} />
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 80}
+        style={{ flex: 1 }}
+      >
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           
           {/* 1. Pilih Warga */}
@@ -146,7 +150,7 @@ export default function TambahKematianScreen() {
                 <Text style={styles.wargaSelectedName}>{selectedWarga.nama_lengkap}</Text>
                 <Text style={styles.wargaSelectedNik}>NIK: {selectedWarga.nik || '-'}</Text>
                 <Text style={styles.wargaSelectedRt}>
-                  RT {selectedWarga.rts?.nomor_rt ?? '-'} • {selectedWarga.hubungan_keluarga ?? '-'}
+                  RT {selectedWarga.rts?.nomor_rt ?? '-'} • {selectedWarga.status_dalam_keluarga ? selectedWarga.status_dalam_keluarga.replace(/_/g, ' ').toUpperCase() : '-'}
                 </Text>
               </View>
               <TouchableOpacity onPress={() => setSelectedWarga(null)} style={styles.removeWargaButton}>
@@ -164,7 +168,7 @@ export default function TambahKematianScreen() {
                   value={wargaSearch} 
                   onChangeText={handleSearchWarga} 
                 />
-                {searching && <ActivityIndicator size="small" color="#67C090" style={{ marginRight: 12 }} />}
+                 {searching && <ActivityIndicator size="small" color="#124170" style={{ marginRight: 12 }} />}
               </View>
               {searchResults.length > 0 && (
                 <View style={styles.searchResultsList}>
@@ -310,7 +314,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 40,
+    paddingBottom: 150,
   },
   field: {
     marginBottom: 16,
@@ -439,8 +443,8 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   selectOptionActive: {
-    backgroundColor: '#67C090',
-    borderColor: '#67C090',
+    backgroundColor: '#124170',
+    borderColor: '#124170',
   },
   selectOptionText: {
     fontSize: 12,
@@ -473,7 +477,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   btnSubmit: {
-    backgroundColor: '#67C090',
+    backgroundColor: '#124170',
   },
   btnSubmitText: {
     fontSize: 13,

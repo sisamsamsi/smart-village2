@@ -15,7 +15,7 @@ import {
   ChevronUp, 
   CreditCard,
   XCircle,
-  MoreVertical
+  Trash2
 } from 'lucide-react-native';
 import { useWargaDetail, useWargaMutasi } from '@/hooks/useKependudukan';
 import { supabase } from '@/lib/supabase';
@@ -82,12 +82,51 @@ export default function WargaDetailScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
+              if (warga.status_dalam_keluarga === 'kepala_keluarga' && warga.rumah_tangga_id) {
+                const { data: familyMembers } = await supabase
+                  .from('wargas')
+                  .select('id, nama_lengkap, jenis_kelamin, status_dalam_keluarga, tanggal_lahir')
+                  .eq('rumah_tangga_id', warga.rumah_tangga_id)
+                  .eq('status_warga', 'aktif')
+                  .neq('id', wargaId);
+
+                if (familyMembers && familyMembers.length > 0) {
+                  let replacement = familyMembers.find(m => m.status_dalam_keluarga === 'istri');
+                  if (!replacement) {
+                    const sortedByAge = [...familyMembers].sort((a, b) => {
+                      if (!a.tanggal_lahir) return 1;
+                      if (!b.tanggal_lahir) return -1;
+                      return new Date(a.tanggal_lahir).getTime() - new Date(b.tanggal_lahir).getTime();
+                    });
+                    replacement = sortedByAge[0];
+                  }
+
+                  if (replacement) {
+                    await supabase
+                      .from('wargas')
+                      .update({ status_dalam_keluarga: 'kepala_keluarga' })
+                      .eq('id', replacement.id);
+
+                    await supabase
+                      .from('rumah_tanggas')
+                      .update({ nama_kepala_keluarga: replacement.nama_lengkap })
+                      .eq('id', warga.rumah_tangga_id);
+                  }
+                } else {
+                  await supabase
+                    .from('rumah_tanggas')
+                    .update({ status_aktif: false })
+                    .eq('id', warga.rumah_tangga_id);
+                }
+              }
+
               const { error: deleteError } = await supabase
                 .from('wargas')
                 .delete()
                 .eq('id', wargaId);
               if (deleteError) throw deleteError;
               queryClient.invalidateQueries({ queryKey: ['wargas'] });
+              queryClient.invalidateQueries({ queryKey: ['kk_list'] });
               Alert.alert('Sukses', 'Data warga berhasil dihapus.');
               router.replace('/warga' as any);
             } catch (err: any) {
@@ -102,7 +141,7 @@ export default function WargaDetailScreen() {
   if (isLoading) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#2E7D32" />
+        <ActivityIndicator size="large" color="#124170" />
       </View>
     );
   }
@@ -134,8 +173,8 @@ export default function WargaDetailScreen() {
           <ArrowLeft color="#1E293B" size={24} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Detail Warga</Text>
-        <TouchableOpacity style={styles.moreButton} onPress={handleDeleteWarga}>
-          <MoreVertical color="#1E293B" size={24} />
+        <TouchableOpacity onPress={handleDeleteWarga} style={{ padding: 6 }}>
+          <Trash2 color="#EF4444" size={22} />
         </TouchableOpacity>
       </View>
 
@@ -145,7 +184,7 @@ export default function WargaDetailScreen() {
           <View style={styles.profileMainRow}>
             {/* Avatar */}
             <View style={styles.avatarContainer}>
-              <User size={48} color="#2E7D32" />
+              <User size={48} color="#124170" />
             </View>
             
             {/* Name and Basic Info */}
@@ -168,14 +207,21 @@ export default function WargaDetailScreen() {
                 <CreditCard size={14} color="#64748B" style={{ marginRight: 6 }} />
                 <Text style={styles.infoMetaText}>No. KK {noKk || '-'}</Text>
               </View>
+
+              {warga.rumah_tanggas?.nama_kepala_keluarga && (
+                <View style={[styles.infoMetaRow, { marginTop: 4 }]}>
+                  <User size={14} color="#64748B" style={{ marginRight: 6 }} />
+                  <Text style={styles.infoMetaText}>Kepala Keluarga: {warga.rumah_tanggas.nama_kepala_keluarga}</Text>
+                </View>
+              )}
             </View>
           </View>
           
           {/* Sub Badges at the bottom of card */}
           <View style={styles.badgeRow}>
-            <View style={[styles.cardSubBadge, { backgroundColor: '#E8F5E9' }]}>
-              <Text style={[styles.cardSubBadgeText, { color: '#2E7D32' }]}>
-                {warga.hubungan_keluarga || 'Anggota Keluarga'}
+            <View style={[styles.cardSubBadge, { backgroundColor: '#EFF6FF' }]}>
+              <Text style={[styles.cardSubBadgeText, { color: '#124170' }]}>
+                {warga.status_dalam_keluarga ? warga.status_dalam_keluarga.replace(/_/g, ' ').toUpperCase() : 'ANGGOTA KELUARGA'}
               </Text>
             </View>
             <View style={[styles.cardSubBadge, { backgroundColor: isMale ? '#E3F2FD' : '#FCE7F3' }]}>
@@ -222,13 +268,16 @@ export default function WargaDetailScreen() {
         {/* Collapsible Section: Kependudukan */}
         <CollapsibleSection
           title="Kependudukan"
-          icon={<Home size={18} color="#16A34A" />}
-          iconBg="#DCFCE7"
+          icon={<Home size={18} color="#124170" />}
+          iconBg="#DBEAFE"
           isExpanded={expandedSections.kependudukan}
           onToggle={() => toggleSection('kependudukan')}
         >
           <InfoRow label="No. KK" value={noKk || '-'} />
-          <InfoRow label="Hubungan Keluarga" value={warga.hubungan_keluarga ?? '-'} />
+          {warga.rumah_tanggas?.nama_kepala_keluarga && (
+            <InfoRow label="Kepala Keluarga" value={warga.rumah_tanggas.nama_kepala_keluarga} />
+          )}
+          <InfoRow label="Hubungan Keluarga" value={warga.status_dalam_keluarga ? warga.status_dalam_keluarga.replace(/_/g, ' ').toUpperCase() : '-'} />
           <InfoRow label="RT / RW" value={`RT 0${warga.rts?.nomor_rt ?? '-'} / RW 01`} />
           <InfoRow label="Status Warga" value={warga.status_warga ?? 'Aktif'} isLast />
         </CollapsibleSection>
@@ -271,7 +320,7 @@ export default function WargaDetailScreen() {
           }
         >
           {isMutasiLoading ? (
-            <ActivityIndicator size="small" color="#2E7D32" />
+            <ActivityIndicator size="small" color="#124170" />
           ) : !mutasiList || mutasiList.length === 0 ? (
             <Text style={styles.emptyTimelineText}>Belum ada riwayat mutasi.</Text>
           ) : (
@@ -401,7 +450,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   profileCard: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#EFF6FF',
     borderRadius: 24,
     padding: 20,
     marginBottom: 16,
@@ -417,7 +466,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#2E7D32',
+    shadowColor: '#124170',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -442,13 +491,13 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   statusBadge: {
-    backgroundColor: '#C8E6C9',
+    backgroundColor: '#DBEAFE',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,
   },
   statusText: {
-    color: '#2E7D32',
+    color: '#124170',
     fontSize: 10,
     fontWeight: '800',
   },
@@ -541,7 +590,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   linkText: {
-    color: '#2E7D32',
+    color: '#124170',
     fontSize: 13,
     fontWeight: '700',
   },
@@ -589,7 +638,7 @@ const styles = StyleSheet.create({
     width: 12,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#2E7D32',
+    borderColor: '#124170',
     backgroundColor: '#fff',
     marginTop: 6,
     zIndex: 2,
@@ -599,7 +648,7 @@ const styles = StyleSheet.create({
     top: 14,
     bottom: -10,
     width: 2,
-    backgroundColor: '#A5D6A7',
+    backgroundColor: '#93C5FD',
     zIndex: 1,
   },
   timelineContent: {
@@ -649,7 +698,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   backButtonLarge: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#124170',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 16,

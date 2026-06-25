@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCreateMutasi } from '@/hooks/useMutasi';
-import { useRTs, useKKs } from '@/hooks/useKependudukan';
+import { useRTs, useKKs, useDasawismasByRt } from '@/hooks/useKependudukan';
 import { supabase } from '@/lib/supabase';
 import { useDraftStore } from '@/hooks/useDraftStore';
 import { 
@@ -64,6 +64,7 @@ export default function AddMutasiScreen() {
     tanggal_mutasi: new Date().toISOString().split('T')[0],
     warga_id: '',
     rt_id: '',
+    dasawisma_id: '',
     tujuan_daerah: '',
     asal_daerah: '',
     keterangan: '',
@@ -79,6 +80,8 @@ export default function AddMutasiScreen() {
     nama_kepala_keluarga_baru: '',
   });
 
+  const { data: dasawismas } = useDasawismasByRt(form.rt_id);
+
   const handleSearchWarga = async (text: string) => {
     setWargaSearch(text);
     if (text.length < 2) {
@@ -89,7 +92,7 @@ export default function AddMutasiScreen() {
     
     const { data, error } = await supabase
       .from('wargas')
-      .select('id, nama_lengkap, nik, rts(nomor_rt), hubungan_keluarga, jenis_kelamin')
+      .select('id, nama_lengkap, nik, rts(nomor_rt), status_dalam_keluarga, jenis_kelamin')
       .or(`nama_lengkap.ilike.%${text}%,nik.like.%${text}%`)
       .eq('status_warga', 'aktif')
       .limit(5);
@@ -119,6 +122,8 @@ export default function AddMutasiScreen() {
       ...prev,
       jenis_mutasi: tab,
       warga_id: '',
+      rt_id: '',
+      dasawisma_id: '',
       tujuan_daerah: '',
       asal_daerah: '',
       keterangan: '',
@@ -181,6 +186,10 @@ export default function AddMutasiScreen() {
       }
       if (!form.rt_id) {
         Alert.alert('Peringatan', 'Silakan pilih RT.');
+        return;
+      }
+      if (!form.dasawisma_id) {
+        Alert.alert('Peringatan', 'Silakan pilih Kelompok Dasawisma.');
         return;
       }
       if (!form.is_new_kk && !form.rumah_tangga_id) {
@@ -261,7 +270,7 @@ export default function AddMutasiScreen() {
         </TouchableOpacity>
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 80} style={{ flex: 1 }}>
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           
           {/* Tanggal Peristiwa */}
@@ -281,7 +290,7 @@ export default function AddMutasiScreen() {
                   <View style={styles.wargaSelectedInfo}>
                     <Text style={styles.wargaSelectedName}>{selectedWarga.nama_lengkap}</Text>
                     <Text style={styles.wargaSelectedNik}>NIK: {selectedWarga.nik || '-'}</Text>
-                    <Text style={styles.wargaSelectedRt}>RT {selectedWarga.rts?.nomor_rt ?? '-'} • {selectedWarga.hubungan_keluarga ?? '-'}</Text>
+                    <Text style={styles.wargaSelectedRt}>RT {selectedWarga.rts?.nomor_rt ?? '-'} • {selectedWarga.status_dalam_keluarga ? selectedWarga.status_dalam_keluarga.replace(/_/g, ' ').toUpperCase() : '-'}</Text>
                   </View>
                   <TouchableOpacity onPress={() => setSelectedWarga(null)} style={styles.removeWargaButton}>
                     <X size={18} color="#64748B" />
@@ -298,7 +307,7 @@ export default function AddMutasiScreen() {
                       value={wargaSearch} 
                       onChangeText={handleSearchWarga} 
                     />
-                    {searching && <ActivityIndicator size="small" color="#67C090" style={{ marginRight: 12 }} />}
+                    {searching && <ActivityIndicator size="small" color="#124170" style={{ marginRight: 12 }} />}
                   </View>
                   {searchResults.length > 0 && (
                     <View style={styles.searchResultsList}>
@@ -345,10 +354,21 @@ export default function AddMutasiScreen() {
           {activeTab === 'pindah_masuk' && (
             <View>
               <View style={styles.alertBox}>
-                <Info size={16} color="#2563EB" style={{ marginRight: 8, marginTop: 2 }} />
-                <Text style={styles.alertText}>
-                  Warga pindah datang otomatis belum terdaftar di database. Masukkan identitas warga baru di bawah ini.
-                </Text>
+                <Info size={16} color="#1E40AF" style={{ marginRight: 8, marginTop: 2 }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.alertText}>
+                    Warga pindah datang otomatis belum terdaftar di database. Masukkan identitas warga baru di bawah ini.
+                  </Text>
+                  <Text style={[styles.alertText, { marginTop: 6, fontWeight: '700', color: '#1E40AF' }]}>
+                    Petunjuk Pendaftaran 1 Keluarga (KK):
+                  </Text>
+                  <Text style={[styles.alertText, { marginTop: 2, color: '#1E40AF' }]}>
+                    1. Daftarkan **Kepala Keluarga** terlebih dahulu dengan memilih opsi "Membuat KK Baru" di bawah.
+                  </Text>
+                  <Text style={[styles.alertText, { marginTop: 2, color: '#1E40AF' }]}>
+                    2. Setelah selesai dan data disimpan, daftarkan **anggota keluarga lainnya** (istri, anak, dll.) satu per satu dengan memilih opsi "Menumpang di KK Existing" lalu cari nomor KK atau nama Kepala Keluarga yang barusan dibuat.
+                  </Text>
+                </View>
               </View>
 
               <View style={styles.field}>
@@ -409,7 +429,7 @@ export default function AddMutasiScreen() {
                     <TouchableOpacity 
                       key={rt.id} 
                       style={[styles.selectOption, form.rt_id === rt.id && styles.selectOptionActive]}
-                      onPress={() => setForm({ ...form, rt_id: rt.id })}
+                      onPress={() => setForm({ ...form, rt_id: rt.id, dasawisma_id: '' })}
                     >
                       <Text style={[styles.selectOptionText, form.rt_id === rt.id && styles.selectOptionTextActive]}>
                         RT 0{rt.nomor_rt}
@@ -419,16 +439,63 @@ export default function AddMutasiScreen() {
                 </View>
               </View>
 
+              {/* Dasawisma Selector */}
+              {form.rt_id ? (
+                <View style={styles.field}>
+                  <Text style={styles.fieldLabel}>KELOMPOK DASAWISMA</Text>
+                  <View style={styles.selectRow}>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 4 }}>
+                      {dasawismas && dasawismas.length > 0 ? (
+                        dasawismas.map((dw: any) => (
+                          <TouchableOpacity 
+                            key={dw.id} 
+                            style={[styles.selectOptionCompact, form.dasawisma_id === dw.id && styles.selectOptionActive]}
+                            onPress={() => setForm({ ...form, dasawisma_id: dw.id })}
+                          >
+                            <Text style={[styles.selectOptionText, form.dasawisma_id === dw.id && styles.selectOptionTextActive]}>
+                              {dw.nama_dasawisma}
+                            </Text>
+                          </TouchableOpacity>
+                        ))
+                      ) : (
+                        <Text style={{ fontSize: 12, color: '#94A3B8', fontStyle: 'italic', paddingVertical: 8 }}>
+                          Tidak ada Dasawisma di RT ini
+                        </Text>
+                      )}
+                    </ScrollView>
+                  </View>
+                </View>
+              ) : null}
+
               {/* KK Options */}
               <View style={styles.field}>
-                <View style={styles.checkboxRow}>
+                <Text style={styles.fieldLabel}>HUBUNGKAN DENGAN KARTU KELUARGA (KK)</Text>
+                <View style={{ gap: 10, marginTop: 8 }}>
                   <TouchableOpacity 
-                    onPress={() => setForm(prev => ({ ...prev, is_new_kk: !prev.is_new_kk, rumah_tangga_id: '' }))}
-                    style={[styles.checkboxBox, form.is_new_kk && styles.checkboxBoxActive]}
+                    style={[styles.kkOptionCard, !form.is_new_kk && styles.kkOptionCardActive]}
+                    onPress={() => setForm(prev => ({ ...prev, is_new_kk: false, rumah_tangga_id: '' }))}
                   >
-                    {form.is_new_kk && <Check size={14} color="#fff" />}
+                    <View style={styles.kkOptionRadio}>
+                      {!form.is_new_kk && <View style={styles.kkOptionRadioInner} />}
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.kkOptionTitle}>Menumpang di KK Existing (Sudah Ada)</Text>
+                      <Text style={styles.kkOptionDesc}>Pilih ini jika warga baru ini menumpang/bergabung ke KK yang sudah terdaftar di Mandingan (misal: menikah, numpang saudara/kost).</Text>
+                    </View>
                   </TouchableOpacity>
-                  <Text style={styles.checkboxText}>Buat Kartu Keluarga (KK) Baru</Text>
+
+                  <TouchableOpacity 
+                    style={[styles.kkOptionCard, form.is_new_kk && styles.kkOptionCardActive]}
+                    onPress={() => setForm(prev => ({ ...prev, is_new_kk: true, rumah_tangga_id: '' }))}
+                  >
+                    <View style={styles.kkOptionRadio}>
+                      {form.is_new_kk && <View style={styles.kkOptionRadioInner} />}
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.kkOptionTitle}>Membuat Kartu Keluarga (KK) Baru</Text>
+                      <Text style={styles.kkOptionDesc}>Pilih ini jika warga ini datang sebagai Kepala Keluarga baru dan membuat KK baru yang belum terdaftar di sistem.</Text>
+                    </View>
+                  </TouchableOpacity>
                 </View>
               </View>
 
@@ -617,7 +684,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 150,
   },
   field: {
     marginBottom: 16,
@@ -656,9 +723,9 @@ const styles = StyleSheet.create({
   wargaSelectedCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F0FDF4',
+    backgroundColor: '#EFF6FF',
     borderWidth: 1,
-    borderColor: '#DCFCE7',
+    borderColor: '#DBEAFE',
     borderRadius: 12,
     padding: 12,
     marginBottom: 16,
@@ -669,16 +736,16 @@ const styles = StyleSheet.create({
   wargaSelectedName: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#166534',
+    color: '#1E40AF',
   },
   wargaSelectedNik: {
     fontSize: 11,
-    color: '#15803D',
+    color: '#124170',
     marginTop: 2,
   },
   wargaSelectedRt: {
     fontSize: 11,
-    color: '#166534',
+    color: '#1E40AF',
     marginTop: 2,
   },
   removeWargaButton: {
@@ -765,8 +832,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   genderBtnActive: {
-    backgroundColor: '#67C090',
-    borderColor: '#67C090',
+    backgroundColor: '#124170',
+    borderColor: '#124170',
   },
   genderBtnText: {
     fontSize: 13,
@@ -790,8 +857,18 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   selectOptionActive: {
-    backgroundColor: '#67C090',
-    borderColor: '#67C090',
+    backgroundColor: '#124170',
+    borderColor: '#124170',
+  },
+  selectOptionCompact: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    minWidth: 80,
+    alignItems: 'center',
   },
   selectOptionText: {
     fontSize: 12,
@@ -834,6 +911,46 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 16,
   },
+  kkOptionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    padding: 12,
+    gap: 12,
+  },
+  kkOptionCardActive: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#124170',
+  },
+  kkOptionRadio: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: '#94A3B8',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  kkOptionRadioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#124170',
+  },
+  kkOptionTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#0F172A',
+  },
+  kkOptionDesc: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 2,
+    lineHeight: 14,
+  },
   btnRow: {
     flexDirection: 'row',
     gap: 12,
@@ -857,7 +974,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   btnSubmit: {
-    backgroundColor: '#67C090',
+    backgroundColor: '#124170',
   },
   btnSubmitText: {
     fontSize: 13,

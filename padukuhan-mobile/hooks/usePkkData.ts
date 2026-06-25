@@ -39,6 +39,19 @@ export function useDasawismaWarga(dasawismaId?: string) {
           id,
           nama_lengkap,
           nik,
+          jenis_kelamin,
+          tanggal_lahir,
+          status_perkawinan,
+          rumah_tangga_id,
+          status_kehamilan,
+          status_menyusui,
+          ikut_bkb,
+          ikut_paud,
+          aktif_posyandu,
+          akseptor_kb,
+          berkebutuhan_khusus,
+          ikut_koperasi,
+          memiliki_akte,
           rumah_tanggas!inner (dasawisma_id)
         `)
         .eq('rumah_tanggas.dasawisma_id', dasawismaId)
@@ -64,10 +77,20 @@ export function usePkkPartisipasi(dasawismaId?: string, tahun: number = new Date
           wargas:warga_id (nama_lengkap, nik)
         `)
         .eq('dasawisma_id', dasawismaId)
-        .eq('tahun', tahun)
+        .lte('tahun', tahun)
+        .order('tahun', { ascending: false })
 
       if (error) throw error
-      return data
+
+      // Client-side grouping: only keep the most recent record per warga
+      const latestMap: Record<string, any> = {};
+      data?.forEach(record => {
+        if (!latestMap[record.warga_id]) {
+          latestMap[record.warga_id] = record;
+        }
+      });
+
+      return Object.values(latestMap);
     },
     enabled: !!dasawismaId,
   })
@@ -94,6 +117,24 @@ export function useUpdatePkkPartisipasi() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pkk_partisipasi'] });
+    }
+  });
+}
+
+export function useUpdateWargaPkkParams() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ wargaId, data }: { wargaId: string, data: any }) => {
+      const { error } = await supabase
+        .from('wargas')
+        .update(data)
+        .eq('id', wargaId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dasawisma_warga'] });
     }
   });
 }

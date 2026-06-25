@@ -15,23 +15,42 @@ export function useWargasList() {
     queryKey: ['wargas', 'dashboard', profile?.rt_id, profile?.dasawisma_id],
     queryFn: async () => {
       const { profile: p, isDukuh, isKetuaRT, isKader } = useAuthStore.getState()
-      let q = supabase
-        .from('wargas')
-        .select('id, nama_lengkap, nik, status_warga, rt_id, rts(nomor_rt), rumah_tanggas(no_kk)')
-        .order('nama_lengkap', { ascending: true })
-        .limit(200)
+      
+      let allWargas: any[] = []
+      let from = 0
+      let to = 999
+      let hasMore = true
 
-      if (isKetuaRT() && p?.rt_id) {
-        q = q.eq('rt_id', p.rt_id)
-      } else if (isKader() && p?.dasawisma_id) {
-        q = q.eq('dasawisma_id', p.dasawisma_id)
-      } else if (!isDukuh()) {
-        return []
+      while (hasMore) {
+        let q = supabase
+          .from('wargas')
+          .select('id, nama_lengkap, nik, status_warga, rt_id, rts(nomor_rt), rumah_tanggas(no_kk)')
+          .eq('status_warga', 'aktif')
+          .order('nama_lengkap', { ascending: true })
+          .range(from, to)
+
+        if (isKetuaRT() && p?.rt_id) {
+          q = q.eq('rt_id', p.rt_id)
+        } else if (isKader() && p?.dasawisma_id) {
+          q = q.eq('dasawisma_id', p.dasawisma_id)
+        } else if (!isDukuh()) {
+          return []
+        }
+
+        const { data, error } = await q
+        if (error) throw error
+        
+        allWargas = [...allWargas, ...(data || [])]
+        
+        if (!data || data.length < 1000) {
+          hasMore = false
+        } else {
+          from += 1000
+          to += 1000
+        }
       }
 
-      const { data, error } = await q
-      if (error) throw error
-      return data
+      return allWargas
     },
     enabled: canQuery,
   })

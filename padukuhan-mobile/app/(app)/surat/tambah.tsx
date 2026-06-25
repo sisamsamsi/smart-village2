@@ -50,8 +50,8 @@ export default function AddSuratScreen() {
     const { data, error } = await supabase
       .from('wargas')
       .select('id, nama_lengkap, nik, rts(nomor_rt)')
-      .ilike('nama_lengkap', `%${text}%`)
       .eq('status_warga', 'aktif')
+      .or(`nama_lengkap.ilike.%${text}%,nik.like.%${text}%`)
       .limit(5);
     
     if (!error && data) {
@@ -102,7 +102,7 @@ export default function AddSuratScreen() {
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <ArrowLeft color="#67C090" size={24} />
+              <ArrowLeft color="#124170" size={24} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Buat Layanan</Text>
             <View style={{ width: 44 }} />
@@ -147,7 +147,7 @@ export default function AddSuratScreen() {
                         value={wargaSearch}
                         onChangeText={handleSearchWarga}
                       />
-                      {searching && <ActivityIndicator size="small" color="#67C090" style={{ marginRight: 16 }} />}
+                      {searching && <ActivityIndicator size="small" color="#124170" style={{ marginRight: 16 }} />}
                     </View>
                     
                     {searchResults.length > 0 && (
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     height: 64,
     width: 64,
     borderRadius: 22,
-    backgroundColor: '#67C090',
+    backgroundColor: '#124170',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
     height: 44,
     width: 44,
     borderRadius: 14,
-    backgroundColor: '#67C090',
+    backgroundColor: '#124170',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -456,13 +456,13 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     height: 64,
-    backgroundColor: '#67C090',
+    backgroundColor: '#124170',
     borderRadius: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10,
-    shadowColor: '#67C090',
+    shadowColor: '#124170',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 15,

@@ -68,7 +68,7 @@ export default function ProposalDetailScreen() {
 
   if (isLoading) return (
     <SafeAreaView style={styles.loaderContainer}>
-      <ActivityIndicator color="#67C090" size="large" />
+      <ActivityIndicator color="#124170" size="large" />
     </SafeAreaView>
   );
 
@@ -77,7 +77,7 @@ export default function ProposalDetailScreen() {
       <XCircle color="#EF4444" size={48} style={{ marginBottom: 16 }} />
       <Text style={styles.emptyText}>{error ? "Terjadi kesalahan memuat data." : "Data usulan tidak ditemukan."}</Text>
       <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 20 }}>
-        <Text style={{ color: '#67C090', fontWeight: '800' }}>Kembali</Text>
+        <Text style={{ color: '#124170', fontWeight: '800' }}>Kembali</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -88,7 +88,7 @@ export default function ProposalDetailScreen() {
         {/* Header Section */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft color="#67C090" size={24} />
+            <ArrowLeft color="#124170" size={24} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Detail Program</Text>
           {isDukuh() && !editMode ? (
@@ -108,7 +108,7 @@ export default function ProposalDetailScreen() {
             <Text style={styles.programTitle}>{item.nama_program}</Text>
             
             <View style={styles.quickInfo}>
-              <InfoItem icon={<MapPin size={14} color="#67C090" />} label={item.lokasi || 'Mandingan'} />
+              <InfoItem icon={<MapPin size={14} color="#124170" />} label={item.lokasi || 'Mandingan'} />
               <InfoItem icon={<Calendar size={14} color="#3B82F6" />} label={`Tahun ${item.tahun_diusulkan}`} />
               <InfoItem icon={<TrendingUp size={14} color="#F59E0B" />} label={`RT ${item.rts?.nomor_rt}`} />
             </View>
@@ -132,7 +132,7 @@ export default function ProposalDetailScreen() {
               
               <View style={styles.danaRow}>
                 <View style={styles.danaItem}>
-                  <Wallet size={16} color="#67C090" />
+                  <Wallet size={16} color="#124170" />
                   <View style={styles.danaTextWrapper}>
                     <Text style={styles.danaLabel}>SUMBER DANA</Text>
                     <Text style={styles.danaValue}>{item.sumber_dana?.replace(/_/g, ' ').toUpperCase() || 'BELUM DITENTUKAN'}</Text>
@@ -155,7 +155,7 @@ export default function ProposalDetailScreen() {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>CATATAN DUKUH</Text>
               <View style={styles.notesCard}>
-                <MessageSquare size={18} color="#67C090" style={{ marginBottom: 8 }} />
+                <MessageSquare size={18} color="#124170" style={{ marginBottom: 8 }} />
                 <Text style={styles.notesText}>{item.catatan_dukuh}</Text>
               </View>
             </View>
@@ -281,10 +281,10 @@ const styles = StyleSheet.create({
     height: 44,
     width: 44,
     borderRadius: 14,
-    backgroundColor: '#67C090',
+    backgroundColor: '#124170',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#67C090',
+    shadowColor: '#124170',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 10,
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   typeBadge: {
-    backgroundColor: 'rgba(103, 192, 144, 0.08)',
+    backgroundColor: 'rgba(18, 65, 112, 0.08)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
   typeText: {
     fontSize: 10,
     fontWeight: '900',
-    color: '#67C090',
+    color: '#124170',
     letterSpacing: 1,
   },
   programTitle: {
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
     height: 52,
     width: 52,
     borderRadius: 18,
-    backgroundColor: '#67C090',
+    backgroundColor: '#124170',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
   danaValue: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#10B981',
+    color: '#3B82F6',
     marginTop: 2,
   },
   descriptionCard: {
@@ -431,15 +431,15 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   notesCard: {
-    backgroundColor: '#F0FDF4',
+    backgroundColor: '#EFF6FF',
     borderRadius: 24,
     padding: 24,
     borderWidth: 1,
-    borderColor: '#DCFCE7',
+    borderColor: '#DBEAFE',
   },
   notesText: {
     fontSize: 14,
-    color: '#166534',
+    color: '#1E40AF',
     lineHeight: 22,
     fontWeight: '600',
   },
@@ -498,8 +498,8 @@ const styles = StyleSheet.create({
     borderColor: '#F1F5F9',
   },
   chipActive: {
-    backgroundColor: '#67C090',
-    borderColor: '#67C090',
+    backgroundColor: '#124170',
+    borderColor: '#124170',
   },
   chipActiveDark: {
     backgroundColor: '#1E293B',
@@ -528,12 +528,12 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     height: 64,
-    backgroundColor: '#67C090',
+    backgroundColor: '#124170',
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10,
-    shadowColor: '#67C090',
+    shadowColor: '#124170',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 15,

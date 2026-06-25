@@ -39,9 +39,11 @@ export default function TambahWargaPage() {
     agama: 'ISLAM',
     pendidikan: 'SD/SEDERAJAT',
     pekerjaan: '',
-    status_kawin: 'BELUM KAWIN',
-    hubungan_keluarga: 'ANAK',
-    status_warga: 'aktif'
+    status_perkawinan: 'belum_kawin',
+    status_dalam_keluarga: 'anak',
+    status_warga: 'aktif',
+    status_kehamilan: false,
+    status_menyusui: false,
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -199,13 +201,14 @@ export default function TambahWargaPage() {
                 <div className="space-y-2">
                   <Label>Status Perkawinan</Label>
                   <select 
-                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
-                    value={formData.status_kawin} 
-                    onChange={(e) => setFormData({...formData, status_kawin: e.target.value})}
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 appearance-none font-medium"
+                    value={formData.status_perkawinan} 
+                    onChange={(e) => setFormData({...formData, status_perkawinan: e.target.value})}
                   >
-                    {['BELUM KAWIN', 'KAWIN', 'CERAI HIDUP', 'CERAI MATI'].map(s => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
+                    <option value="belum_kawin">BELUM KAWIN</option>
+                    <option value="kawin">KAWIN</option>
+                    <option value="cerai_hidup">CERAI HIDUP</option>
+                    <option value="cerai_mati">CERAI MATI</option>
                   </select>
                 </div>
               </CardContent>
@@ -298,15 +301,53 @@ export default function TambahWargaPage() {
                 <div className="space-y-2 pt-2">
                   <Label>Hubungan Keluarga</Label>
                   <select 
-                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
-                    value={formData.hubungan_keluarga} 
-                    onChange={(e) => setFormData({...formData, hubungan_keluarga: e.target.value})}
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 appearance-none font-medium"
+                    value={formData.status_dalam_keluarga} 
+                    onChange={(e) => setFormData({...formData, status_dalam_keluarga: e.target.value})}
                   >
-                    {['KEPALA KELUARGA', 'ISTERI', 'ANAK', 'MENANTU', 'CUCU', 'ORANG TUA', 'MERTUA', 'FAMILI LAIN'].map(h => (
-                      <option key={h} value={h}>{h}</option>
-                    ))}
+                    <option value="kepala_keluarga">KEPALA KELUARGA</option>
+                    <option value="istri">ISTRI</option>
+                    <option value="anak">ANAK</option>
+                    <option value="menantu">MENANTU</option>
+                    <option value="cucu">CUCU</option>
+                    <option value="orang_tua">ORANG TUA</option>
+                    <option value="mertua">MERTUA</option>
+                    <option value="famili_lain">FAMILI LAIN</option>
+                    <option value="lainnya">LAINNYA</option>
                   </select>
                 </div>
+                
+                {formData.jenis_kelamin === 'P' && (
+                  <div className="space-y-4 pt-4 border-t border-border mt-4">
+                    <h4 className="text-xs font-semibold text-pink-600 dark:text-pink-400 uppercase tracking-wider">Data PKK & Kesehatan</h4>
+                    
+                    <div className="flex items-center justify-between p-3 bg-pink-50/20 dark:bg-pink-950/10 border border-pink-100 dark:border-pink-900/30 rounded-lg">
+                      <div className="space-y-0.5">
+                        <Label className="text-sm">Status Kehamilan</Label>
+                        <p className="text-[11px] text-muted-foreground">Warga sedang dalam kondisi hamil</p>
+                      </div>
+                      <input 
+                        type="checkbox"
+                        checked={formData.status_kehamilan}
+                        onChange={(e) => setFormData({...formData, status_kehamilan: e.target.checked})}
+                        className="h-5 w-5 rounded border-gray-300 text-pink-600 focus:ring-pink-500"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 bg-orange-50/20 dark:bg-orange-950/10 border border-orange-100 dark:border-orange-900/30 rounded-lg">
+                      <div className="space-y-0.5">
+                        <Label className="text-sm">Status Menyusui</Label>
+                        <p className="text-[11px] text-muted-foreground">Warga sedang dalam kondisi menyusui</p>
+                      </div>
+                      <input 
+                        type="checkbox"
+                        checked={formData.status_menyusui}
+                        onChange={(e) => setFormData({...formData, status_menyusui: e.target.checked})}
+                        className="h-5 w-5 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                      />
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

@@ -20,6 +20,7 @@ export function useDasawismaList() {
             wargas (count)
           )
         `)
+        .eq('rumah_tanggas.wargas.status_warga', 'aktif')
         .order('nama_dasawisma')
 
       if (error) throw error
@@ -48,6 +49,7 @@ export function useDasawismaWarga(dasawismaId?: string) {
           nik,
           rumah_tanggas!inner (dasawisma_id)
         `)
+        .eq('status_warga', 'aktif')
         .eq('rumah_tanggas.dasawisma_id', dasawismaId)
         .order('nama_lengkap')
 

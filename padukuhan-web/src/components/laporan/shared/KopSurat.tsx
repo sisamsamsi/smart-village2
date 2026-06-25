@@ -11,16 +11,15 @@ interface KopSuratProps {
 
 export const KopSurat: React.FC<KopSuratProps> = ({
   padukuhan = 'Mandingan',
-  kelurahan = 'Samsi',
-  kecamatan = 'Samsi Tengah',
-  kabupaten = 'Samsi Jaya'
+  kelurahan = 'Ringinharjo',
+  kecamatan = 'Bantul',
+  kabupaten = 'Bantul'
 }) => (
   <View style={styles.kop}>
     <View style={styles.kopText}>
-      <Text style={styles.instansi}>TIM PENGGERAK PKK PUSAT</Text>
-      <Text style={styles.instansi}>PROVINSI / KABUPATEN / KECAMATAN / DESA / KELURAHAN</Text>
+      <Text style={styles.instansi}>KELOMPOK PKK PADUKUHAN MANDINGAN</Text>
       <Text style={styles.alamat}>
-        Padukuhan: {padukuhan.toUpperCase()} | Desa/Kel: {kelurahan.toUpperCase()} | Kec: {kecamatan.toUpperCase()}
+        Padukuhan Mandingan, Kalurahan {kelurahan}, Kapanewon {kecamatan}, Kabupaten {kabupaten}
       </Text>
     </View>
   </View>

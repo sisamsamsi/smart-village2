@@ -45,11 +45,11 @@ export default async function WargaDetailPage({ params }: PageProps) {
     { label: 'No. KK', value: Array.isArray(warga.rumah_tanggas) ? warga.rumah_tanggas[0]?.no_kk : (warga.rumah_tanggas as any)?.no_kk ?? '—', icon: <Hash className="h-4 w-4" /> },
     { label: 'Tempat, Tgl Lahir', value: `${warga.tempat_lahir || '—'}, ${warga.tanggal_lahir || '—'}`, icon: <Calendar className="h-4 w-4" /> },
     { label: 'Jenis Kelamin', value: warga.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan', icon: <User className="h-4 w-4" /> },
-    { label: 'Hubungan Keluarga', value: warga.status_dalam_keluarga?.replace(/_/g, ' '), icon: <Users className="h-4 w-4" /> },
+    { label: 'Hubungan Keluarga', value: warga.status_dalam_keluarga?.replace(/_/g, ' ').toUpperCase(), icon: <Users className="h-4 w-4" /> },
     { label: 'Agama', value: warga.agama, icon: <Heart className="h-4 w-4" /> },
     { label: 'Pendidikan', value: warga.pendidikan, icon: <GraduationCap className="h-4 w-4" /> },
     { label: 'Pekerjaan', value: warga.pekerjaan, icon: <Briefcase className="h-4 w-4" /> },
-    { label: 'Status Kawin', value: warga.status_kawin, icon: <Heart className="h-4 w-4" /> },
+    { label: 'Status Kawin', value: warga.status_perkawinan?.replace(/_/g, ' ').toUpperCase(), icon: <Heart className="h-4 w-4" /> },
     { label: 'RT', value: `RT ${Array.isArray(warga.rts) ? warga.rts[0]?.nomor_rt : (warga.rts as any)?.nomor_rt ?? '—'}`, icon: <MapPin className="h-4 w-4" /> },
   ]
 

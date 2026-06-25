@@ -97,7 +97,7 @@ export default function SuratDetailScreen() {
 
   if (isLoading) return (
     <SafeAreaView style={styles.loaderContainer}>
-      <ActivityIndicator color="#67C090" size="large" />
+      <ActivityIndicator color="#124170" size="large" />
     </SafeAreaView>
   );
 
@@ -106,7 +106,7 @@ export default function SuratDetailScreen() {
       <XCircle color="#EF4444" size={48} style={{ marginBottom: 16 }} />
       <Text style={styles.emptyText}>{error ? "Terjadi kesalahan memuat data." : "Data tidak ditemukan."}</Text>
       <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/' as any)} style={{ marginTop: 20 }}>
-        <Text style={{ color: '#67C090', fontWeight: '800' }}>Kembali</Text>
+        <Text style={{ color: '#124170', fontWeight: '800' }}>Kembali</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -122,7 +122,7 @@ export default function SuratDetailScreen() {
         {/* Header Section */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/' as any)} style={styles.backButton}>
-            <ArrowLeft color="#67C090" size={24} />
+            <ArrowLeft color="#124170" size={24} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Detail Surat RT</Text>
           <View style={{ width: 44 }} />
@@ -132,7 +132,7 @@ export default function SuratDetailScreen() {
         <View style={styles.profileSection}>
           <View style={styles.profileCard}>
             <View style={styles.avatarCircle}>
-              <User color="#67C090" size={32} />
+              <User color="#124170" size={32} />
             </View>
             <View style={styles.profileInfo}>
               <Text style={styles.wargaName}>{wargaData?.nama_lengkap || 'Warga Tidak Diketahui'}</Text>
@@ -164,24 +164,24 @@ export default function SuratDetailScreen() {
               <DetailRow 
                 label="Jenis Layanan" 
                 value={item.jenis_surat?.replace(/_/g, ' ')} 
-                icon={<FileText size={16} color="#67C090" />} 
+                icon={<FileText size={16} color="#124170" />} 
               />
               <DetailRow 
                 label="Keperluan" 
                 value={item.keperluan} 
-                icon={<Info size={16} color="#67C090" />} 
+                icon={<Info size={16} color="#124170" />} 
               />
               <DetailRow 
                 label="Diajukan Pada" 
                 value={formatTanggal(item.created_at)} 
-                icon={<Calendar size={16} color="#67C090" />} 
+                icon={<Calendar size={16} color="#124170" />} 
                 isLast={!isApproved || !item.nomor_surat}
               />
               {isApproved && item.nomor_surat && (
                 <DetailRow 
                   label="Nomor Surat" 
                   value={item.nomor_surat} 
-                  icon={<ShieldCheck size={16} color="#67C090" />} 
+                  icon={<ShieldCheck size={16} color="#124170" />} 
                   isLast
                 />
               )}
@@ -279,21 +279,21 @@ const styles = StyleSheet.create({
   },
   profileSection: {
     paddingHorizontal: 24,
-    paddingVertical: 20,
+    paddingVertical: 12,
   },
   profileCard: {
     backgroundColor: '#F8FAFC',
     borderRadius: 24,
-    padding: 20,
+    padding: 12,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#F1F5F9',
   },
   avatarCircle: {
-    height: 56,
-    width: 56,
-    borderRadius: 20,
+    height: 44,
+    width: 44,
+    borderRadius: 14,
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   wargaName: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '900',
     color: '#1E293B',
   },
@@ -327,8 +327,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   statusBanner: {
-    borderRadius: 28,
-    padding: 24,
+    borderRadius: 16,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   statusApproved: {
-    backgroundColor: '#67C090',
+    backgroundColor: '#124170',
   },
   statusPending: {
     backgroundColor: '#1E293B',
@@ -358,15 +358,15 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   bannerValue: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: '900',
     color: '#fff',
     marginTop: 4,
   },
   bannerIconWrapper: {
-    height: 56,
-    width: 56,
-    borderRadius: 18,
+    height: 44,
+    width: 44,
+    borderRadius: 12,
     backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -384,14 +384,14 @@ const styles = StyleSheet.create({
   },
   detailBox: {
     backgroundColor: '#fff',
-    borderRadius: 24,
+    borderRadius: 16,
     padding: 4,
     borderWidth: 1,
     borderColor: '#F1F5F9',
   },
   detailRow: {
     flexDirection: 'row',
-    padding: 16,
+    padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#F8FAFC',
   },
@@ -425,13 +425,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   approveButton: {
-    height: 64,
-    backgroundColor: '#67C090',
-    borderRadius: 20,
+    height: 48,
+    backgroundColor: '#124170',
+    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#67C090',
+    shadowColor: '#124170',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 15,
@@ -444,13 +444,13 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   printButton: {
-    height: 64,
-    backgroundColor: '#67C090',
-    borderRadius: 20,
+    height: 48,
+    backgroundColor: '#124170',
+    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#67C090',
+    shadowColor: '#124170',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 15,
