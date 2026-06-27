@@ -1,12 +1,11 @@
 -- =============================================================
--- UPDATE claim_invitation_token RPC (Mendukung Fleksibilitas)
+-- UPDATE claim_invitation_token RPC (Mendukung Fleksibilitas Penuh)
 -- =============================================================
 --
 -- Perubahan:
--- 1. Kode untuk 'dukuh' tetap single-use (sekali pakai).
--- 2. Kode untuk 'ketua_rt' dan 'kader_dasawisma' menjadi REUSABLE
---    (bisa diklaim oleh beberapa email/orang pengurus sekaligus
---    agar memudahkan pembagian tugas pendataan data warga).
+-- Semua kode akses (termasuk 'dukuh', 'ketua_rt', dan 'kader_dasawisma')
+-- menjadi REUSABLE (bisa diklaim oleh beberapa email/orang pengurus sekaligus
+-- untuk memudahkan pembagian tugas dan sinkronisasi akun).
 
 CREATE OR REPLACE FUNCTION claim_invitation_token(
   token_str TEXT,
@@ -32,21 +31,6 @@ BEGIN
   IF tok_row.id IS NULL THEN
     RAISE EXCEPTION 'Kode undangan tidak valid.';
   END IF;
-
-  -- Jika peran adalah 'dukuh', pastikan kode belum pernah digunakan
-  IF tok_row.role = 'dukuh' AND tok_row.is_used = TRUE THEN
-    RAISE EXCEPTION 'Kode undangan Dukuh hanya bisa diklaim oleh 1 pengguna dan saat ini sudah terpakai.';
-  END IF;
-
-  -- Jika perannya dukuh, tandai is_used = TRUE agar tidak bisa dipakai email lain
-  IF tok_row.role = 'dukuh' THEN
-    UPDATE invitation_tokens 
-    SET is_used = TRUE 
-    WHERE id = tok_row.id;
-  END IF;
-
-  -- Untuk ketua_rt dan kader_dasawisma, token dibiarkan tetap is_used = FALSE
-  -- sehingga pengurus lain tetap bisa masuk menggunakan kode yang sama.
 
   -- Upsert profil pengurus dengan peran dan ruang lingkup token
   INSERT INTO user_profiles (id, email, role, rt_id, dasawisma_id, nama_lengkap, no_hp, created_at)
