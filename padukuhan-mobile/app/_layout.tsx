@@ -37,13 +37,7 @@ export default function RootLayout() {
           if (dbProfile) {
             setProfile(dbProfile);
           } else {
-            setProfile({
-              id: session.user.id,
-              nama_lengkap: session.user.email || 'Admin',
-              role: 'dukuh',
-              rt_id: null,
-              dasawisma_id: null,
-            });
+            setProfile(null);
           }
         } else {
           // If not using demo bypass user, clear
@@ -54,6 +48,7 @@ export default function RootLayout() {
         }
       } catch (err) {
         console.error('Error checking initial session:', err);
+        setProfile(null);
       } finally {
         setInitialized(true);
       }
@@ -76,9 +71,12 @@ export default function RootLayout() {
             .single();
           if (dbProfile) {
             setProfile(dbProfile);
+          } else {
+            setProfile(null);
           }
         } catch (err) {
           console.error('Error updating profile on auth change:', err);
+          setProfile(null);
         }
       }
     });
@@ -92,11 +90,15 @@ export default function RootLayout() {
     if (!initialized) return;
 
     const inAuthGroup = (segments as any[]).includes('(auth)') || (segments as any[]).includes('login');
+    const isClaimTokenScreen = segments.includes('claim-token');
 
     if (!user && !inAuthGroup) {
       // Redirect to login if not authenticated
       router.replace('/login');
-    } else if (user && profile && inAuthGroup) {
+    } else if (user && !profile && !isClaimTokenScreen) {
+      // Authenticated but has no profile, redirect to claim-token
+      router.replace('/(auth)/claim-token' as any);
+    } else if (user && profile && (inAuthGroup || isClaimTokenScreen)) {
       router.replace('/(app)' as any);
     }
   }, [user, profile, segments, initialized]);

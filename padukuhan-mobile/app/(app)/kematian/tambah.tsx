@@ -140,7 +140,7 @@ export default function TambahKematianScreen() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 80}
         style={{ flex: 1 }}
       >
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           
           {/* 1. Pilih Warga */}
           {selectedWarga ? (

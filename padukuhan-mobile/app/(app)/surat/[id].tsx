@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, StyleSheet, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSuratDetail, useUpdateSuratStatus } from '@/hooks/useSurat';
+import { useSuratDetail, useUpdateSuratStatus, useDeleteSurat } from '@/hooks/useSurat';
 import { useAuthStore } from '@/stores/authStore';
 import { 
   ArrowLeft, 
@@ -35,6 +35,33 @@ export default function SuratDetailScreen() {
   const { profile } = useAuthStore();
 
   const [processing, setProcessing] = useState(false);
+  const deleteSurat = useDeleteSurat();
+
+  const handleDeleteSurat = () => {
+    Alert.alert(
+      "Konfirmasi Hapus",
+      "Apakah Anda yakin ingin menghapus pengajuan surat ini?",
+      [
+        { text: "Batal", style: "cancel" },
+        { 
+          text: "Hapus", 
+          style: "destructive",
+          onPress: async () => {
+            setProcessing(true);
+            try {
+              await deleteSurat.mutateAsync(suratId as string);
+              Alert.alert("Berhasil", "Pengajuan surat telah dihapus.");
+              router.back();
+            } catch (err: any) {
+              Alert.alert("Gagal", err.message || "Gagal menghapus surat.");
+            } finally {
+              setProcessing(false);
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const handleApprove = async () => {
     if (processing || !suratId) return;
@@ -53,7 +80,7 @@ export default function SuratDetailScreen() {
               
               await updateStatus.mutateAsync({
                 id: suratId as string,
-                status: 'approved',
+                status: 'selesai',
                 nomor_surat: nomorSurat,
                 tanggal_surat: new Date().toISOString().split('T')[0]
               });
@@ -71,8 +98,40 @@ export default function SuratDetailScreen() {
     );
   };
 
+  const handleReject = async () => {
+    if (processing || !suratId) return;
+
+    Alert.alert(
+      "Konfirmasi Penolakan",
+      "Apakah Anda yakin ingin menolak pengajuan surat ini?",
+      [
+        { text: "Batal", style: "cancel" },
+        { 
+          text: "Ya, Tolak", 
+          onPress: async () => {
+            setProcessing(true);
+            try {
+              await updateStatus.mutateAsync({
+                id: suratId as string,
+                status: 'ditolak',
+                ditolak_alasan: 'Ditolak oleh Ketua RT'
+              });
+
+              Alert.alert("Berhasil", "Pengajuan surat telah ditolak.");
+              refetch();
+            } catch (err: any) {
+              Alert.alert("Gagal", err.message || "Gagal menolak surat.");
+            } finally {
+              setProcessing(false);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const handlePrint = async () => {
-    if (!item || item.status !== 'approved') return;
+    if (!item || (item.status !== 'approved' && item.status !== 'selesai')) return;
     
     try {
       setProcessing(true);
@@ -205,7 +264,11 @@ export default function SuratDetailScreen() {
                       </>
                     )}
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.rejectButton}>
+                  <TouchableOpacity 
+                    style={styles.rejectButton}
+                    onPress={handleReject}
+                    disabled={processing}
+                  >
                     <Text style={styles.rejectButtonText}>Tolak Pengajuan</Text>
                   </TouchableOpacity>
                 </>
@@ -227,6 +290,17 @@ export default function SuratDetailScreen() {
                     <Text style={styles.printButtonText}>Cetak & Bagikan PDF</Text>
                   </>
                 )}
+              </TouchableOpacity>
+            )}
+
+            {/* Delete button for RT/Dukuh/Creator */}
+            {(profile?.role === 'dukuh' || profile?.role === 'ketua_rt' || profile?.rt_id === item?.rt_id) && (
+              <TouchableOpacity 
+                style={[styles.rejectButton, { marginTop: 12, borderColor: '#EF4444' }]}
+                onPress={handleDeleteSurat}
+                disabled={processing}
+              >
+                <Text style={[styles.rejectButtonText, { color: '#EF4444' }]}>Hapus Pengajuan</Text>
               </TouchableOpacity>
             )}
           </View>

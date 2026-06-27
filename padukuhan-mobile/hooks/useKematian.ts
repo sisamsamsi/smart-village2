@@ -48,12 +48,25 @@ export const useCreateKematian = () => {
       sebab_meninggal: string;
       keterangan: string;
     }) => {
+      // 0. Get the citizen's rt_id
+      const { data: wargaData, error: wargaGetError } = await supabase
+        .from('wargas')
+        .select('rt_id')
+        .eq('id', payload.warga_id)
+        .single();
+
+      if (wargaGetError || !wargaData) {
+        throw new Error(wargaGetError?.message || 'Warga tidak ditemukan');
+      }
+
+      const targetRtId = wargaData.rt_id || profile?.rt_id;
+
       // 1. Insert into mutasi_penduduk
       const { data, error } = await supabase
         .from('mutasi_penduduk')
         .insert([{
           warga_id: payload.warga_id,
-          rt_id: profile?.rt_id,
+          rt_id: targetRtId,
           jenis_mutasi: 'kematian',
           tanggal_mutasi: payload.tanggal_mutasi,
           sebab_meninggal: payload.sebab_meninggal,
@@ -119,6 +132,66 @@ export const useCreateKematian = () => {
         }
       }
 
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kematian_list'] });
+      queryClient.invalidateQueries({ queryKey: ['wargas'] });
+    }
+  });
+};
+
+export const useUpdateKematian = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: {
+      id: string;
+      tanggal_mutasi: string;
+      sebab_meninggal: string;
+      keterangan: string;
+    }) => {
+      const { data, error } = await supabase
+        .from('mutasi_penduduk')
+        .update({
+          tanggal_mutasi: payload.tanggal_mutasi,
+          sebab_meninggal: payload.sebab_meninggal,
+          keterangan: payload.keterangan,
+        })
+        .eq('id', payload.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kematian_list'] });
+      queryClient.invalidateQueries({ queryKey: ['wargas'] });
+    }
+  });
+};
+
+export const useDeleteKematian = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: { id: string; warga_id: string }) => {
+      // 1. Revert warga status to active
+      const { error: wargaError } = await supabase
+        .from('wargas')
+        .update({ status_warga: 'aktif' })
+        .eq('id', payload.warga_id);
+
+      if (wargaError) throw wargaError;
+
+      // 2. Delete from mutasi_penduduk
+      const { data, error } = await supabase
+        .from('mutasi_penduduk')
+        .delete()
+        .eq('id', payload.id);
+
+      if (error) throw error;
       return data;
     },
     onSuccess: () => {

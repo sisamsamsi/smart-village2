@@ -16,11 +16,13 @@ import {
   Stamp
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { useAuthStore } from '@/stores/authStore';
 
 const { width } = Dimensions.get('window');
 
 export default function AddSuratScreen() {
   const router = useRouter();
+  const { profile } = useAuthStore();
   const createSurat = useCreateSurat();
   const templates = [
     { id: '1', jenis_surat: 'pengantar_rt', judul: 'Surat Pengantar RT' },
@@ -47,12 +49,17 @@ export default function AddSuratScreen() {
     }
 
     setSearching(true);
-    const { data, error } = await supabase
+    let query = supabase
       .from('wargas')
       .select('id, nama_lengkap, nik, rts(nomor_rt)')
       .eq('status_warga', 'aktif')
-      .or(`nama_lengkap.ilike.%${text}%,nik.like.%${text}%`)
-      .limit(5);
+      .or(`nama_lengkap.ilike.%${text}%,nik.like.%${text}%`);
+
+    if (profile?.role === 'ketua_rt' && profile?.rt_id) {
+      query = query.eq('rt_id', profile.rt_id);
+    }
+
+    const { data, error } = await query.limit(5);
     
     if (!error && data) {
       setSearchResults(data);

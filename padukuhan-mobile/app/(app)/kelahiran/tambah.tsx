@@ -46,7 +46,8 @@ export default function TambahKelahiranScreen() {
             ...prev,
             nama_ibu: data.nama_lengkap,
             rumah_tangga_id: data.rumah_tangga_id || '',
-            rt_id: data.rt_id || ''
+            rt_id: data.rt_id || '',
+            ibu_id: data.id
           }));
         }
       };
@@ -79,7 +80,8 @@ export default function TambahKelahiranScreen() {
     nama_ibu: '',
     nama_ayah: '',
     rumah_tangga_id: '',
-    rt_id: ''
+    rt_id: '',
+    ibu_id: ''
   });
 
   const handleSearchIbu = async (text: string) => {
@@ -111,7 +113,8 @@ export default function TambahKelahiranScreen() {
       ...prev,
       nama_ibu: ibu.nama_lengkap,
       rumah_tangga_id: ibu.rumah_tangga_id || '',
-      rt_id: ibu.rt_id || ''
+      rt_id: ibu.rt_id || '',
+      ibu_id: ibu.id
     }));
     setIbuSearch('');
     setSearchResults([]);
@@ -174,7 +177,8 @@ export default function TambahKelahiranScreen() {
         nama_ibu: form.nama_ibu,
         nama_ayah: form.nama_ayah,
         rumah_tangga_id: form.rumah_tangga_id,
-        rt_id: form.rt_id
+        rt_id: form.rt_id,
+        ibu_id: form.ibu_id || undefined
       });
 
       Alert.alert('Berhasil', 'Pencatatan kelahiran bayi berhasil disimpan.');
@@ -199,11 +203,11 @@ export default function TambahKelahiranScreen() {
       </View>
 
       <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 80}
         style={{ flex: 1 }}
       >
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           
           {/* 1. Pilih Ibu Kandung */}
           {selectedIbu ? (

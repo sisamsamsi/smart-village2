@@ -20,25 +20,44 @@ const localStyles = StyleSheet.create({
   },
   // Top Header Info
   headerInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 15,
+  },
+  headerColumnLeft: {
+    width: '48%',
+  },
+  headerColumnRight: {
+    width: '48%',
+    alignItems: 'flex-end',
+  },
+  headerRowRight: {
+    flexDirection: 'row',
+    marginBottom: 5,
+    width: 250,
+  },
+  headerLabelRight: {
+    width: 100,
+    fontSize: 8,
+    fontWeight: 'bold',
   },
   headerRow: {
     flexDirection: 'row',
     marginBottom: 5,
   },
   headerLabel: {
-    width: 250,
-    fontSize: 9,
+    width: 170,
+    fontSize: 8,
     fontWeight: 'bold',
   },
   headerDots: {
-    width: 15,
-    fontSize: 9,
+    width: 10,
+    fontSize: 8,
     fontWeight: 'bold',
   },
   headerValue: {
     flex: 1,
-    fontSize: 9,
+    fontSize: 8,
   },
   // Table Section
   table: {
@@ -99,11 +118,10 @@ const localStyles = StyleSheet.create({
     textAlign: 'center',
   },
   verticalText: {
-    // React PDF doesn't truly support vertical text easily via writing-mode,
-    // we just use a small font and let it wrap, or just use normal text
-    fontSize: 6,
+    fontSize: 4.5,
     textAlign: 'center',
-    padding: 2,
+    lineHeight: 1,
+    fontWeight: 'bold',
   }
 })
 
@@ -125,40 +143,44 @@ export const CatatanKeluargaPage: React.FC<CatatanKeluargaProps> = ({ data, tahu
 
         {/* Info Header */}
         <View style={localStyles.headerInfo}>
-          <View style={localStyles.headerRow}>
-            <Text style={localStyles.headerLabel}>CATATAN KELUARGA DARI</Text>
-            <Text style={localStyles.headerDots}>:</Text>
-            <Text style={localStyles.headerValue}>{data.nama_kepala_keluarga?.toUpperCase() || '-'}</Text>
+          <View style={localStyles.headerColumnLeft}>
+            <View style={localStyles.headerRow}>
+              <Text style={localStyles.headerLabel}>CATATAN KELUARGA DARI</Text>
+              <Text style={localStyles.headerDots}>:</Text>
+              <Text style={localStyles.headerValue}>{data.nama_kepala_keluarga?.toUpperCase() || '-'}</Text>
+            </View>
+            <View style={localStyles.headerRow}>
+              <Text style={localStyles.headerLabel}>ANGGOTA KELOMPOK DASA WISMA</Text>
+              <Text style={localStyles.headerDots}>:</Text>
+              <Text style={localStyles.headerValue}>{dasawisma?.nama_dasawisma?.toUpperCase() || '-'}</Text>
+            </View>
+            <View style={localStyles.headerRow}>
+              <Text style={localStyles.headerLabel}>TAHUN</Text>
+              <Text style={localStyles.headerDots}>:</Text>
+              <Text style={localStyles.headerValue}>{tahun}</Text>
+            </View>
           </View>
-          <View style={localStyles.headerRow}>
-            <Text style={localStyles.headerLabel}>ANGGOTA KELOMPOK DASA WISMA</Text>
-            <Text style={localStyles.headerDots}>:</Text>
-            <Text style={localStyles.headerValue}>{dasawisma?.nama_dasawisma || '-'}</Text>
-          </View>
-          <View style={localStyles.headerRow}>
-            <Text style={localStyles.headerLabel}>TAHUN</Text>
-            <Text style={localStyles.headerDots}>:</Text>
-            <Text style={localStyles.headerValue}>{tahun}</Text>
-          </View>
-          <View style={localStyles.headerRow}>
-            <Text style={localStyles.headerLabel}>KRITERIA RUMAH</Text>
-            <Text style={localStyles.headerDots}>:</Text>
-            <Text style={localStyles.headerValue}>{(data.kriteria_rumah || 'Sehat Layak Huni').replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}</Text>
-          </View>
-          <View style={localStyles.headerRow}>
-            <Text style={localStyles.headerLabel}>JAMBAN KELUARGA</Text>
-            <Text style={localStyles.headerDots}>:</Text>
-            <Text style={localStyles.headerValue}>{data.memiliki_jamban ? `Ada, Jumlah: ${data.jumlah_jamban || 1} buah` : 'Tidak Ada'}</Text>
-          </View>
-          <View style={localStyles.headerRow}>
-            <Text style={localStyles.headerLabel}>SUMBER AIR</Text>
-            <Text style={localStyles.headerDots}>:</Text>
-            <Text style={localStyles.headerValue}>{data.sumber_air?.toUpperCase() || '-'}</Text>
-          </View>
-          <View style={localStyles.headerRow}>
-            <Text style={localStyles.headerLabel}>TEMPAT SAMPAH</Text>
-            <Text style={localStyles.headerDots}>:</Text>
-            <Text style={localStyles.headerValue}>{data.memiliki_tempat_sampah ? 'Ada' : 'Tidak'}</Text>
+          <View style={localStyles.headerColumnRight}>
+            <View style={localStyles.headerRowRight}>
+              <Text style={localStyles.headerLabelRight}>KRITERIA RUMAH</Text>
+              <Text style={localStyles.headerDots}>:</Text>
+              <Text style={localStyles.headerValue}>{data.kriteria_rumah === 'sehat_layak_huni' ? 'LAYAK HUNI' : 'TIDAK LAYAK HUNI'}</Text>
+            </View>
+            <View style={localStyles.headerRowRight}>
+              <Text style={localStyles.headerLabelRight}>JAMBAN KELUARGA</Text>
+              <Text style={localStyles.headerDots}>:</Text>
+              <Text style={localStyles.headerValue}>{data.memiliki_jamban ? `ADA / Jumlah: ${data.jumlah_jamban || 1} buah` : 'TIDAK'}</Text>
+            </View>
+            <View style={localStyles.headerRowRight}>
+              <Text style={localStyles.headerLabelRight}>SUMBER AIR</Text>
+              <Text style={localStyles.headerDots}>:</Text>
+              <Text style={localStyles.headerValue}>{data.sumber_air?.toUpperCase() || '-'}</Text>
+            </View>
+            <View style={localStyles.headerRowRight}>
+              <Text style={localStyles.headerLabelRight}>TEMPAT SAMPAH</Text>
+              <Text style={localStyles.headerDots}>:</Text>
+              <Text style={localStyles.headerValue}>{data.memiliki_tempat_sampah ? 'ADA' : 'TIDAK'}</Text>
+            </View>
           </View>
         </View>
 
@@ -167,28 +189,50 @@ export const CatatanKeluargaPage: React.FC<CatatanKeluargaProps> = ({ data, tahu
           {/* Header Row 1 */}
           <View style={localStyles.tableRow}>
             <View style={[localStyles.tableColHeader, { width: '3%' }]}><Text style={localStyles.tableCellHeader}>NO</Text></View>
-            <View style={[localStyles.tableColHeader, { width: '15%' }]}><Text style={localStyles.tableCellHeader}>NAMA ANGGOTA KELUARGA</Text></View>
-            <View style={[localStyles.tableColHeader, { width: '10%' }]}><Text style={localStyles.tableCellHeader}>STATUS PERKAWINAN</Text></View>
-            <View style={[localStyles.tableColHeader, { width: '4%' }]}><Text style={localStyles.tableCellHeader}>L/P</Text></View>
-            <View style={[localStyles.tableColHeader, { width: '8%' }]}><Text style={localStyles.tableCellHeader}>TEMPAT LAHIR</Text></View>
-            <View style={[localStyles.tableColHeader, { width: '12%' }]}><Text style={localStyles.tableCellHeader}>TGL/BL/TH LAHIR/ UMUR</Text></View>
-            <View style={[localStyles.tableColHeader, { width: '10%' }]}><Text style={localStyles.tableCellHeader}>PEKERJAAN</Text></View>
-            <View style={[localStyles.tableColHeader, { width: '6%' }]}><Text style={localStyles.tableCellHeader}>BERKEBUTUHAN KHUSUS</Text></View>
+            <View style={[localStyles.tableColHeader, { width: '13%' }]}><Text style={localStyles.tableCellHeader}>NAMA ANGGOTA KELUARGA</Text></View>
+            <View style={[localStyles.tableColHeader, { width: '6%' }]}><Text style={localStyles.tableCellHeader}>STATUS PERKAWINAN</Text></View>
+            <View style={[localStyles.tableColHeader, { width: '3%' }]}><Text style={localStyles.tableCellHeader}>L/P</Text></View>
+            <View style={[localStyles.tableColHeader, { width: '6%' }]}><Text style={localStyles.tableCellHeader}>TEMPAT LAHIR</Text></View>
+            <View style={[localStyles.tableColHeader, { width: '8%' }]}><Text style={localStyles.tableCellHeader}>TGL/BL/TH LAHIR/ UMUR</Text></View>
+            <View style={[localStyles.tableColHeader, { width: '4%' }]}><Text style={localStyles.tableCellHeader}>AGAMA</Text></View>
+            <View style={[localStyles.tableColHeader, { width: '6%' }]}><Text style={localStyles.tableCellHeader}>PENDIDIKAN</Text></View>
+            <View style={[localStyles.tableColHeader, { width: '6%' }]}><Text style={localStyles.tableCellHeader}>PEKERJAAN</Text></View>
+            <View style={[localStyles.tableColHeader, { width: '5%' }]}><Text style={localStyles.tableCellHeader}>BERKEBUTUHAN KHUSUS</Text></View>
             
             {/* Colspan untuk Kegiatan PKK */}
-            <View style={[localStyles.tableColHeaderLast, { width: '32%', borderRightWidth: 0, padding: 0, flexDirection: 'column' }]}>
+            <View style={[localStyles.tableColHeaderLast, { width: '44%', borderRightWidth: 0, padding: 0, flexDirection: 'column' }]}>
                <View style={{ width: '100%', borderBottomWidth: 1, borderColor: '#000', padding: 3 }}>
                  <Text style={localStyles.tableCellHeader}>KEGIATAN PKK YANG DIIKUTI</Text>
                </View>
                <View style={{ width: '100%', flexDirection: 'row', flex: 1 }}>
-                 <View style={{ width: '12.5%', borderRightWidth: 1, borderColor: '#000', justifyContent: 'center' }}><Text style={localStyles.verticalText}>PENGHAYATAN PANCASILA</Text></View>
-                 <View style={{ width: '12.5%', borderRightWidth: 1, borderColor: '#000', justifyContent: 'center' }}><Text style={localStyles.verticalText}>GOTONG ROYONG</Text></View>
-                 <View style={{ width: '12.5%', borderRightWidth: 1, borderColor: '#000', justifyContent: 'center' }}><Text style={localStyles.verticalText}>PENDIDIKAN & KETERAMPILAN</Text></View>
-                 <View style={{ width: '12.5%', borderRightWidth: 1, borderColor: '#000', justifyContent: 'center' }}><Text style={localStyles.verticalText}>PENGEMBANGAN KOPERASI</Text></View>
-                 <View style={{ width: '12.5%', borderRightWidth: 1, borderColor: '#000', justifyContent: 'center' }}><Text style={localStyles.verticalText}>PANGAN</Text></View>
-                 <View style={{ width: '12.5%', borderRightWidth: 1, borderColor: '#000', justifyContent: 'center' }}><Text style={localStyles.verticalText}>SANDANG</Text></View>
-                 <View style={{ width: '12.5%', borderRightWidth: 1, borderColor: '#000', justifyContent: 'center' }}><Text style={localStyles.verticalText}>KESEHATAN</Text></View>
-                 <View style={{ width: '12.5%', justifyContent: 'center' }}><Text style={localStyles.verticalText}>PERENCANAAN SEHAT</Text></View>
+                 <View style={{ width: '12.5%', borderRightWidth: 1, borderColor: '#000', justifyContent: 'center', alignItems: 'center', padding: 1 }}>
+                   <Text style={localStyles.verticalText}>PENGHAYATAN</Text>
+                   <Text style={localStyles.verticalText}>PANCASILA</Text>
+                 </View>
+                 <View style={{ width: '12.5%', borderRightWidth: 1, borderColor: '#000', justifyContent: 'center', alignItems: 'center', padding: 1 }}>
+                   <Text style={localStyles.verticalText}>GOTONG</Text>
+                   <Text style={localStyles.verticalText}>ROYONG</Text>
+                 </View>
+                 <View style={{ width: '12.5%', borderRightWidth: 1, borderColor: '#000', justifyContent: 'center', alignItems: 'center', padding: 1 }}>
+                   <Text style={localStyles.verticalText}>PENDIDIKAN</Text>
+                   <Text style={localStyles.verticalText}>& KETR.</Text>
+                 </View>
+                 <View style={{ width: '12.5%', borderRightWidth: 1, borderColor: '#000', justifyContent: 'center', alignItems: 'center', padding: 1 }}>
+                   <Text style={localStyles.verticalText}>KOPERASI</Text>
+                 </View>
+                 <View style={{ width: '12.5%', borderRightWidth: 1, borderColor: '#000', justifyContent: 'center', alignItems: 'center', padding: 1 }}>
+                   <Text style={localStyles.verticalText}>PANGAN</Text>
+                 </View>
+                 <View style={{ width: '12.5%', borderRightWidth: 1, borderColor: '#000', justifyContent: 'center', alignItems: 'center', padding: 1 }}>
+                   <Text style={localStyles.verticalText}>SANDANG</Text>
+                 </View>
+                 <View style={{ width: '12.5%', borderRightWidth: 1, borderColor: '#000', justifyContent: 'center', alignItems: 'center', padding: 1 }}>
+                   <Text style={localStyles.verticalText}>KESEHATAN</Text>
+                 </View>
+                 <View style={{ width: '12.5%', justifyContent: 'center', alignItems: 'center', padding: 1 }}>
+                   <Text style={localStyles.verticalText}>PERENCANAAN</Text>
+                   <Text style={localStyles.verticalText}>SEHAT</Text>
+                 </View>
                </View>
             </View>
           </View>
@@ -199,23 +243,25 @@ export const CatatanKeluargaPage: React.FC<CatatanKeluargaProps> = ({ data, tahu
              const age = calculateAge(w.tanggal_lahir)
              const tglLahirUmur = `${formatTanggal(w.tanggal_lahir)} / ${age}`
              const berkebutuhan = w.berkebutuhan_khusus ? 'Ya' : 'Tidak'
-
+ 
              // PKK Partisipasi
              const pkk = w.partisipasi_tahun || {}
-
+ 
              return (
               <View key={idx} style={localStyles.tableRow}>
                 <View style={[localStyles.tableCol, { width: '3%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{idx + 1}</Text></View>
-                <View style={[localStyles.tableCol, { width: '15%' }]}><Text style={localStyles.tableCell}>{w.nama_lengkap?.toUpperCase()}</Text></View>
-                <View style={[localStyles.tableCol, { width: '10%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{statusKawin.replace(/_/g, ' ').toUpperCase()}</Text></View>
-                <View style={[localStyles.tableCol, { width: '4%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{w.jenis_kelamin}</Text></View>
-                <View style={[localStyles.tableCol, { width: '8%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{w.tempat_lahir?.toUpperCase() || '-'}</Text></View>
-                <View style={[localStyles.tableCol, { width: '12%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{tglLahirUmur}</Text></View>
-                <View style={[localStyles.tableCol, { width: '10%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{w.pekerjaan?.toUpperCase() || '-'}</Text></View>
-                <View style={[localStyles.tableCol, { width: '6%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{berkebutuhan}</Text></View>
+                <View style={[localStyles.tableCol, { width: '13%' }]}><Text style={localStyles.tableCell}>{w.nama_lengkap?.toUpperCase()}</Text></View>
+                <View style={[localStyles.tableCol, { width: '6%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{statusKawin.replace(/_/g, ' ').toUpperCase()}</Text></View>
+                <View style={[localStyles.tableCol, { width: '3%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{w.jenis_kelamin}</Text></View>
+                <View style={[localStyles.tableCol, { width: '6%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{w.tempat_lahir?.toUpperCase() || '-'}</Text></View>
+                <View style={[localStyles.tableCol, { width: '8%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{tglLahirUmur}</Text></View>
+                <View style={[localStyles.tableCol, { width: '4%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{w.agama?.toUpperCase() || '-'}</Text></View>
+                <View style={[localStyles.tableCol, { width: '6%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{w.pendidikan?.toUpperCase() || '-'}</Text></View>
+                <View style={[localStyles.tableCol, { width: '6%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{w.pekerjaan?.toUpperCase() || '-'}</Text></View>
+                <View style={[localStyles.tableCol, { width: '5%', alignItems: 'center' }]}><Text style={localStyles.tableCellCenter}>{berkebutuhan}</Text></View>
                 
                 {/* Kolom PKK */}
-                <View style={[localStyles.tableColLast, { width: '32%', padding: 0, flexDirection: 'row' }]}>
+                <View style={[localStyles.tableColLast, { width: '44%', padding: 0, flexDirection: 'row' }]}>
                   <View style={{ width: '12.5%', borderRightWidth: 1, borderColor: '#000', justifyContent: 'center' }}><Text style={localStyles.tableCellCenter}>{pkk.penghayatan_pancasila ? 'V' : ''}</Text></View>
                   <View style={{ width: '12.5%', borderRightWidth: 1, borderColor: '#000', justifyContent: 'center' }}><Text style={localStyles.tableCellCenter}>{pkk.gotong_royong ? 'V' : ''}</Text></View>
                   <View style={{ width: '12.5%', borderRightWidth: 1, borderColor: '#000', justifyContent: 'center' }}><Text style={localStyles.tableCellCenter}>{pkk.pendidikan_keterampilan ? 'V' : ''}</Text></View>
@@ -225,7 +271,6 @@ export const CatatanKeluargaPage: React.FC<CatatanKeluargaProps> = ({ data, tahu
                   <View style={{ width: '12.5%', borderRightWidth: 1, borderColor: '#000', justifyContent: 'center' }}><Text style={localStyles.tableCellCenter}>{pkk.kesehatan ? 'V' : ''}</Text></View>
                   <View style={{ width: '12.5%', justifyContent: 'center' }}><Text style={localStyles.tableCellCenter}>{pkk.perencanaan_sehat ? 'V' : ''}</Text></View>
                 </View>
-
               </View>
             )
           })}

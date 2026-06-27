@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image, Share, StyleSheet, Dimensions, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image, Share, StyleSheet, Dimensions, Platform, Alert, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAnnouncementDetail } from '@/hooks/useAnnouncements';
+import { useAnnouncementDetail, useDeleteAnnouncement } from '@/hooks/useAnnouncements';
+import { useAuthStore } from '@/stores/authStore';
 import { 
   ArrowLeft, 
   Share2, 
@@ -12,7 +13,9 @@ import {
   Globe,
   ChevronRight,
   Clock,
-  ShieldCheck
+  ShieldCheck,
+  Trash2,
+  X
 } from 'lucide-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { formatTanggal } from '@/lib/format';
@@ -23,6 +26,33 @@ export default function AnnouncementDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { data: item, isLoading } = useAnnouncementDetail(id as string);
+  const deleteAnnouncement = useDeleteAnnouncement();
+  const { profile } = useAuthStore();
+  const showDelete = profile?.role === 'dukuh' || profile?.role === 'ketua_rt';
+  const [imageModalVisible, setImageModalVisible] = useState(false);
+
+  const handleDelete = () => {
+    Alert.alert(
+      "Konfirmasi Hapus",
+      "Apakah Anda yakin ingin menghapus pengumuman ini?",
+      [
+        { text: "Batal", style: "cancel" },
+        { 
+          text: "Hapus", 
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteAnnouncement.mutateAsync(id as string);
+              Alert.alert("Berhasil", "Pengumuman telah dihapus.");
+              router.back();
+            } catch (err: any) {
+              Alert.alert("Gagal", err.message || "Gagal menghapus pengumuman.");
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const handleShare = async () => {
     if (!item) return;
@@ -53,24 +83,37 @@ export default function AnnouncementDetailScreen() {
         {/* Dynamic Header / Hero */}
         <View style={styles.heroSection}>
           {item.foto_url ? (
-            <Image source={{ uri: item.foto_url }} style={styles.heroImage} resizeMode="cover" />
+            <TouchableOpacity 
+              activeOpacity={0.9} 
+              onPress={() => setImageModalVisible(true)} 
+              style={{ width: '100%', height: '100%' }}
+            >
+              <Image source={{ uri: item.foto_url }} style={styles.heroImage} resizeMode="cover" />
+            </TouchableOpacity>
           ) : (
             <View style={styles.placeholderHero}>
               <Megaphone size={60} color="#124170" />
             </View>
           )}
           
-          <View style={styles.heroOverlay} />
+          <View style={styles.heroOverlay} pointerEvents="none" />
           
           {/* Top Actions */}
-          <SafeAreaView style={styles.topActions} edges={['top']}>
-            <View style={styles.actionsRow}>
+          <SafeAreaView style={styles.topActions} edges={['top']} pointerEvents="box-none">
+            <View style={styles.actionsRow} pointerEvents="box-none">
               <TouchableOpacity onPress={() => router.back()} style={styles.actionButton}>
                 <ArrowLeft color="#fff" size={24} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleShare} style={styles.actionButton}>
-                <Share2 color="#fff" size={24} />
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', gap: 10 }} pointerEvents="box-none">
+                <TouchableOpacity onPress={handleShare} style={styles.actionButton}>
+                  <Share2 color="#fff" size={24} />
+                </TouchableOpacity>
+                {showDelete && (
+                  <TouchableOpacity onPress={handleDelete} style={[styles.actionButton, { backgroundColor: '#EF4444' }]}>
+                    <Trash2 color="#fff" size={24} />
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           </SafeAreaView>
         </View>
@@ -110,7 +153,7 @@ export default function AnnouncementDetailScreen() {
               </View>
               <View>
                 <Text style={styles.infoLabel}>VISIBILITAS</Text>
-                <Text style={styles.infoValue}>{item.target === 'semua' ? 'PUBLIK' : 'INTERNAL'}</Text>
+                <Text style={styles.infoValue}>{item.target === 'semua' ? 'SEMUA DASAWISMA' : 'INTERNAL'}</Text>
               </View>
             </View>
           </View>
@@ -121,6 +164,25 @@ export default function AnnouncementDetailScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Full screen image viewer modal */}
+      <Modal
+        visible={imageModalVisible}
+        transparent={true}
+        onRequestClose={() => setImageModalVisible(false)}
+        animationType="fade"
+      >
+        <View style={styles.modalOverlay}>
+          <SafeAreaView style={styles.modalCloseContainer}>
+            <TouchableOpacity onPress={() => setImageModalVisible(false)} style={styles.closeModalButton}>
+              <X color="#fff" size={24} />
+            </TouchableOpacity>
+          </SafeAreaView>
+          {item.foto_url && (
+            <Image source={{ uri: item.foto_url }} style={styles.fullScreenImage} resizeMode="contain" />
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -290,5 +352,29 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#94A3B8',
     fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalCloseContainer: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 10,
+  },
+  closeModalButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fullScreenImage: {
+    width: '100%',
+    height: '100%',
   }
 });

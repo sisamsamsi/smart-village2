@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useProposals } from '@/hooks/useProgram';
 import { ArrowLeft, Plus, MapPin, Calendar, Clock, CheckCircle2, Construction, ChevronRight } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { useAuthStore } from '@/stores/authStore';
 
 const STATUS_CONFIG: Record<string, { color: string; bg: string; label: string }> = {
   diusulkan:    { color: '#F59E0B', bg: '#FFFBEB', label: 'Usulan' },
@@ -23,6 +24,8 @@ const FILTERS = [
 
 export default function ProgramListScreen() {
   const router = useRouter();
+  const { profile } = useAuthStore();
+  const showAddBtn = profile?.role === 'dukuh' || profile?.role === 'ketua_rt';
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const { data: proposals, isLoading, refetch } = useProposals(
     filterStatus === 'all' ? undefined : { status: filterStatus }
@@ -39,9 +42,11 @@ export default function ProgramListScreen() {
           <Text style={styles.headerTitle}>Program Pembangunan</Text>
           <Text style={styles.headerSub}>{proposals?.length ?? 0} program tercatat</Text>
         </View>
-        <TouchableOpacity onPress={() => router.push('/program/baru' as any)} style={styles.addBtn}>
-          <Plus size={18} color="#fff" />
-        </TouchableOpacity>
+        {showAddBtn ? (
+          <TouchableOpacity onPress={() => router.push('/program/baru' as any)} style={styles.addBtn}>
+            <Plus size={18} color="#fff" />
+          </TouchableOpacity>
+        ) : <View style={{ width: 36 }} />}
       </View>
 
       {/* Filter Chips */}
@@ -153,9 +158,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20,
     backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#F1F5F9',
   },
-  chipActive: { backgroundColor: '#EFF6FF', borderColor: '#124170' },
+  chipActive: { backgroundColor: '#124170', borderColor: '#124170' },
   chipText: { fontSize: 12, fontWeight: '600', color: '#94A3B8' },
-  chipTextActive: { color: '#124170' },
+  chipTextActive: { color: '#fff' },
 
   list: { flex: 1 },
   listCard: {

@@ -5,7 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { supabase } from '@/lib/supabase';
-import { useUpdateWarga } from '@/hooks/useKependudukan';
+import { useUpdateWarga, useRTs, useDasawismasByRt } from '@/hooks/useKependudukan';
 import { 
   ArrowLeft, 
   User, 
@@ -28,6 +28,8 @@ export default function EditWargaScreen() {
   const wargaId = Array.isArray(id) ? id[0] : id;
   const updateWarga = useUpdateWarga();
   const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const { data: rts } = useRTs();
 
   const { data: warga, isLoading } = useQuery({
     queryKey: ['warga', wargaId],
@@ -57,7 +59,11 @@ export default function EditWargaScreen() {
     status_warga: '',
     status_kehamilan: false,
     status_menyusui: false,
+    rt_id: '',
+    dasawisma_id: '',
   });
+
+  const { data: dasawismas } = useDasawismasByRt(form.rt_id || null);
 
   useEffect(() => {
     if (warga) {
@@ -75,6 +81,8 @@ export default function EditWargaScreen() {
         status_warga: warga.status_warga || '',
         status_kehamilan: warga.status_kehamilan || false,
         status_menyusui: warga.status_menyusui || false,
+        rt_id: warga.rt_id || '',
+        dasawisma_id: warga.dasawisma_id || '',
       });
     }
   }, [warga]);
@@ -87,7 +95,7 @@ export default function EditWargaScreen() {
 
     try {
       await updateWarga.mutateAsync({ id: wargaId, ...form });
-      Alert.alert('Berhasil', 'Data warga telah diperbarui.');
+      Alert.alert('Berhasil', 'Data warga telah diperbarui (dan disinkronisasikan ke anggota keluarga).');
       router.back();
     } catch (err: any) {
       Alert.alert('Gagal', err.message || 'Gagal memperbarui data.');
@@ -108,7 +116,7 @@ export default function EditWargaScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -147,6 +155,46 @@ export default function EditWargaScreen() {
                     onChangeText={(val) => setForm({...form, nik: val})}
                   />
                 </View>
+              </View>
+
+              {/* RT Selection */}
+              <View style={styles.field}>
+                <Text style={styles.fieldLabel}>RT DOMISILI</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 2 }}>
+                  {rts?.map((rt: any) => (
+                    <TouchableOpacity 
+                      key={rt.id}
+                      onPress={() => setForm({ ...form, rt_id: rt.id, dasawisma_id: '' })}
+                      style={[styles.miniBadge, form.rt_id === rt.id && styles.miniBadgeActive]}
+                    >
+                      <Text style={[styles.miniBadgeText, form.rt_id === rt.id && styles.miniBadgeTextActive]}>RT {rt.nomor_rt}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+
+              {/* Dasawisma Selection */}
+              <View style={styles.field}>
+                <Text style={styles.fieldLabel}>KELOMPOK DASA WISMA</Text>
+                {form.rt_id ? (
+                  dasawismas && dasawismas.length > 0 ? (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 2 }}>
+                      {dasawismas.map((dw: any) => (
+                        <TouchableOpacity 
+                          key={dw.id}
+                          onPress={() => setForm({ ...form, dasawisma_id: dw.id })}
+                          style={[styles.miniBadge, form.dasawisma_id === dw.id && styles.miniBadgeActive]}
+                        >
+                          <Text style={[styles.miniBadgeText, form.dasawisma_id === dw.id && styles.miniBadgeTextActive]}>{dw.nama_dasawisma}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  ) : (
+                    <Text style={{ fontSize: 13, color: '#94A3B8', fontStyle: 'italic', paddingLeft: 4 }}>Tidak ada kelompok Dasawisma di RT ini</Text>
+                  )
+                ) : (
+                  <Text style={{ fontSize: 13, color: '#94A3B8', fontStyle: 'italic', paddingLeft: 4 }}>Pilih RT terlebih dahulu</Text>
+                )}
               </View>
 
               {/* Jenis Kelamin */}
@@ -214,7 +262,7 @@ export default function EditWargaScreen() {
               <View style={styles.field}>
                 <Text style={styles.fieldLabel}>PENDIDIKAN TERAKHIR</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-                  {['SD/SEDERAJAT', 'SMP/SEDERAJAT', 'SMA/SEDERAJAT', 'DIPLOMA IV/STRATA I', 'STRATA II'].map((p) => (
+                  {['BELUM SEKOLAH', 'TIDAK SEKOLAH', 'SD/SEDERAJAT', 'SMP/SEDERAJAT', 'SMA/SEDERAJAT', 'DIPLOMA III', 'DIPLOMA IV/STRATA I', 'STRATA II', 'STRATA III'].map((p) => (
                     <TouchableOpacity 
                       key={p}
                       onPress={() => setForm({ ...form, pendidikan: p })}
@@ -493,8 +541,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   toggleBtnActive: {
-    backgroundColor: '#E11D48',
-    borderColor: '#E11D48',
+    backgroundColor: '#124170',
+    borderColor: '#124170',
   },
   toggleBtnText: {
     fontSize: 12,

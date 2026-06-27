@@ -156,6 +156,7 @@ export default function TambahWargaScreen() {
           style={styles.scrollView} 
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           {/* Step 1: Identitas Dasar */}
           {step === 1 && (
@@ -248,7 +249,7 @@ export default function TambahWargaScreen() {
                 <View style={styles.field}>
                   <Text style={styles.label}>Pendidikan Terakhir</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 2 }}>
-                    {['SD/SEDERAJAT', 'SMP/SEDERAJAT', 'SMA/SEDERAJAT', 'DIPLOMA IV/STRATA I', 'STRATA II'].map((p) => (
+                    {['BELUM SEKOLAH', 'TIDAK SEKOLAH', 'SD/SEDERAJAT', 'SMP/SEDERAJAT', 'SMA/SEDERAJAT', 'DIPLOMA III', 'DIPLOMA IV/STRATA I', 'STRATA II', 'STRATA III'].map((p) => (
                       <TouchableOpacity 
                         key={p}
                         onPress={() => setForm({ ...form, pendidikan: p })}
@@ -323,7 +324,7 @@ export default function TambahWargaScreen() {
                           onChangeText={setKkSearch}
                         />
                       </View>
-                      <ScrollView style={styles.kkListScroll} nestedScrollEnabled>
+                      <ScrollView style={styles.kkListScroll} nestedScrollEnabled keyboardShouldPersistTaps="handled">
                         {filteredKk?.map((kk: any) => (
                           <TouchableOpacity 
                             key={kk.id}
@@ -732,7 +733,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   genderActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#124170',
     borderWidth: 1,
     borderColor: '#124170',
   },
@@ -742,7 +743,7 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
   },
   genderTextActive: {
-    color: '#124170',
+    color: '#fff',
     fontWeight: '800',
   },
   field: {
@@ -782,7 +783,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   toggleBtnActive: {
-    backgroundColor: '#fff',
+    backgroundColor: '#124170',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -795,7 +796,7 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   toggleBtnTextActive: {
-    color: '#124170',
+    color: '#fff',
     fontWeight: '800',
   },
   searchContainer: {
@@ -829,7 +830,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#F1F5F9',
   },
   kkItemActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#124170',
   },
   kkItemText: {
     fontSize: 14,
@@ -837,7 +838,7 @@ const styles = StyleSheet.create({
     color: '#1E293B',
   },
   kkItemTextActive: {
-    color: '#124170',
+    color: '#fff',
   },
   kkItemSub: {
     fontSize: 11,

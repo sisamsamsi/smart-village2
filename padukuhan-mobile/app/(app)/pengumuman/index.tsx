@@ -5,9 +5,12 @@ import { useAnnouncements } from '@/hooks/useAnnouncements';
 import { ArrowLeft, Plus, Megaphone, Calendar, ChevronRight } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { formatTanggal } from '@/lib/format';
+import { useAuthStore } from '@/stores/authStore';
 
 export default function AnnouncementListScreen() {
   const router = useRouter();
+  const { profile } = useAuthStore();
+  const showAddBtn = profile?.role === 'dukuh' || profile?.role === 'ketua_rt';
   const { data: announcements, isLoading, refetch } = useAnnouncements({ activeOnly: true });
 
   return (
@@ -21,9 +24,11 @@ export default function AnnouncementListScreen() {
           <Text style={styles.headerTitle}>Pengumuman</Text>
           <Text style={styles.headerSub}>{announcements?.length ?? 0} informasi aktif</Text>
         </View>
-        <TouchableOpacity onPress={() => router.push('/pengumuman/tambah' as any)} style={styles.addBtn}>
-          <Plus size={18} color="#fff" />
-        </TouchableOpacity>
+        {showAddBtn ? (
+          <TouchableOpacity onPress={() => router.push('/pengumuman/tambah' as any)} style={styles.addBtn}>
+            <Plus size={18} color="#fff" />
+          </TouchableOpacity>
+        ) : <View style={{ width: 36 }} />}
       </View>
 
       {/* List */}

@@ -279,6 +279,7 @@ export default function WargaDetailScreen() {
           )}
           <InfoRow label="Hubungan Keluarga" value={warga.status_dalam_keluarga ? warga.status_dalam_keluarga.replace(/_/g, ' ').toUpperCase() : '-'} />
           <InfoRow label="RT / RW" value={`RT 0${warga.rts?.nomor_rt ?? '-'} / RW 01`} />
+          <InfoRow label="Kelompok Dasawisma" value={warga.dasawismas?.nama_dasawisma || warga.rumah_tanggas?.dasawismas?.nama_dasawisma || '-'} />
           <InfoRow label="Status Warga" value={warga.status_warga ?? 'Aktif'} isLast />
         </CollapsibleSection>
 

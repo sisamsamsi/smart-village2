@@ -39,17 +39,25 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         </div>
         
         <div className="flex-1 overflow-y-auto py-6">
-          <SidebarNav items={[
-            { href: '/', icon: <Home size={20} />, label: 'Beranda' },
-            { href: '/kependudukan', icon: <Users size={20} />, label: 'Data Warga', category: 'Kependudukan' },
-            { href: '/keluarga', icon: <Heart size={20} />, label: 'Data Keluarga' },
-            { href: '/kependudukan/mutasi', icon: <Shuffle size={20} />, label: 'Mutasi Penduduk' },
-            { href: '/pkk', icon: <ClipboardList size={20} />, label: 'PKK & Dasawisma' },
-            { href: '/surat', icon: <FileText size={20} />, label: 'Layanan Surat', category: 'Layanan' },
-            { href: '/laporan', icon: <Printer size={20} />, label: 'Laporan PKK' },
-            { href: '/program', icon: <LayoutTemplate size={20} />, label: 'Pembangunan' },
-            { href: '/pengumuman', icon: <Megaphone size={20} />, label: 'Pengumuman', category: 'Informasi' },
-          ]} />
+          {(() => {
+            const menuItems = [
+              { href: '/', icon: <Home size={20} />, label: 'Beranda' },
+              { href: '/kependudukan', icon: <Users size={20} />, label: 'Data Warga', category: 'Kependudukan' },
+              { href: '/keluarga', icon: <Heart size={20} />, label: 'Data Keluarga' },
+              { href: '/kependudukan/mutasi', icon: <Shuffle size={20} />, label: 'Mutasi Penduduk' },
+              { href: '/pkk', icon: <ClipboardList size={20} />, label: 'PKK & Dasawisma' },
+              { href: '/surat', icon: <FileText size={20} />, label: 'Layanan Surat', category: 'Layanan' },
+              { href: '/laporan', icon: <Printer size={20} />, label: 'Laporan PKK' },
+              { href: '/program', icon: <LayoutTemplate size={20} />, label: 'Pembangunan' },
+              { href: '/pengumuman', icon: <Megaphone size={20} />, label: 'Pengumuman', category: 'Informasi' },
+            ];
+
+            if (profile?.role === 'dukuh') {
+              menuItems.push({ href: '/undangan', icon: <Shield size={20} />, label: 'Kode Undangan', category: 'Keamanan' });
+            }
+
+            return <SidebarNav items={menuItems} />;
+          })()}
         </div>
         
         <div className="p-6 border-t border-border/40 bg-slate-50/50 dark:bg-slate-800/20">

@@ -129,61 +129,114 @@ export default function CatatanKeluargaPage() {
           <div className="p-4 overflow-auto bg-slate-100">
              <div className="min-w-[1200px] bg-white p-8 shadow-sm">
                 <div className="text-center mb-6">
-                   <h2 className="font-bold text-lg">CATATAN KELUARGA</h2>
-                   <p className="uppercase text-sm">KEPALA KELUARGA: {activeKk.nama_kepala_keluarga} | DASA WISMA: {activeKk.dasawismas?.nama_dasawisma}</p>
+                   <h2 className="font-bold text-xl tracking-wider">CATATAN KELUARGA</h2>
+                </div>
+
+                <div className="flex flex-col md:flex-row justify-between items-start mb-6 text-xs w-full gap-y-4">
+                   {/* Left Column */}
+                   <div className="space-y-1.5 w-full md:w-[48%]">
+                      <div className="flex border-b border-dashed pb-1">
+                         <span className="w-[200px] font-semibold shrink-0">CATATAN KELUARGA DARI</span>
+                         <span className="px-2 shrink-0">:</span>
+                         <span className="flex-1 uppercase font-semibold">{activeKk.nama_kepala_keluarga || '-'}</span>
+                      </div>
+                      <div className="flex border-b border-dashed pb-1">
+                         <span className="w-[200px] font-semibold shrink-0">ANGGOTA KELOMPOK DASA WISMA</span>
+                         <span className="px-2 shrink-0">:</span>
+                         <span className="flex-1 uppercase font-semibold">{activeKk.dasawismas?.nama_dasawisma || '-'}</span>
+                      </div>
+                      <div className="flex border-b border-dashed pb-1">
+                         <span className="w-[200px] font-semibold shrink-0">TAHUN</span>
+                         <span className="px-2 shrink-0">:</span>
+                         <span className="flex-1 font-semibold">{tahun}</span>
+                      </div>
+                   </div>
+                   {/* Right Column */}
+                   <div className="space-y-1.5 w-full md:w-[48%] flex flex-col md:items-end">
+                      <div className="flex border-b border-dashed pb-1 w-full md:w-[320px]">
+                         <span className="w-[140px] font-semibold shrink-0">KRITERIA RUMAH</span>
+                         <span className="px-2 shrink-0">:</span>
+                         <span className="flex-1 uppercase font-semibold text-left">{activeKk.kriteria_rumah === 'sehat_layak_huni' ? 'LAYAK HUNI' : 'TIDAK LAYAK HUNI'}</span>
+                      </div>
+                      <div className="flex border-b border-dashed pb-1 w-full md:w-[320px]">
+                         <span className="w-[140px] font-semibold shrink-0">JAMBAN KELUARGA</span>
+                         <span className="px-2 shrink-0">:</span>
+                         <span className="flex-1 uppercase font-semibold text-left">{activeKk.memiliki_jamban ? `ADA / Jumlah: ${activeKk.jumlah_jamban || 1} buah` : 'TIDAK'}</span>
+                      </div>
+                      <div className="flex border-b border-dashed pb-1 w-full md:w-[320px]">
+                         <span className="w-[140px] font-semibold shrink-0">SUMBER AIR</span>
+                         <span className="px-2 shrink-0">:</span>
+                         <span className="flex-1 uppercase font-semibold text-left">{activeKk.sumber_air?.toUpperCase() || '-'}</span>
+                      </div>
+                      <div className="flex border-b border-dashed pb-1 w-full md:w-[320px]">
+                         <span className="w-[140px] font-semibold shrink-0">TEMPAT SAMPAH</span>
+                         <span className="px-2 shrink-0">:</span>
+                         <span className="flex-1 uppercase font-semibold text-left">{activeKk.memiliki_tempat_sampah ? 'ADA' : 'TIDAK'}</span>
+                      </div>
+                   </div>
                 </div>
 
                 <div className="text-[11px] overflow-x-auto">
                    <table className="w-full border-collapse border border-black">
                       <thead>
                          <tr className="bg-muted/50 font-bold text-center">
-                            <th className="border border-black p-2">NO</th>
-                            <th className="border border-black p-2">NAMA ANGGOTA</th>
-                            <th className="border border-black p-2">STATUS KAWIN</th>
-                            <th className="border border-black p-2">L/P</th>
-                            <th className="border border-black p-2">TEMPAT LAHIR</th>
-                            <th className="border border-black p-2">TGL LAHIR / UMUR</th>
-                            <th className="border border-black p-2">PEKERJAAN</th>
-                            <th className="border border-black p-2">BERKEBUTUHAN KHUSUS</th>
-                            <th className="border border-black p-2">KEGIATAN PKK DIIKUTI</th>
+                            <th rowSpan={2} className="border border-black p-2 align-middle">NO</th>
+                            <th rowSpan={2} className="border border-black p-2 align-middle text-left">NAMA ANGGOTA KELUARGA</th>
+                            <th rowSpan={2} className="border border-black p-2 align-middle">STATUS PERKAWINAN</th>
+                            <th rowSpan={2} className="border border-black p-2 align-middle">L/P</th>
+                            <th rowSpan={2} className="border border-black p-2 align-middle">TEMPAT LAHIR</th>
+                            <th rowSpan={2} className="border border-black p-2 align-middle">TGL/BL/TH LAHIR/ UMUR</th>
+                            <th rowSpan={2} className="border border-black p-2 align-middle">AGAMA</th>
+                            <th rowSpan={2} className="border border-black p-2 align-middle">PENDIDIKAN</th>
+                            <th rowSpan={2} className="border border-black p-2 align-middle">PEKERJAAN</th>
+                            <th rowSpan={2} className="border border-black p-2 align-middle">BERKEBUTUHAN KHUSUS</th>
+                            <th colSpan={8} className="border border-black p-2">KEGIATAN PKK YANG DIIKUTI</th>
+                         </tr>
+                         <tr className="bg-muted/50 font-bold text-[9px] text-center h-[140px]">
+                            <th className="border border-black p-1 vertical-th [writing-mode:vertical-lr] rotate-180 whitespace-nowrap h-[140px] align-middle mx-auto">PENGHAYATAN DAN PENGAMALAN PANCASILA</th>
+                            <th className="border border-black p-1 vertical-th [writing-mode:vertical-lr] rotate-180 whitespace-nowrap h-[140px] align-middle mx-auto">GOTONG ROYONG</th>
+                            <th className="border border-black p-1 vertical-th [writing-mode:vertical-lr] rotate-180 whitespace-nowrap h-[140px] align-middle mx-auto">PENDIDIKAN DAN KETRAMPILAN</th>
+                            <th className="border border-black p-1 vertical-th [writing-mode:vertical-lr] rotate-180 whitespace-nowrap h-[140px] align-middle mx-auto">PENGEMBANGAN KEHIDUPAN BERKOPERASI</th>
+                            <th className="border border-black p-1 vertical-th [writing-mode:vertical-lr] rotate-180 whitespace-nowrap h-[140px] align-middle mx-auto">PANGAN</th>
+                            <th className="border border-black p-1 vertical-th [writing-mode:vertical-lr] rotate-180 whitespace-nowrap h-[140px] align-middle mx-auto">SANDANG</th>
+                            <th className="border border-black p-1 vertical-th [writing-mode:vertical-lr] rotate-180 whitespace-nowrap h-[140px] align-middle mx-auto">KESEHATAN</th>
+                            <th className="border border-black p-1 vertical-th [writing-mode:vertical-lr] rotate-180 whitespace-nowrap h-[140px] align-middle mx-auto">PERENCANAAN SEHAT</th>
                          </tr>
                       </thead>
                       <tbody>
                          {(!activeKk.anggota || activeKk.anggota.length === 0) ? (
                             <tr>
-                               <td colSpan={9} className="border border-black p-4 text-center text-muted-foreground">Tidak ada anggota keluarga tercatat.</td>
+                               <td colSpan={18} className="border border-black p-4 text-center text-muted-foreground">Tidak ada anggota keluarga tercatat.</td>
                             </tr>
                          ) : (
                             activeKk.anggota.map((item: any, i: number) => {
                                const pkk = item.partisipasi_tahun || {}
-                               const activePrograms = []
-                               if (pkk.penghayatan_pancasila) activePrograms.push('Pancasila')
-                               if (pkk.gotong_royong) activePrograms.push('Gotong Royong')
-                               if (pkk.pendidikan_keterampilan) activePrograms.push('Pendidikan')
-                               if (pkk.pengembangan_koperasi) activePrograms.push('Koperasi')
-                               if (pkk.pangan) activePrograms.push('Pangan')
-                               if (pkk.sandang) activePrograms.push('Sandang')
-                               if (pkk.kesehatan) activePrograms.push('Kesehatan')
-                               if (pkk.perencanaan_sehat) activePrograms.push('Perencanaan Sehat')
                                
                                const age = item.tanggal_lahir ? 
                                  (new Date().getFullYear() - new Date(item.tanggal_lahir).getFullYear()) : 0
-
+ 
                                return (
-                                 <tr key={i} className="hover:bg-muted/20">
-                                    <td className="border border-black p-2 text-center">{i+1}</td>
-                                    <td className="border border-black p-2 uppercase font-medium">{item.nama_lengkap}</td>
-                                    <td className="border border-black p-2 text-center">{item.status_perkawinan?.replace('_', ' ').toUpperCase() || '-'}</td>
-                                    <td className="border border-black p-2 text-center">{item.jenis_kelamin}</td>
-                                    <td className="border border-black p-2 text-center uppercase">{item.tempat_lahir || '-'}</td>
-                                    <td className="border border-black p-2 text-center">
-                                       {item.tanggal_lahir ? new Date(item.tanggal_lahir).toLocaleDateString('id-ID') : '-'} ({age} Thn)
+                                 <tr key={i} className="hover:bg-muted/20 text-center">
+                                    <td className="border border-black p-2">{i+1}</td>
+                                    <td className="border border-black p-2 uppercase font-medium text-left">{item.nama_lengkap}</td>
+                                    <td className="border border-black p-2">{item.status_perkawinan?.replace(/_/g, ' ').toUpperCase() || '-'}</td>
+                                    <td className="border border-black p-2">{item.jenis_kelamin}</td>
+                                    <td className="border border-black p-2 uppercase">{item.tempat_lahir || '-'}</td>
+                                    <td className="border border-black p-2 whitespace-nowrap">
+                                       {item.tanggal_lahir ? new Date(item.tanggal_lahir).toLocaleDateString('id-ID') : '-'} / {age}
                                     </td>
-                                    <td className="border border-black p-2 text-center uppercase">{item.pekerjaan || '-'}</td>
-                                    <td className="border border-black p-2 text-center">{item.berkebutuhan_khusus ? 'YA' : 'TIDAK'}</td>
-                                    <td className="border border-black p-2 text-slate-700 font-medium text-xs max-w-[300px] truncate" title={activePrograms.join(', ')}>
-                                       {activePrograms.join(', ') || '-'}
-                                    </td>
+                                    <td className="border border-black p-2 uppercase">{item.agama || '-'}</td>
+                                    <td className="border border-black p-2 uppercase">{item.pendidikan || '-'}</td>
+                                    <td className="border border-black p-2 uppercase">{item.pekerjaan || '-'}</td>
+                                    <td className="border border-black p-2 uppercase">{item.berkebutuhan_khusus ? 'YA' : 'TIDAK'}</td>
+                                    <td className="border border-black p-1 text-emerald-600 font-bold">{pkk.penghayatan_pancasila ? 'V' : ''}</td>
+                                    <td className="border border-black p-1 text-emerald-600 font-bold">{pkk.gotong_royong ? 'V' : ''}</td>
+                                    <td className="border border-black p-1 text-emerald-600 font-bold">{pkk.pendidikan_keterampilan ? 'V' : ''}</td>
+                                    <td className="border border-black p-1 text-emerald-600 font-bold">{pkk.pengembangan_koperasi ? 'V' : ''}</td>
+                                    <td className="border border-black p-1 text-emerald-600 font-bold">{pkk.pangan ? 'V' : ''}</td>
+                                    <td className="border border-black p-1 text-emerald-600 font-bold">{pkk.sandang ? 'V' : ''}</td>
+                                    <td className="border border-black p-1 text-emerald-600 font-bold">{pkk.kesehatan ? 'V' : ''}</td>
+                                    <td className="border border-black p-1 text-emerald-600 font-bold">{pkk.perencanaan_sehat ? 'V' : ''}</td>
                                  </tr>
                                )
                             })

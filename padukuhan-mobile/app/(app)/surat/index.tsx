@@ -191,9 +191,9 @@ const styles = StyleSheet.create({
     borderRadius: 20, backgroundColor: '#F8FAFC',
     borderWidth: 1, borderColor: '#F1F5F9',
   },
-  tabPillActive: { backgroundColor: '#EFF6FF', borderColor: '#124170' },
+  tabPillActive: { backgroundColor: '#124170', borderColor: '#124170' },
   tabText: { fontSize: 13, fontWeight: '600', color: '#94A3B8' },
-  tabTextActive: { color: '#124170' },
+  tabTextActive: { color: '#fff' },
   badge: {
     marginLeft: 6, backgroundColor: '#F59E0B',
     borderRadius: 8, paddingHorizontal: 5, paddingVertical: 1,

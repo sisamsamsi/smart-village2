@@ -50,6 +50,7 @@ export function useWargaDetail(id: string) {
         .select(`
           *,
           rts:rt_id(nomor_rt),
+          dasawismas:dasawisma_id(nama_dasawisma),
           rumah_tanggas:rumah_tangga_id(*)
         `)
         .eq('id', id)
@@ -67,6 +68,13 @@ export function useUpdateWarga() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: { id: string; [key: string]: any }) => {
+      // Fetch current citizen's household info
+      const { data: currentWarga } = await supabase
+        .from('wargas')
+        .select('rumah_tangga_id')
+        .eq('id', id)
+        .single();
+
       const normalizedUpdates = normalizeWargaData(updates);
       const { data, error } = await supabase
         .from('wargas')
@@ -76,11 +84,41 @@ export function useUpdateWarga() {
         .single();
 
       if (error) throw error;
+
+      // Sync family members & household if RT/Dasawisma was updated
+      const { rt_id, dasawisma_id } = normalizedUpdates;
+      if (currentWarga?.rumah_tangga_id && (rt_id !== undefined || dasawisma_id !== undefined)) {
+        const hhUpdates: Record<string, any> = {};
+        const wgUpdates: Record<string, any> = {};
+        
+        if (rt_id !== undefined) {
+          hhUpdates.rt_id = rt_id;
+          wgUpdates.rt_id = rt_id;
+        }
+        if (dasawisma_id !== undefined) {
+          hhUpdates.dasawisma_id = dasawisma_id;
+          wgUpdates.dasawisma_id = dasawisma_id;
+        }
+
+        // Update household
+        await supabase
+          .from('rumah_tanggas')
+          .update(hhUpdates)
+          .eq('id', currentWarga.rumah_tangga_id);
+
+        // Update other wargas in the household
+        await supabase
+          .from('wargas')
+          .update(wgUpdates)
+          .eq('rumah_tangga_id', currentWarga.rumah_tangga_id);
+      }
+
       return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['warga', data.id] });
       queryClient.invalidateQueries({ queryKey: ['wargas'] });
+      queryClient.invalidateQueries({ queryKey: ['kk_detail', data.rumah_tangga_id] });
     },
   });
 }

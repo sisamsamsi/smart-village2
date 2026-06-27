@@ -4,7 +4,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
-import { Users, Home, Baby, Heart, Shield, Sparkles } from 'lucide-react-native';
+import { 
+  Users, 
+  Home, 
+  Baby, 
+  Heart, 
+  Shield, 
+  Sparkles, 
+  Droplets, 
+  Activity, 
+  BookOpen, 
+  Briefcase, 
+  CheckCircle2 
+} from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
 
 const { width } = Dimensions.get('window');
@@ -16,45 +28,66 @@ export default function RangkumanScreen() {
   const dasawismaId = profile?.dasawisma_id;
 
   const { data: stats, isLoading, error } = useQuery({
-    queryKey: ['rangkuman_demografi', role, rtId, dasawismaId],
+    queryKey: ['rangkuman_demografi_v2', role, rtId, dasawismaId],
     queryFn: async () => {
-      // 1. Ambil Warga
-      let selectFields = 'id, tanggal_lahir, jenis_kelamin, status_perkawinan, status_kehamilan, status_menyusui, rt_id';
+      // 1. Fetch Wargas in Parallel Pages (0-999 and 1000-1999) to bypass postgrest pagination limits
+      let selectFields = 'id, tanggal_lahir, jenis_kelamin, status_perkawinan, status_kehamilan, status_menyusui, rt_id, pendidikan, pekerjaan';
       if (role === 'kader_dasawisma' && dasawismaId) {
-        selectFields = 'id, tanggal_lahir, jenis_kelamin, status_perkawinan, status_kehamilan, status_menyusui, rumah_tanggas!inner(dasawisma_id)';
+        selectFields = 'id, tanggal_lahir, jenis_kelamin, status_perkawinan, status_kehamilan, status_menyusui, rumah_tanggas!inner(dasawisma_id), pendidikan, pekerjaan';
       }
-      let wargaQuery = supabase
+
+      let wargaQuery1 = supabase
         .from('wargas')
         .select(selectFields)
-        .eq('status_warga', 'aktif');
+        .eq('status_warga', 'aktif')
+        .range(0, 999);
 
-      // 2. Ambil KK (rumah_tanggas)
+      let wargaQuery2 = supabase
+        .from('wargas')
+        .select(selectFields)
+        .eq('status_warga', 'aktif')
+        .range(1000, 1999);
+
+      // 2. Fetch KK (rumah_tanggas)
       let kkQuery = supabase
         .from('rumah_tanggas')
-        .select('id, rt_id, dasawisma_id', { count: 'exact' })
+        .select('id, rt_id, dasawisma_id, memiliki_jamban, memiliki_spal, kriteria_rumah, sumber_air')
         .eq('status_aktif', true);
 
-      // Terapkan filter hak akses
+      // Apply access control filters
       if (role === 'kader_dasawisma' && dasawismaId) {
-        wargaQuery = wargaQuery.eq('rumah_tanggas.dasawisma_id', dasawismaId);
+        wargaQuery1 = wargaQuery1.eq('rumah_tanggas.dasawisma_id', dasawismaId);
+        wargaQuery2 = wargaQuery2.eq('rumah_tanggas.dasawisma_id', dasawismaId);
         kkQuery = kkQuery.eq('dasawisma_id', dasawismaId);
       } else if (role === 'ketua_rt' && rtId) {
-        wargaQuery = wargaQuery.eq('rt_id', rtId);
+        wargaQuery1 = wargaQuery1.eq('rt_id', rtId);
+        wargaQuery2 = wargaQuery2.eq('rt_id', rtId);
         kkQuery = kkQuery.eq('rt_id', rtId);
       }
 
-      const [wargaRes, kkRes] = await Promise.all([wargaQuery, kkQuery]);
+      const [wargaRes1, wargaRes2, kkRes] = await Promise.all([
+        wargaQuery1,
+        wargaQuery2,
+        kkQuery
+      ]);
 
-      if (wargaRes.error) throw wargaRes.error;
+      if (wargaRes1.error) throw wargaRes1.error;
       if (kkRes.error) throw kkRes.error;
 
-      const wargas = wargaRes.data || [];
+      // Merge wargas pages
+      const wargas = [
+        ...(wargaRes1.data || []),
+        ...(wargaRes2.data || [])
+      ];
+
       const now = new Date();
       
       const res = {
         totalWarga: wargas.length,
-        totalKK: kkRes.count ?? 0,
+        totalKK: kkRes.data?.length ?? 0,
         balita: 0,
+        anak: 0,
+        produktif: 0,
         lansia: 0,
         wus: 0,
         pus: 0,
@@ -62,32 +95,102 @@ export default function RangkumanScreen() {
         ibuMenyusui: 0,
         lakiLaki: 0,
         perempuan: 0,
+        
+        // Sanitary & House stats
+        jambanSehat: 0,
+        spalLayak: 0,
+        rumahLayak: 0,
+        sumberAir: { pdam: 0, sumur: 0, lainnya: 0 } as Record<string, number>,
+        
+        // Top list data
+        pekerjaanTop: [] as [string, number][],
+        pendidikanTop: [] as [string, number][]
       };
 
+      const jobCounts: Record<string, number> = {};
+      const eduCounts: Record<string, number> = {};
+
       wargas.forEach((w: any) => {
-        // Gender ratio
         if (w.jenis_kelamin === 'L') res.lakiLaki++;
         if (w.jenis_kelamin === 'P') res.perempuan++;
 
+        if (w.pekerjaan) {
+          const job = w.pekerjaan.trim();
+          const jobLower = job.toLowerCase();
+          const isExcluded = jobLower.includes('pelajar') || 
+                             jobLower.includes('mahasiswa') || 
+                             jobLower.includes('tidak bekerja') || 
+                             jobLower.includes('belum bekerja') || 
+                             jobLower.includes('belum/tidak bekerja') || 
+                             jobLower === '-';
+          if (!isExcluded) {
+            jobCounts[job] = (jobCounts[job] || 0) + 1;
+          }
+        }
+        if (w.pendidikan) {
+          const edu = w.pendidikan.trim();
+          const eduLower = edu.toLowerCase();
+          const isExcluded = eduLower.includes('belum') || 
+                             eduLower.includes('tidak sekolah') || 
+                             eduLower.includes('tidak/belum') || 
+                             eduLower.includes('paud') || 
+                             eduLower.includes('tk') || 
+                             eduLower === '-';
+          if (!isExcluded) {
+            eduCounts[edu] = (eduCounts[edu] || 0) + 1;
+          }
+        }
+
         if (!w.tanggal_lahir) return;
         const birthDate = new Date(w.tanggal_lahir);
+        if (isNaN(birthDate.getTime())) return;
+
         let age = now.getFullYear() - birthDate.getFullYear();
         const m = now.getMonth() - birthDate.getMonth();
         if (m < 0 || (m === 0 && now.getDate() < birthDate.getDate())) {
           age--;
         }
 
-        if (age <= 5) res.balita++;
-        if (age >= 60) res.lansia++;
+        if (age < 5) res.balita++;
+        else if (age >= 6 && age <= 14) res.anak++;
+        else if (age >= 15 && age <= 59) res.produktif++;
         
-        if (w.jenis_kelamin === 'P' && age >= 15 && age <= 49) {
+        if (age >= 60) res.lansia++;
+
+        const isFemale = w.jenis_kelamin === 'P';
+        if (isFemale && age >= 15 && age <= 49) {
           res.wus++;
           if (w.status_perkawinan === 'kawin') res.pus++;
         }
 
-        if (w.status_kehamilan) res.ibuHamil++;
-        if (w.status_menyusui) res.ibuMenyusui++;
+        if (w.status_kehamilan === true || w.status_kehamilan === 'true' || w.status_kehamilan === 'Hamil') {
+          res.ibuHamil++;
+        }
+        if (w.status_menyusui === true || w.status_menyusui === 'true' || w.status_menyusui === 1) {
+          res.ibuMenyusui++;
+        }
       });
+
+      // Sort and get top jobs and education
+      res.pekerjaanTop = Object.entries(jobCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3);
+      res.pendidikanTop = Object.entries(eduCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3);
+
+      if (kkRes.data) {
+        kkRes.data.forEach((kk: any) => {
+          if (kk.memiliki_jamban) res.jambanSehat++;
+          if (kk.memiliki_spal) res.spalLayak++;
+          if (kk.kriteria_rumah === 'sehat_layak_huni') res.rumahLayak++;
+          
+          const air = kk.sumber_air?.toLowerCase() || 'lainnya';
+          if (air === 'pdam') res.sumberAir.pdam++;
+          else if (air === 'sumur') res.sumberAir.sumur++;
+          else res.sumberAir.lainnya++;
+        });
+      }
 
       return res;
     },
@@ -102,6 +205,15 @@ export default function RangkumanScreen() {
     if (role === 'kader_dasawisma') return 'Kelompok Dasawisma';
     if (role === 'ketua_rt') return 'Wilayah RT';
     return 'Padukuhan Mandingan';
+  };
+
+  const toTitleCase = (str: string) => {
+    if (!str) return '';
+    return str
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   };
 
   return (
@@ -163,6 +275,18 @@ export default function RangkumanScreen() {
               <Text style={[styles.statNum, { color: '#D97706' }]}>{stats?.balita}</Text>
             </View>
 
+            {/* Anak-anak Card */}
+            <View style={[styles.statCard, { borderLeftColor: '#10B981' }]}>
+              <View style={[styles.statIconWrapper, { backgroundColor: '#D1FAE5' }]}>
+                <BookOpen size={22} color="#059669" />
+              </View>
+              <View style={styles.statInfo}>
+                <Text style={styles.statName}>Anak (6 - 14 Th)</Text>
+                <Text style={styles.statSub}>Usia wajib belajar dan pembinaan dasar</Text>
+              </View>
+              <Text style={[styles.statNum, { color: '#059669' }]}>{stats?.anak}</Text>
+            </View>
+
             {/* Lansia Card */}
             <View style={[styles.statCard, { borderLeftColor: '#6366F1' }]}>
               <View style={[styles.statIconWrapper, { backgroundColor: '#EEF2FF' }]}>
@@ -202,6 +326,96 @@ export default function RangkumanScreen() {
             </View>
           </View>
 
+          {/* Sanitary Section */}
+          <Text style={styles.sectionTitle}>SANITASI & RUMAH TANGGA SEHAT</Text>
+          <View style={styles.sanitaryContainer}>
+            <View style={styles.sanitaryCard}>
+              <SanitaryRow 
+                icon={<CheckCircle2 size={18} color="#10B981" />} 
+                label="Jamban Sehat" 
+                value={`${stats?.jambanSehat} / ${stats?.totalKK} KK`}
+                percentage={getPercentage(stats?.jambanSehat ?? 0, stats?.totalKK ?? 1)}
+              />
+              <SanitaryRow 
+                icon={<CheckCircle2 size={18} color="#10B981" />} 
+                label="Pembuangan SPAL Layak" 
+                value={`${stats?.spalLayak} / ${stats?.totalKK} KK`}
+                percentage={getPercentage(stats?.spalLayak ?? 0, stats?.totalKK ?? 1)}
+              />
+              <SanitaryRow 
+                icon={<Shield size={18} color="#3B82F6" />} 
+                label="Rumah Sehat Layak Huni" 
+                value={`${stats?.rumahLayak} / ${stats?.totalKK} KK`}
+                percentage={getPercentage(stats?.rumahLayak ?? 0, stats?.totalKK ?? 1)}
+              />
+              <View style={styles.waterInfoRow}>
+                <Droplets size={16} color="#0284C7" />
+                <Text style={styles.waterLabel}>Sumber Air Bersih:</Text>
+                <Text style={styles.waterValue}>
+                  PDAM: {stats?.sumberAir.pdam} KK | Sumur: {stats?.sumberAir.sumur} KK
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Employment & Education Breakdown */}
+          <Text style={styles.sectionTitle}>DISTRIBUSI PEKERJAAN & PENDIDIKAN</Text>
+          <View style={styles.distributionContainer}>
+            <View style={styles.distCard}>
+              <Text style={styles.distSubtitle}><Briefcase size={14} color="#475569" style={{ marginRight: 6 }} /> Top 3 Pekerjaan Warga</Text>
+              {stats?.pekerjaanTop && stats.pekerjaanTop.length > 0 ? (
+                stats.pekerjaanTop.map(([jobName, count], index) => (
+                  <View key={index} style={styles.jobRow}>
+                    <View style={styles.jobTextRow}>
+                      <Text style={styles.jobName} numberOfLines={1}>{toTitleCase(jobName || 'Belum Bekerja')}</Text>
+                      <Text style={styles.jobVal}>{count} jiwa</Text>
+                    </View>
+                    <View style={styles.progressBarBg}>
+                      <View 
+                        style={[
+                          styles.progressBarFill, 
+                          { 
+                            width: getPercentage(count, stats?.totalWarga ?? 1) as any, 
+                            backgroundColor: '#1E40AF' 
+                          }
+                        ]} 
+                      />
+                    </View>
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.emptyText}>Tidak ada data pekerjaan.</Text>
+              )}
+
+              <View style={styles.divider} />
+
+              <Text style={styles.distSubtitle}><BookOpen size={14} color="#475569" style={{ marginRight: 6 }} /> Top 3 Pendidikan Terakhir</Text>
+              {stats?.pendidikanTop && stats.pendidikanTop.length > 0 ? (
+                stats.pendidikanTop.map(([eduName, count], index) => (
+                  <View key={index} style={styles.jobRow}>
+                    <View style={styles.jobTextRow}>
+                      <Text style={styles.jobName} numberOfLines={1}>{eduName.toUpperCase()}</Text>
+                      <Text style={styles.jobVal}>{count} jiwa</Text>
+                    </View>
+                    <View style={styles.progressBarBg}>
+                      <View 
+                        style={[
+                          styles.progressBarFill, 
+                          { 
+                            width: getPercentage(count, stats?.totalWarga ?? 1) as any, 
+                            backgroundColor: '#7C3AED' 
+                          }
+                        ]} 
+                      />
+                    </View>
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.emptyText}>Tidak ada data pendidikan.</Text>
+              )}
+            </View>
+          </View>
+
           {/* Gender Ratio */}
           <View style={styles.genderContainer}>
             <Text style={styles.sectionTitle}>RASIO GENDER</Text>
@@ -212,7 +426,7 @@ export default function RangkumanScreen() {
                     styles.genderBar, 
                     { 
                       backgroundColor: '#3B82F6', 
-                      width: getPercentage(stats?.lakiLaki ?? 0, stats?.totalWarga ?? 0) as any
+                      width: getPercentage(stats?.lakiLaki ?? 0, stats?.totalWarga ?? 1) as any
                     }
                   ]} 
                 />
@@ -221,7 +435,7 @@ export default function RangkumanScreen() {
                     styles.genderBar, 
                     { 
                       backgroundColor: '#EC4899', 
-                      width: getPercentage(stats?.perempuan ?? 0, stats?.totalWarga ?? 0) as any
+                      width: getPercentage(stats?.perempuan ?? 0, stats?.totalWarga ?? 1) as any
                     }
                   ]} 
                 />
@@ -241,6 +455,23 @@ export default function RangkumanScreen() {
         </ScrollView>
       )}
     </SafeAreaView>
+  );
+}
+
+function SanitaryRow({ icon, label, value, percentage }: { icon: React.ReactNode; label: string; value: string; percentage: string }) {
+  return (
+    <View style={styles.sanitaryRow}>
+      <View style={styles.sanitaryIconText}>
+        {icon}
+        <View style={{ marginLeft: 10 }}>
+          <Text style={styles.sanitaryLabel}>{label}</Text>
+          <Text style={styles.sanitaryValue}>{value}</Text>
+        </View>
+      </View>
+      <View style={styles.percentBadge}>
+        <Text style={styles.percentText}>{percentage}</Text>
+      </View>
+    </View>
   );
 }
 
@@ -332,12 +563,12 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 2,
     paddingHorizontal: 24,
+    marginTop: 24,
     marginBottom: 16,
   },
   statsList: {
     paddingHorizontal: 20,
     gap: 12,
-    marginBottom: 24,
   },
   statCard: {
     flexDirection: 'row',
@@ -375,7 +606,132 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     marginLeft: 8,
   },
+  sanitaryContainer: {
+    paddingHorizontal: 20,
+  },
+  sanitaryCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    gap: 16,
+  },
+  sanitaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  sanitaryIconText: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  sanitaryLabel: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#0F172A',
+  },
+  sanitaryValue: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  percentBadge: {
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+  },
+  percentText: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#124170',
+  },
+  waterInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  waterLabel: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#475569',
+    marginLeft: 8,
+    marginRight: 6,
+  },
+  waterValue: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#0284C7',
+    flex: 1,
+  },
+  distributionContainer: {
+    paddingHorizontal: 20,
+  },
+  distCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  distSubtitle: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#475569',
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  jobRow: {
+    marginBottom: 14,
+  },
+  jobTextRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  jobName: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  jobVal: {
+    fontSize: 11,
+    color: '#64748B',
+    fontWeight: '600',
+  },
+  progressBarBg: {
+    height: 8,
+    width: '100%',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#E2E8F0',
+    marginVertical: 16,
+  },
+  emptyText: {
+    fontSize: 12,
+    color: '#64748B',
+    fontStyle: 'italic',
+  },
   genderContainer: {
+    marginTop: 24,
     marginBottom: 40,
   },
   genderCard: {
@@ -416,4 +772,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-

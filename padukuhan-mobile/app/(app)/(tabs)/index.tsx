@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Dimensions, Platform, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Dimensions, Platform, Alert, Modal } from 'react-native';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { useAuthStore } from '@/stores/authStore';
 import { supabase } from '@/lib/supabase';
@@ -8,6 +8,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useDraftStore } from '@/hooks/useDraftStore';
 import { useCreateMutasi } from '@/hooks/useMutasi';
 import { useTambahWarga } from '@/hooks/useKependudukan';
+import { useSuratList } from '@/hooks/useSurat';
+import { useProposals } from '@/hooks/useProgram';
 import { 
   Users, 
   Home as HomeIcon, 
@@ -35,7 +37,8 @@ import {
   HeartOff,
   ClipboardList,
   HeartHandshake,
-  HeartPulse
+  HeartPulse,
+  X
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -62,7 +65,36 @@ export default function DashboardScreen() {
   const { profile, setUser, setProfile } = useAuthStore();
   const router = useRouter();
   const { data: stats, isLoading: isStatsLoading } = useDashboardStats();
+  const [notifModalVisible, setNotifModalVisible] = useState(false);
+  const { data: suratList } = useSuratList();
+  const { data: proposalList } = useProposals();
+
+  const pendingLetters = suratList?.filter((s: any) => s.status === 'pengajuan') || [];
+  const pendingProposals = proposalList?.filter((p: any) => p.status === 'pending') || [];
+  const pendingCount = pendingLetters.length + pendingProposals.length;
   const [activeChartTab, setActiveChartTab] = useState<'umur' | 'gender' | 'pekerjaan'>('umur');
+
+  const getRoleLabel = (role?: string) => {
+    switch (role) {
+      case 'dukuh': return 'Dukuh';
+      case 'ketua_rt': return 'Ketua RT';
+      case 'warga': return 'Warga';
+      default: return 'User';
+    }
+  };
+
+  const getTimeGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 11) {
+      return 'Selamat pagi';
+    } else if (hour >= 11 && hour < 15) {
+      return 'Selamat siang';
+    } else if (hour >= 15 && hour < 18) {
+      return 'Selamat sore';
+    } else {
+      return 'Selamat malam';
+    }
+  };
 
   const { drafts, deleteDraft } = useDraftStore();
   const [syncing, setSyncing] = useState(false);
@@ -151,7 +183,18 @@ export default function DashboardScreen() {
 
   // --- CHART DATA PROCESSING ---
   const now = new Date();
-  const ageBuckets = { '0-4': 0, '5-14': 0, '15-24': 0, '25-34': 0, '35-44': 0, '45-54': 0, '55-64': 0, '65+': 0 };
+  const ageBuckets = { 
+    '0-9': 0, 
+    '10-19': 0, 
+    '20-29': 0, 
+    '30-39': 0, 
+    '40-49': 0, 
+    '50-59': 0, 
+    '60-69': 0, 
+    '70-79': 0, 
+    '80-89': 0, 
+    '90+': 0 
+  };
   let maleCount = 0;
   let femaleCount = 0;
   const jobCounts: { [key: string]: number } = {};
@@ -170,14 +213,16 @@ export default function DashboardScreen() {
         if (m < 0 || (m === 0 && now.getDate() < birthDate.getDate())) {
           age--;
         }
-        if (age <= 4) ageBuckets['0-4']++;
-        else if (age <= 14) ageBuckets['5-14']++;
-        else if (age <= 24) ageBuckets['15-24']++;
-        else if (age <= 34) ageBuckets['25-34']++;
-        else if (age <= 44) ageBuckets['35-44']++;
-        else if (age <= 54) ageBuckets['45-54']++;
-        else if (age <= 64) ageBuckets['55-64']++;
-        else ageBuckets['65+']++;
+        if (age <= 9) ageBuckets['0-9']++;
+        else if (age <= 19) ageBuckets['10-19']++;
+        else if (age <= 29) ageBuckets['20-29']++;
+        else if (age <= 39) ageBuckets['30-39']++;
+        else if (age <= 49) ageBuckets['40-49']++;
+        else if (age <= 59) ageBuckets['50-59']++;
+        else if (age <= 69) ageBuckets['60-69']++;
+        else if (age <= 79) ageBuckets['70-79']++;
+        else if (age <= 89) ageBuckets['80-89']++;
+        else ageBuckets['90+']++;
       }
 
       // Jobs
@@ -190,13 +235,20 @@ export default function DashboardScreen() {
   const maxAgeCount = Math.max(...Object.values(ageBuckets), 1);
   const totalGender = maleCount + femaleCount || 1;
 
-  // Process top jobs
-  const allJobsSorted = Object.entries(jobCounts)
+  // Process all jobs sorted from most to least
+  const sortedJobs = Object.entries(jobCounts)
     .sort((a, b) => b[1] - a[1]);
-  const sortedJobs = allJobsSorted.slice(0, 5);
-  const remainingJobs = allJobsSorted.slice(5);
-  const otherJobsSum = remainingJobs.reduce((acc, curr) => acc + curr[1], 0);
   const maxJobCount = sortedJobs.length > 0 ? sortedJobs[0][1] : 1;
+
+  // Dynamic Y-axis labels based on max count
+  const yLabels = [
+    Math.round(maxAgeCount),
+    Math.round(maxAgeCount * 0.8),
+    Math.round(maxAgeCount * 0.6),
+    Math.round(maxAgeCount * 0.4),
+    Math.round(maxAgeCount * 0.2),
+    0
+  ];
 
   // Helper to format large numbers (e.g. 1250 -> 1.250)
   const formatNumber = (num: number) => {
@@ -248,11 +300,13 @@ export default function DashboardScreen() {
               </View>
             </View>
             <View style={styles.headerRightActions}>
-              <TouchableOpacity style={styles.iconButton}>
+              <TouchableOpacity onPress={() => setNotifModalVisible(true)} style={styles.iconButton}>
                 <Bell size={20} color={PALETTE.textDark} />
-                <View style={styles.notificationBadge}>
-                  <Text style={styles.notificationBadgeText}>3</Text>
-                </View>
+                {pendingCount > 0 && (
+                  <View style={styles.notificationBadge}>
+                    <Text style={styles.notificationBadgeText}>{pendingCount}</Text>
+                  </View>
+                )}
               </TouchableOpacity>
               <TouchableOpacity onPress={handleLogout} style={[styles.iconButton, { marginLeft: 8 }]}>
                 <LogOut size={20} color={PALETTE.textDark} />
@@ -262,7 +316,7 @@ export default function DashboardScreen() {
 
           <View style={styles.headerBanner}>
             <View style={styles.headerBannerLeft}>
-              <Text style={styles.greetingSub}>Selamat pagi, Dukuh</Text>
+              <Text style={styles.greetingSub}>{getTimeGreeting()}, {getRoleLabel(profile?.role)}</Text>
               <Text style={styles.greetingName}>{profile?.nama_lengkap || 'Budi Santoso'}</Text>
               <Text style={styles.greetingDate}>
                 Berikut ringkasan data Padukuhan Mandingan per hari ini,{' '}
@@ -350,14 +404,14 @@ export default function DashboardScreen() {
                 </View>
 
                 <View style={styles.statCard}>
-                  <View style={[styles.statIconCircle, { backgroundColor: '#FDF2F8' }]}>
-                    <FileText size={20} color="#DB2777" />
+                  <View style={[styles.statIconCircle, { backgroundColor: '#F0FDF4' }]}>
+                    <Activity size={20} color="#16A34A" />
                   </View>
-                  <Text style={styles.statValue}>{formatNumber(stats?.totalLaporan ?? 0)}</Text>
-                  <Text style={styles.statLabel}>Surat Aktif</Text>
-                  <View style={styles.statGrowthRow}>
-                    <TrendingUp size={10} color="#EF4444" />
-                    <Text style={[styles.statGrowthText, { color: '#EF4444' }]}>+6 bln lalu</Text>
+                  <Text style={styles.statValue}>{formatNumber(stats?.produktif ?? 0)}</Text>
+                  <Text style={styles.statLabel}>Usia Produktif</Text>
+                  <View style={[styles.statGrowthRow, { backgroundColor: '#DCFCE7' }]}>
+                    <TrendingUp size={10} color="#16A34A" />
+                    <Text style={[styles.statGrowthText, { color: '#16A34A' }]}>Produktif</Text>
                   </View>
                 </View>
               </>
@@ -561,12 +615,9 @@ export default function DashboardScreen() {
                 {activeChartTab === 'umur' && (
                   <View style={styles.barChartContainer}>
                     <View style={styles.barChartYAxis}>
-                      <Text style={styles.chartAxisLabel}>500</Text>
-                      <Text style={styles.chartAxisLabel}>400</Text>
-                      <Text style={styles.chartAxisLabel}>300</Text>
-                      <Text style={styles.chartAxisLabel}>200</Text>
-                      <Text style={styles.chartAxisLabel}>100</Text>
-                      <Text style={styles.chartAxisLabel}>0</Text>
+                      {yLabels.map((lbl, idx) => (
+                        <Text key={idx} style={styles.chartAxisLabel}>{lbl}</Text>
+                      ))}
                     </View>
                     <View style={styles.barChartGraphWrapper}>
                       <View style={styles.barGridLines}>
@@ -576,9 +627,9 @@ export default function DashboardScreen() {
                         <View style={styles.gridLine} />
                         <View style={styles.gridLine} />
                       </View>
-                      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.barChartScroll}>
+                      <ScrollView horizontal showsHorizontalScrollIndicator={true} contentContainerStyle={styles.barChartScroll}>
                         {Object.entries(ageBuckets).map(([key, val]) => {
-                          const barHeight = Math.max((val / maxAgeCount) * 120, 4);
+                          const barHeight = Math.max((val / maxAgeCount) * 160, 4);
                           return (
                             <View key={key} style={styles.barChartCol}>
                               <View style={styles.barHoverValueContainer}>
@@ -625,13 +676,13 @@ export default function DashboardScreen() {
                     {sortedJobs.length === 0 ? (
                       <Text style={styles.emptyText}>Tidak ada data pekerjaan.</Text>
                     ) : (
-                      <>
+                      <ScrollView style={{ maxHeight: 280 }} showsVerticalScrollIndicator={true} nestedScrollEnabled={true}>
                         {sortedJobs.map(([jobName, val]) => {
                           const ratio = (val / maxJobCount) * 100;
                           return (
                             <View key={jobName} style={styles.jobRow}>
                               <View style={styles.jobTextRow}>
-                                <Text style={styles.jobName} numberOfLines={1}>{jobName}</Text>
+                                <Text style={styles.jobName} numberOfLines={1}>{toTitleCase(jobName)}</Text>
                                 <Text style={styles.jobVal}>{val} jiwa</Text>
                               </View>
                               <View style={styles.progressBarBg}>
@@ -640,14 +691,7 @@ export default function DashboardScreen() {
                             </View>
                           );
                         })}
-                        {otherJobsSum > 0 && (
-                          <Text style={styles.otherJobsCaption}>
-                            * Sisa {otherJobsSum} warga lainnya tersebar di pekerjaan lain seperti {
-                              remainingJobs.slice(0, 4).map(([name, count]) => `${toTitleCase(name)} (${count})`).join(', ')
-                            }, dll.
-                          </Text>
-                        )}
-                      </>
+                      </ScrollView>
                     )}
                   </View>
                 )}
@@ -710,6 +754,95 @@ export default function DashboardScreen() {
         <View style={{ height: 40 }} />
 
       </ScrollView>
+
+      {/* Notifications Modal */}
+      <Modal
+        visible={notifModalVisible}
+        transparent={true}
+        onRequestClose={() => setNotifModalVisible(false)}
+        animationType="slide"
+      >
+        <View style={styles.notifModalOverlay}>
+          <View style={styles.notifModalContainer}>
+            <View style={styles.notifModalHeader}>
+              <Text style={styles.notifModalTitle}>Notifikasi Terbaru</Text>
+              <TouchableOpacity onPress={() => setNotifModalVisible(false)} style={styles.notifCloseButton}>
+                <X size={20} color={PALETTE.textDark} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.notifScroll} showsVerticalScrollIndicator={false}>
+              {pendingCount === 0 ? (
+                <View style={styles.notifEmptyState}>
+                  <Bell size={48} color={PALETTE.textMuted} style={{ marginBottom: 12, opacity: 0.5 }} />
+                  <Text style={styles.notifEmptyTitle}>Tidak ada notifikasi baru</Text>
+                  <Text style={styles.notifEmptyText}>Semua pengajuan surat dan usulan program telah diproses.</Text>
+                </View>
+              ) : (
+                <View style={styles.notifList}>
+                  {pendingLetters.map((s: any) => (
+                    <TouchableOpacity
+                      key={s.id}
+                      style={styles.notifItem}
+                      onPress={() => {
+                        setNotifModalVisible(false);
+                        router.push(`/surat/${s.id}` as any);
+                      }}
+                    >
+                      <View style={[styles.notifIconWrapper, { backgroundColor: '#EFF6FF' }]}>
+                        <FileText size={18} color="#1E40AF" />
+                      </View>
+                      <View style={styles.notifContent}>
+                        <View style={styles.notifItemHeader}>
+                          <Text style={styles.notifItemTitle} numberOfLines={1}>Pengajuan Surat Baru</Text>
+                          <View style={[styles.badgePending, { backgroundColor: '#FEF3C7' }]}>
+                            <Text style={[styles.badgeTextPending, { color: '#D97706' }]}>SURAT</Text>
+                          </View>
+                        </View>
+                        <Text style={styles.notifItemDesc} numberOfLines={2}>
+                          {s.wargas?.nama_lengkap || 'Warga'} mengajukan surat: {s.jenis_surat}
+                        </Text>
+                        <Text style={styles.notifItemTime}>
+                          {new Date(s.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+
+                  {pendingProposals.map((p: any) => (
+                    <TouchableOpacity
+                      key={p.id}
+                      style={styles.notifItem}
+                      onPress={() => {
+                        setNotifModalVisible(false);
+                        router.push(`/program/${p.id}` as any);
+                      }}
+                    >
+                      <View style={[styles.notifIconWrapper, { backgroundColor: '#ECFDF5' }]}>
+                        <ClipboardList size={18} color="#059669" />
+                      </View>
+                      <View style={styles.notifContent}>
+                        <View style={styles.notifItemHeader}>
+                          <Text style={styles.notifItemTitle} numberOfLines={1}>Usulan Program Baru</Text>
+                          <View style={[styles.badgePending, { backgroundColor: '#D1FAE5' }]}>
+                            <Text style={[styles.badgeTextPending, { color: '#059669' }]}>PROGRAM</Text>
+                          </View>
+                        </View>
+                        <Text style={styles.notifItemDesc} numberOfLines={2}>
+                          {p.judul} (Kategori: {p.kategori})
+                        </Text>
+                        <Text style={styles.notifItemTime}>
+                          {new Date(p.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -990,6 +1123,117 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 3,
   },
+  emptyText: {
+    fontSize: 16,
+    color: '#94A3B8',
+    fontWeight: '600',
+  },
+  notifModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  notifModalContainer: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    maxHeight: '75%',
+    minHeight: '40%',
+    paddingBottom: 24,
+  },
+  notifModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  notifModalTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  notifCloseButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notifScroll: {
+    paddingHorizontal: 20,
+  },
+  notifEmptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 64,
+  },
+  notifEmptyTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#475569',
+    marginBottom: 4,
+  },
+  notifEmptyText: {
+    fontSize: 12,
+    color: '#94A3B8',
+    textAlign: 'center',
+    paddingHorizontal: 32,
+  },
+  notifList: {
+    paddingVertical: 12,
+  },
+  notifItem: {
+    flexDirection: 'row',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F8FAFC',
+  },
+  notifIconWrapper: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  notifContent: {
+    flex: 1,
+  },
+  notifItemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  notifItemTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#0F172A',
+    flex: 1,
+  },
+  badgePending: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  badgeTextPending: {
+    fontSize: 9,
+    fontWeight: '800',
+  },
+  notifItemDesc: {
+    fontSize: 12,
+    color: '#475569',
+    lineHeight: 18,
+    marginBottom: 4,
+  },
+  notifItemTime: {
+    fontSize: 10,
+    color: '#94A3B8',
+  },
   pkkGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1170,16 +1414,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E2E8F0',
     padding: 20,
-    minHeight: 180,
+    minHeight: 230,
   },
   barChartContainer: {
     flexDirection: 'row',
-    height: 150,
+    height: 200,
   },
   barChartYAxis: {
     justifyContent: 'space-between',
     paddingRight: 10,
-    height: 120,
+    height: 160,
   },
   chartAxisLabel: {
     fontSize: 9,
@@ -1189,14 +1433,14 @@ const styles = StyleSheet.create({
   barChartGraphWrapper: {
     flex: 1,
     position: 'relative',
-    height: 150,
+    height: 200,
   },
   barGridLines: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    height: 120,
+    height: 160,
     justifyContent: 'space-between',
   },
   gridLine: {
@@ -1206,14 +1450,14 @@ const styles = StyleSheet.create({
   },
   barChartScroll: {
     alignItems: 'flex-end',
-    height: 150,
+    height: 200,
     paddingRight: 10,
   },
   barChartCol: {
     alignItems: 'center',
     justifyContent: 'flex-end',
     width: 36,
-    height: 150,
+    height: 200,
     marginRight: 8,
   },
   barHoverValueContainer: {

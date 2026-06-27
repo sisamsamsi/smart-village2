@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { useRTs, useDasawismasByRt } from '@/hooks/useKependudukan';
 import { 
   ArrowLeft, 
   Home, 
@@ -56,6 +57,8 @@ export default function DetailKeluargaScreen() {
   const [editModalVisible, setEditModalVisible] = useState(false);
 
   // Form State
+  const [rtId, setRtId] = useState('');
+  const [dasawismaId, setDasawismaId] = useState('');
   const [makananPokok, setMakananPokok] = useState('beras');
   const [sumberAir, setSumberAir] = useState('pdam');
   const [jamban, setJamban] = useState(false);
@@ -67,6 +70,9 @@ export default function DetailKeluargaScreen() {
   const [industri, setIndustri] = useState(false);
   const [kriteriaRumah, setKriteriaRumah] = useState('sehat_layak_huni');
 
+  const { data: rts } = useRTs();
+  const { data: dasawismas } = useDasawismasByRt(rtId || null);
+
   // Fetch KK detail
   const { data: kk, isLoading: isKkLoading, error: kkError } = useQuery({
     queryKey: ['kk_detail', kkId],
@@ -75,7 +81,8 @@ export default function DetailKeluargaScreen() {
         .from('rumah_tanggas')
         .select(`
           *,
-          rts:rt_id(nomor_rt)
+          rts:rt_id(nomor_rt),
+          dasawismas:dasawisma_id(nama_dasawisma)
         `)
         .eq('id', kkId)
         .single();
@@ -112,6 +119,7 @@ export default function DetailKeluargaScreen() {
   // Mutasi Update KK
   const updateKkMutation = useMutation({
     mutationFn: async (updatedFields: Record<string, any>) => {
+      // 1. Update household
       const { data, error } = await supabase
         .from('rumah_tanggas')
         .update(updatedFields)
@@ -120,12 +128,28 @@ export default function DetailKeluargaScreen() {
         .single();
 
       if (error) throw error;
+
+      // 2. Propagate RT and Dasawisma to wargas
+      const { rt_id, dasawisma_id } = updatedFields;
+      const wgUpdates: Record<string, any> = {};
+      if (rt_id !== undefined) wgUpdates.rt_id = rt_id;
+      if (dasawisma_id !== undefined) wgUpdates.dasawisma_id = dasawisma_id;
+
+      if (Object.keys(wgUpdates).length > 0) {
+        await supabase
+          .from('wargas')
+          .update(wgUpdates)
+          .eq('rumah_tangga_id', kkId);
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['kk_detail', kkId] });
+      queryClient.invalidateQueries({ queryKey: ['kk_members', kkId] });
+      queryClient.invalidateQueries({ queryKey: ['wargas'] });
       queryClient.invalidateQueries({ queryKey: ['households_list'] });
-      Alert.alert('Sukses', 'Fasilitas keluarga berhasil diperbarui.');
+      Alert.alert('Sukses', 'Data keluarga berhasil diperbarui.');
       setEditModalVisible(false);
     },
     onError: (err: any) => {
@@ -135,6 +159,8 @@ export default function DetailKeluargaScreen() {
 
   const openEditModal = () => {
     if (kk) {
+      setRtId(kk.rt_id || '');
+      setDasawismaId(kk.dasawisma_id || '');
       setMakananPokok(kk.makanan_pokok || 'beras');
       setSumberAir(kk.sumber_air || 'pdam');
       setJamban(!!kk.memiliki_jamban);
@@ -151,6 +177,8 @@ export default function DetailKeluargaScreen() {
 
   const handleSaveFasilitas = () => {
     updateKkMutation.mutate({
+      rt_id: rtId,
+      dasawisma_id: dasawismaId,
       makanan_pokok: makananPokok,
       sumber_air: sumberAir,
       memiliki_jamban: jamban,
@@ -213,6 +241,9 @@ export default function DetailKeluargaScreen() {
           </View>
           <Text style={styles.kkNo}>No. {kk.no_kk}</Text>
           <Text style={styles.kkKepala}>Kepala Keluarga: <Text style={{ fontWeight: '700' }}>{kk.nama_kepala_keluarga}</Text></Text>
+          {kk.dasawismas?.nama_dasawisma && (
+            <Text style={styles.kkAddress}>Dasawisma: <Text style={{ fontWeight: '700' }}>{kk.dasawismas.nama_dasawisma}</Text></Text>
+          )}
           {kk.alamat_detail && (
             <Text style={styles.kkAddress}>{kk.alamat_detail}</Text>
           )}
@@ -316,8 +347,46 @@ export default function DetailKeluargaScreen() {
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Edit Fasilitas Keluarga</Text>
             
-            <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+            <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               
+              <View style={styles.pickerSection}>
+                <Text style={styles.fieldLabel}>RT Domisili</Text>
+                <View style={styles.rowSelector}>
+                  {rts?.map((rt: any) => (
+                    <TouchableOpacity 
+                      key={rt.id}
+                      style={[styles.selectorBtnCompact, rtId === rt.id && styles.selectorBtnActive]}
+                      onPress={() => { setRtId(rt.id); setDasawismaId(''); }}
+                    >
+                      <Text style={[styles.selectorBtnText, rtId === rt.id && styles.selectorBtnTextActive]}>RT {rt.nomor_rt}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              <View style={styles.pickerSection}>
+                <Text style={styles.fieldLabel}>Kelompok Dasa Wisma</Text>
+                {rtId ? (
+                  dasawismas && dasawismas.length > 0 ? (
+                    <View style={styles.rowSelector}>
+                      {dasawismas.map((dw: any) => (
+                        <TouchableOpacity 
+                          key={dw.id}
+                          style={[styles.selectorBtnCompact, dasawismaId === dw.id && styles.selectorBtnActive]}
+                          onPress={() => setDasawismaId(dw.id)}
+                        >
+                          <Text style={[styles.selectorBtnText, dasawismaId === dw.id && styles.selectorBtnTextActive]}>{dw.nama_dasawisma}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  ) : (
+                    <Text style={{ fontSize: 12, color: '#94A3B8', fontStyle: 'italic', paddingLeft: 4 }}>Tidak ada kelompok Dasawisma di RT ini</Text>
+                  )
+                ) : (
+                  <Text style={{ fontSize: 12, color: '#94A3B8', fontStyle: 'italic', paddingLeft: 4 }}>Pilih RT terlebih dahulu</Text>
+                )}
+              </View>
+
               <View style={styles.pickerSection}>
                 <Text style={styles.fieldLabel}>Kriteria Rumah</Text>
                 <View style={styles.rowSelector}>
@@ -544,9 +613,9 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: '#E2E8F0', backgroundColor: '#F8FAFC',
     alignItems: 'center', flex: 1, minWidth: 60,
   },
-  selectorBtnActive: { backgroundColor: '#EFF6FF', borderColor: '#124170' },
+  selectorBtnActive: { backgroundColor: '#124170', borderColor: '#124170' },
   selectorBtnText: { fontSize: 12, fontWeight: '600', color: '#64748B' },
-  selectorBtnTextActive: { color: '#124170', fontWeight: '700' },
+  selectorBtnTextActive: { color: '#fff', fontWeight: '700' },
 
   switchRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',

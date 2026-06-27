@@ -1,6 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import { useAuthStore } from '@/stores/authStore'
+
+const supabaseService = createClient(
+  'https://ouvkmlfbvhtpqqrtcesn.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91dmttbGZidmh0cHFxcnRjZXNuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzY4MjczNCwiZXhwIjoyMDkzMjU4NzM0fQ.0B-aU9V4G2NIqvM4-TcFO-FUlSWKuPC3g0Pgp3rUoZM'
+)
 
 export const suratKeys = {
   all: ['surat'] as const,
@@ -80,7 +86,7 @@ export const useUpdateSuratStatus = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...payload }: any) => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseService
         .from('surat_pengajuan')
         .update({
           ...payload,
@@ -114,6 +120,25 @@ export const useCreateSurat = () => {
           status: 'selesai',
           diajukan_via: 'rt'
         }])
+        .select()
+      if (error) throw error
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: suratKeys.all })
+    }
+  })
+}
+
+export const useDeleteSurat = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await supabaseService
+        .from('surat_pengajuan')
+        .delete()
+        .eq('id', id)
         .select()
       if (error) throw error
       return data

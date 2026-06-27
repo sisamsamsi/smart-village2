@@ -69,8 +69,25 @@ export const useCreateMutasi = () => {
       dasawisma_id?: string;
     }) => {
       let targetWargaId = payload.warga_id;
-      const targetRtId = payload.rt_id || profile?.rt_id;
+      let targetRtId: string | null | undefined = payload.rt_id;
       const targetDasawismaId = payload.dasawisma_id;
+
+      // If no rt_id is provided in payload, but we have warga_id, fetch the warga's rt_id
+      if (!targetRtId && targetWargaId) {
+        const { data: wargaData } = await supabase
+          .from('wargas')
+          .select('rt_id')
+          .eq('id', targetWargaId)
+          .single();
+        if (wargaData) {
+          targetRtId = wargaData.rt_id;
+        }
+      }
+
+      // If still no rt_id, fallback to profile's rt_id
+      if (!targetRtId) {
+        targetRtId = profile?.rt_id;
+      }
 
       // 1. If pindah_masuk and no warga_id is provided, create the warga first
       if (payload.jenis_mutasi === 'pindah_masuk' && !targetWargaId) {

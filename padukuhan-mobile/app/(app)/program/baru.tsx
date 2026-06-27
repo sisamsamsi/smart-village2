@@ -193,9 +193,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20,
     backgroundColor: '#fff', borderWidth: 1, borderColor: '#E2E8F0',
   },
-  chipActive: { backgroundColor: '#EFF6FF', borderColor: '#124170' },
+  chipActive: { backgroundColor: '#124170', borderColor: '#124170' },
   chipText: { fontSize: 12, fontWeight: '600', color: '#94A3B8' },
-  chipTextActive: { color: '#124170' },
+  chipTextActive: { color: '#fff' },
 
   submitBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',

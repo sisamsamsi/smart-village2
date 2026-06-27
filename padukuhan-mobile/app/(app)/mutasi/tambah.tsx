@@ -475,12 +475,12 @@ export default function AddMutasiScreen() {
                     style={[styles.kkOptionCard, !form.is_new_kk && styles.kkOptionCardActive]}
                     onPress={() => setForm(prev => ({ ...prev, is_new_kk: false, rumah_tangga_id: '' }))}
                   >
-                    <View style={styles.kkOptionRadio}>
-                      {!form.is_new_kk && <View style={styles.kkOptionRadioInner} />}
+                    <View style={[styles.kkOptionRadio, !form.is_new_kk && { borderColor: '#fff' }]}>
+                      {!form.is_new_kk && <View style={[styles.kkOptionRadioInner, { backgroundColor: '#fff' }]} />}
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.kkOptionTitle}>Menumpang di KK Existing (Sudah Ada)</Text>
-                      <Text style={styles.kkOptionDesc}>Pilih ini jika warga baru ini menumpang/bergabung ke KK yang sudah terdaftar di Mandingan (misal: menikah, numpang saudara/kost).</Text>
+                      <Text style={[styles.kkOptionTitle, !form.is_new_kk && { color: '#fff' }]}>Menumpang di KK Existing (Sudah Ada)</Text>
+                      <Text style={[styles.kkOptionDesc, !form.is_new_kk && { color: '#DBEAFE' }]}>Pilih ini jika warga baru ini menumpang/bergabung ke KK yang sudah terdaftar di Mandingan (misal: menikah, numpang saudara/kost).</Text>
                     </View>
                   </TouchableOpacity>
 
@@ -488,12 +488,12 @@ export default function AddMutasiScreen() {
                     style={[styles.kkOptionCard, form.is_new_kk && styles.kkOptionCardActive]}
                     onPress={() => setForm(prev => ({ ...prev, is_new_kk: true, rumah_tangga_id: '' }))}
                   >
-                    <View style={styles.kkOptionRadio}>
-                      {form.is_new_kk && <View style={styles.kkOptionRadioInner} />}
+                    <View style={[styles.kkOptionRadio, form.is_new_kk && { borderColor: '#fff' }]}>
+                      {form.is_new_kk && <View style={[styles.kkOptionRadioInner, { backgroundColor: '#fff' }]} />}
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.kkOptionTitle}>Membuat Kartu Keluarga (KK) Baru</Text>
-                      <Text style={styles.kkOptionDesc}>Pilih ini jika warga ini datang sebagai Kepala Keluarga baru dan membuat KK baru yang belum terdaftar di sistem.</Text>
+                      <Text style={[styles.kkOptionTitle, form.is_new_kk && { color: '#fff' }]}>Membuat Kartu Keluarga (KK) Baru</Text>
+                      <Text style={[styles.kkOptionDesc, form.is_new_kk && { color: '#DBEAFE' }]}>Pilih ini jika warga ini datang sebagai Kepala Keluarga baru dan membuat KK baru yang belum terdaftar di sistem.</Text>
                     </View>
                   </TouchableOpacity>
                 </View>
@@ -922,7 +922,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   kkOptionCardActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#124170',
     borderColor: '#124170',
   },
   kkOptionRadio: {

@@ -1,33 +1,62 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, StyleSheet, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, StyleSheet, Alert, Modal, TextInput, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useActiveKehamilanList, useKehamilanList, useGugurKehamilan } from '@/hooks/useKehamilan';
+import { useActiveKehamilanList, useKehamilanList, useGugurKehamilan, useUpdateKehamilan, useDeleteKehamilan } from '@/hooks/useKehamilan';
 import { useYearStore } from '@/stores/yearStore';
 import { useAuthStore } from '@/stores/authStore';
 import { 
   ArrowLeft, 
   Plus, 
   Heart, 
-  Calendar,
+  Calendar as CalendarIcon,
   ChevronLeft,
   ChevronRight,
   ShieldAlert,
-  Baby
+  Baby,
+  Edit2,
+  Trash2,
+  X
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { supabase } from '@/lib/supabase';
 
 export default function KehamilanListScreen() {
   const router = useRouter();
   const { activeYear, setActiveYear } = useYearStore();
-  const { isKader } = useAuthStore();
+  const { isKader, user } = useAuthStore();
   
   const [activeTab, setActiveTab] = useState<'aktif' | 'riwayat'>('aktif');
   
   const { data: activeList, isLoading: isActiveLoading, refetch: refetchActive } = useActiveKehamilanList();
   const { data: historyList, isLoading: isHistoryLoading, refetch: refetchHistory } = useKehamilanList(activeYear);
   const gugurKehamilan = useGugurKehamilan();
+  const updateKehamilan = useUpdateKehamilan();
+  const deleteKehamilan = useDeleteKehamilan();
+
+  // Edit Modal State
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<any>(null);
+  const [selectedWargaName, setSelectedWargaName] = useState('');
+  const [form, setForm] = useState({
+    tanggal_mutasi: '',
+    hpht: '',
+    hpl: '',
+    bb_awal: '',
+    tinggi_badan: '',
+    jarak_pernikahan_tahun: '',
+    jarak_pernikahan_bulan: '',
+    golongan_darah: 'O',
+    alergi: '',
+    no_jkn: '',
+    faskes: '',
+    pendidikan: '',
+    catatan: ''
+  });
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [dateField, setDateField] = useState<'tanggal_mutasi' | 'hpht' | 'hpl' | null>(null);
 
   const handleRefetch = () => {
     if (activeTab === 'aktif') refetchActive();
@@ -51,6 +80,8 @@ export default function KehamilanListScreen() {
                 keterangan: 'Gugur Kandungan'
               });
               Alert.alert('Sukses', 'Peristiwa gugur kandungan berhasil dicatat.');
+              refetchActive();
+              refetchHistory();
             } catch (err: any) {
               Alert.alert('Gagal', err.message || 'Gagal menyimpan data.');
             }
@@ -58,6 +89,201 @@ export default function KehamilanListScreen() {
         }
       ]
     );
+  };
+
+  const handleEditPress = (record: any, namaWarga: string) => {
+    setSelectedRecord(record);
+    setSelectedWargaName(namaWarga);
+    
+    let details: any = {};
+    if (record.keterangan) {
+      try {
+        if (record.keterangan.startsWith('{')) {
+          details = JSON.parse(record.keterangan);
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+    
+    setForm({
+      tanggal_mutasi: record.tanggal_mutasi || new Date().toISOString().split('T')[0],
+      hpht: record.hpht || new Date().toISOString().split('T')[0],
+      hpl: record.hpl || '',
+      bb_awal: details.bb_awal ? String(details.bb_awal) : '',
+      tinggi_badan: details.tinggi_badan ? String(details.tinggi_badan) : '',
+      jarak_pernikahan_tahun: details.jarak_pernikahan_tahun ? String(details.jarak_pernikahan_tahun) : '',
+      jarak_pernikahan_bulan: details.jarak_pernikahan_bulan ? String(details.jarak_pernikahan_bulan) : '',
+      golongan_darah: details.golongan_darah || 'O',
+      alergi: details.alergi || '',
+      no_jkn: details.no_jkn || '',
+      faskes: details.faskes || '',
+      pendidikan: details.pendidikan || '',
+      catatan: details.catatan || ''
+    });
+    setEditModalVisible(true);
+  };
+
+  const handleEditActive = async (warga: any) => {
+    // Find active pregnancy record in mutasi_penduduk
+    const { data, error } = await supabase
+      .from('mutasi_penduduk')
+      .select('*')
+      .eq('warga_id', warga.id)
+      .eq('jenis_mutasi', 'kehamilan')
+      .eq('status_kehamilan', 'hamil')
+      .order('tanggal_mutasi', { ascending: false })
+      .limit(1);
+    
+    if (error) {
+      Alert.alert('Gagal', error.message || 'Terjadi kesalahan.');
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      // Legacy fallback: Create a default mutasi record so it can be edited
+      const todayStr = new Date().toISOString().split('T')[0];
+      const hplStr = new Date(Date.now() + 280 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      
+      const { data: newRecord, error: insertError } = await supabase
+        .from('mutasi_penduduk')
+        .insert([{
+          warga_id: warga.id,
+          rt_id: warga.rt_id,
+          jenis_mutasi: 'kehamilan',
+          status_kehamilan: 'hamil',
+          tanggal_mutasi: todayStr,
+          hpht: todayStr,
+          hpl: hplStr,
+          keterangan: JSON.stringify({ catatan: 'Legacy record' }),
+          created_by: user?.id
+        }])
+        .select()
+        .single();
+
+      if (insertError) {
+        Alert.alert('Gagal', 'Gagal menginisialisasi data kehamilan: ' + insertError.message);
+        return;
+      }
+      
+      handleEditPress(newRecord, warga.nama_lengkap);
+    } else {
+      handleEditPress(data[0], warga.nama_lengkap);
+    }
+  };
+
+  const handleDeletePress = (record: any, warga: any) => {
+    Alert.alert(
+      'Hapus Laporan Kehamilan',
+      `Apakah Anda yakin ingin menghapus data kehamilan untuk ${warga?.nama_lengkap || 'warga'}? Status kehamilan akan dinonaktifkan.`,
+      [
+        { text: 'Batal', style: 'cancel' },
+        { 
+          text: 'Hapus', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteKehamilan.mutateAsync({ id: record.id, warga_id: record.warga_id });
+              Alert.alert('Sukses', 'Laporan kehamilan berhasil dihapus.');
+              refetchActive();
+              refetchHistory();
+            } catch (e: any) {
+              Alert.alert('Gagal', e.message || 'Terjadi kesalahan.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleDeleteActive = async (warga: any) => {
+    const { data, error } = await supabase
+      .from('mutasi_penduduk')
+      .select('*')
+      .eq('warga_id', warga.id)
+      .eq('jenis_mutasi', 'kehamilan')
+      .eq('status_kehamilan', 'hamil')
+      .order('tanggal_mutasi', { ascending: false })
+      .limit(1);
+    
+    if (!error && data && data.length > 0) {
+      handleDeletePress(data[0], warga);
+    } else {
+      Alert.alert(
+        'Revert Status Kehamilan',
+        `Apakah Anda yakin ingin menonaktifkan status kehamilan untuk ${warga.nama_lengkap}?`,
+        [
+          { text: 'Batal', style: 'cancel' },
+          {
+            text: 'Revert',
+            style: 'destructive',
+            onPress: async () => {
+              await supabase.from('wargas').update({ status_kehamilan: false }).eq('id', warga.id);
+              refetchActive();
+            }
+          }
+        ]
+      );
+    }
+  };
+
+  const handleUpdate = async () => {
+    const details = {
+      bb_awal: form.bb_awal,
+      tinggi_badan: form.tinggi_badan,
+      jarak_pernikahan_tahun: form.jarak_pernikahan_tahun,
+      jarak_pernikahan_bulan: form.jarak_pernikahan_bulan,
+      golongan_darah: form.golongan_darah,
+      alergi: form.alergi,
+      no_jkn: form.no_jkn,
+      faskes: form.faskes,
+      pendidikan: form.pendidikan,
+      catatan: form.catatan
+    };
+
+    try {
+      await updateKehamilan.mutateAsync({
+        id: selectedRecord.id,
+        tanggal_mutasi: form.tanggal_mutasi,
+        hpht: form.hpht,
+        hpl: form.hpl,
+        keterangan: JSON.stringify(details)
+      });
+      Alert.alert('Sukses', 'Data kehamilan berhasil diperbarui.');
+      setEditModalVisible(false);
+      refetchActive();
+      refetchHistory();
+    } catch (e: any) {
+      Alert.alert('Gagal', e.message || 'Terjadi kesalahan.');
+    }
+  };
+
+  const openDatePicker = (field: 'tanggal_mutasi' | 'hpht' | 'hpl') => {
+    setDateField(field);
+    setShowDatePicker(true);
+  };
+
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (!selectedDate) return;
+    const formattedDate = selectedDate.toISOString().split('T')[0];
+    
+    setForm(prev => {
+      const updated = { ...prev };
+      if (dateField === 'tanggal_mutasi') {
+        updated.tanggal_mutasi = formattedDate;
+      } else if (dateField === 'hpht') {
+        updated.hpht = formattedDate;
+        const hplDate = new Date(selectedDate);
+        hplDate.setDate(hplDate.getDate() + 280);
+        updated.hpl = hplDate.toISOString().split('T')[0];
+      } else if (dateField === 'hpl') {
+        updated.hpl = formattedDate;
+      }
+      return updated;
+    });
+    
+    setDateField(null);
   };
 
   const getUsiaKehamilan = (hphtStr?: string) => {
@@ -99,7 +325,7 @@ export default function KehamilanListScreen() {
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.tabBtn, activeTab === 'riwayat' && styles.tabBtnActive]}
-          onPress={() => setActiveTab('aktif' === activeTab ? 'riwayat' : 'aktif')}
+          onPress={() => setActiveTab('riwayat')}
         >
           <Text style={[styles.tabBtnText, activeTab === 'riwayat' && styles.tabBtnTextActive]}>Riwayat Laporan</Text>
         </TouchableOpacity>
@@ -115,7 +341,7 @@ export default function KehamilanListScreen() {
             <ChevronLeft size={18} color="#475569" />
           </TouchableOpacity>
           <View style={styles.yearDisplay}>
-            <Calendar size={14} color="#124170" style={{ marginRight: 6 }} />
+            <CalendarIcon size={14} color="#124170" style={{ marginRight: 6 }} />
             <Text style={styles.yearText}>Tahun Laporan: {activeYear}</Text>
           </View>
           <TouchableOpacity 
@@ -188,6 +414,17 @@ export default function KehamilanListScreen() {
                       </TouchableOpacity>
                     </View>
                   </View>
+                  
+                  {!isKader() && (
+                    <View style={styles.actionButtons}>
+                      <TouchableOpacity onPress={() => handleEditActive(warga)} style={styles.actionBtn}>
+                        <Edit2 size={14} color="#475569" />
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => handleDeleteActive(warga)} style={styles.actionBtn}>
+                        <Trash2 size={14} color="#EF4444" />
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
               ))}
             </View>
@@ -198,7 +435,7 @@ export default function KehamilanListScreen() {
           ) : !historyList || historyList.length === 0 ? (
             <View style={styles.emptyState}>
               <View style={styles.emptyIconWrapper}>
-                <Calendar size={36} color="#94A3B8" />
+                <CalendarIcon size={36} color="#94A3B8" />
               </View>
               <Text style={styles.emptyText}>Tidak Ada Riwayat Laporan</Text>
               <Text style={styles.emptySubtext}>Belum ada riwayat laporan kehamilan untuk tahun {activeYear}.</Text>
@@ -232,17 +469,231 @@ export default function KehamilanListScreen() {
                       <Text style={styles.itemNote}>"{item.keterangan}"</Text>
                     )}
                   </View>
+                  
+                  {!isKader() && (
+                    <View style={styles.actionButtons}>
+                      <TouchableOpacity onPress={() => handleEditPress(item, item.wargas?.nama_lengkap || 'Warga')} style={styles.actionBtn}>
+                        <Edit2 size={14} color="#475569" />
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => handleDeletePress(item, item.wargas)} style={styles.actionBtn}>
+                        <Trash2 size={14} color="#EF4444" />
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
               ))}
             </View>
           )
         )}
       </ScrollView>
+
+      {/* EDIT MODAL */}
+      <Modal
+        visible={editModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <View style={styles.modalBg}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Edit Kehamilan Ibu</Text>
+              <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+                <X size={20} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <Text style={styles.modalSubtitle}>Ibu: {selectedWargaName}</Text>
+              
+              {/* Tanggal Mulai Kehamilan */}
+              <View style={styles.modalField}>
+                <Text style={styles.modalLabel}>TANGGAL LAPORAN/MUTASI *</Text>
+                <TouchableOpacity onPress={() => openDatePicker('tanggal_mutasi')} style={styles.dateSelector}>
+                  <CalendarIcon size={16} color="#64748B" style={{ marginRight: 8 }} />
+                  <Text style={styles.dateSelectorText}>{form.tanggal_mutasi}</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Tanggal HPHT */}
+              <View style={styles.modalField}>
+                <Text style={styles.modalLabel}>HARI PERTAMA HAID TERAKHIR (HPHT) *</Text>
+                <TouchableOpacity onPress={() => openDatePicker('hpht')} style={styles.dateSelector}>
+                  <CalendarIcon size={16} color="#64748B" style={{ marginRight: 8 }} />
+                  <Text style={styles.dateSelectorText}>{form.hpht}</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Estimasi Lahir HPL */}
+              <View style={styles.modalField}>
+                <Text style={styles.modalLabel}>ESTIMASI LAHIR (HPL) *</Text>
+                <TouchableOpacity onPress={() => openDatePicker('hpl')} style={styles.dateSelector}>
+                  <CalendarIcon size={16} color="#64748B" style={{ marginRight: 8 }} />
+                  <Text style={styles.dateSelectorText}>{form.hpl}</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* BB Awal & TB */}
+              <View style={styles.row}>
+                <View style={styles.half}>
+                  <Text style={styles.modalLabel}>BB AWAL (KG)</Text>
+                  <TextInput 
+                    placeholder="Contoh: 52" 
+                    keyboardType="numeric"
+                    style={styles.textInput} 
+                    value={form.bb_awal} 
+                    onChangeText={(val) => setForm({ ...form, bb_awal: val })} 
+                  />
+                </View>
+                <View style={styles.half}>
+                  <Text style={styles.modalLabel}>TINGGI BADAN (CM)</Text>
+                  <TextInput 
+                    placeholder="Contoh: 158" 
+                    keyboardType="numeric"
+                    style={styles.textInput} 
+                    value={form.tinggi_badan} 
+                    onChangeText={(val) => setForm({ ...form, tinggi_badan: val })} 
+                  />
+                </View>
+              </View>
+
+              {/* Jarak Pernikahan */}
+              <View style={styles.modalField}>
+                <Text style={styles.modalLabel}>JARAK PERNIKAHAN DENGAN KEHAMILAN</Text>
+                <View style={styles.row}>
+                  <View style={styles.half}>
+                    <TextInput 
+                      placeholder="Tahun" 
+                      keyboardType="numeric"
+                      style={styles.textInput} 
+                      value={form.jarak_pernikahan_tahun} 
+                      onChangeText={(val) => setForm({ ...form, jarak_pernikahan_tahun: val })} 
+                    />
+                  </View>
+                  <View style={styles.half}>
+                    <TextInput 
+                      placeholder="Bulan" 
+                      keyboardType="numeric"
+                      style={styles.textInput} 
+                      value={form.jarak_pernikahan_bulan} 
+                      onChangeText={(val) => setForm({ ...form, jarak_pernikahan_bulan: val })} 
+                    />
+                  </View>
+                </View>
+              </View>
+
+              {/* Golongan Darah */}
+              <View style={styles.modalField}>
+                <Text style={styles.modalLabel}>GOLONGAN DARAH</Text>
+                <View style={styles.selectRow}>
+                  {['A', 'B', 'AB', 'O', 'Tidak Tahu'].map((gol) => (
+                    <TouchableOpacity 
+                      key={gol} 
+                      style={[styles.selectOption, form.golongan_darah === gol && styles.selectOptionActive]}
+                      onPress={() => setForm({ ...form, golongan_darah: gol })}
+                    >
+                      <Text style={[styles.selectOptionText, form.golongan_darah === gol && styles.selectOptionTextActive]}>
+                        {gol}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* Alergi */}
+              <View style={styles.modalField}>
+                <Text style={styles.modalLabel}>ALERGI (JIKA ADA)</Text>
+                <TextInput 
+                  placeholder="Contoh: Alergi udang, penisilin" 
+                  style={styles.textInput} 
+                  value={form.alergi} 
+                  onChangeText={(val) => setForm({ ...form, alergi: val })} 
+                />
+              </View>
+
+              {/* JKN & Faskes */}
+              <View style={styles.row}>
+                <View style={styles.half}>
+                  <Text style={styles.modalLabel}>NO. JKN / BPJS</Text>
+                  <TextInput 
+                    placeholder="Nomer" 
+                    keyboardType="numeric"
+                    style={styles.textInput} 
+                    value={form.no_jkn} 
+                    onChangeText={(val) => setForm({ ...form, no_jkn: val })} 
+                  />
+                </View>
+                <View style={styles.half}>
+                  <Text style={styles.modalLabel}>FASKES RUJUKAN</Text>
+                  <TextInput 
+                    placeholder="Puskesmas" 
+                    style={styles.textInput} 
+                    value={form.faskes} 
+                    onChangeText={(val) => setForm({ ...form, faskes: val })} 
+                  />
+                </View>
+              </View>
+
+              {/* Pendidikan */}
+              <View style={styles.modalField}>
+                <Text style={styles.modalLabel}>PENDIDIKAN IBU</Text>
+                <TextInput 
+                  placeholder="SD, SMP, SMA, S1, dll." 
+                  style={styles.textInput} 
+                  value={form.pendidikan} 
+                  onChangeText={(val) => setForm({ ...form, pendidikan: val })} 
+                />
+              </View>
+
+              {/* Catatan */}
+              <View style={styles.modalField}>
+                <Text style={styles.modalLabel}>CATATAN TAMBAHAN</Text>
+                <TextInput 
+                  placeholder="Catatan kehamilan..." 
+                  style={[styles.textInput, { height: 64, textAlignVertical: 'top', paddingTop: 8 }]} 
+                  multiline 
+                  value={form.catatan} 
+                  onChangeText={(val) => setForm({ ...form, catatan: val })} 
+                />
+              </View>
+
+              <TouchableOpacity 
+                style={[styles.saveConfirmBtn, updateKehamilan.isPending && { opacity: 0.6 }]} 
+                onPress={handleUpdate}
+                disabled={updateKehamilan.isPending}
+              >
+                {updateKehamilan.isPending ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text style={styles.saveConfirmBtnText}>Simpan Perubahan</Text>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {showDatePicker && (
+        <DateTimePicker 
+          value={
+            dateField === 'hpht' && form.hpht 
+              ? new Date(form.hpht) 
+              : dateField === 'hpl' && form.hpl 
+                ? new Date(form.hpl) 
+                : form.tanggal_mutasi 
+                  ? new Date(form.tanggal_mutasi)
+                  : new Date()
+          } 
+          mode="date" 
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'} 
+          onChange={handleDateChange} 
+          maximumDate={dateField === 'hpl' ? undefined : new Date()} 
+        />
+      )}
     </SafeAreaView>
   );
 }
 
-// Dynamic styling utility for badges
 const statusColors = (status: string) => {
   if (status === 'melahirkan') return '#124170';
   if (status === 'gugur') return '#B91C1C';
@@ -494,5 +945,132 @@ const styles = StyleSheet.create({
     marginTop: 4,
     textAlign: 'center',
     paddingHorizontal: 24,
-  }
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  actionBtn: {
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  // Modal styles
+  modalBg: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(15, 23, 42, 0.4)',
+  },
+  modalCard: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: '90%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1E293B',
+  },
+  modalScroll: {
+    flexGrow: 0,
+    marginBottom: 20,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    color: '#64748B',
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  modalField: {
+    marginBottom: 16,
+  },
+  modalLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748B',
+    marginBottom: 8,
+    letterSpacing: 0.5,
+  },
+  dateSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 44,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingHorizontal: 12,
+    backgroundColor: '#F8FAFC',
+    marginBottom: 12,
+  },
+  dateSelectorText: {
+    fontSize: 13,
+    color: '#334155',
+  },
+  selectRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  selectOption: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  selectOptionActive: {
+    backgroundColor: '#124170',
+    borderColor: '#124170',
+  },
+  selectOptionText: {
+    fontSize: 12,
+    color: '#475569',
+  },
+  selectOptionTextActive: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  textInput: {
+    height: 44,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingHorizontal: 12,
+    fontSize: 13,
+    color: '#0F172A',
+    backgroundColor: '#fff',
+    marginBottom: 12,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  half: {
+    flex: 1,
+  },
+  saveConfirmBtn: {
+    paddingVertical: 13,
+    borderRadius: 12,
+    backgroundColor: '#124170',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  saveConfirmBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
 });

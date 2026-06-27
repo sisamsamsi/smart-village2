@@ -245,7 +245,33 @@ export async function POST(req: NextRequest) {
               rt: String(item.parent.rt_number)
             })
 
-          if (!bError) registeredBalitas++
+          if (!bError) {
+            registeredBalitas++
+            
+            // 3. Update mother's pregnancy status if she is marked as pregnant
+            if (item.parent?.id) {
+              const { data: parentProfile } = await svClient
+                .from('wargas')
+                .select('jenis_kelamin')
+                .eq('id', item.parent.id)
+                .single()
+
+              if (parentProfile?.jenis_kelamin === 'P') {
+                await svClient
+                  .from('wargas')
+                  .update({ status_kehamilan: false, status_menyusui: true })
+                  .eq('id', item.parent.id)
+              } else if (item.parent.rumah_tangga_id) {
+                // If matched parent is father, find any pregnant mother in the same household and update her
+                await svClient
+                  .from('wargas')
+                  .update({ status_kehamilan: false, status_menyusui: true })
+                  .eq('rumah_tangga_id', item.parent.rumah_tangga_id)
+                  .eq('jenis_kelamin', 'P')
+                  .eq('status_kehamilan', true)
+              }
+            }
+          }
         }
       }
 
@@ -311,6 +337,14 @@ export async function POST(req: NextRequest) {
       if (bError) {
         return NextResponse.json({ error: 'Gagal mendaftarkan balita: ' + bError.message }, { status: 500 })
       }
+
+      // 3. Update mother's pregnancy status in the household if she is marked as pregnant
+      await svClient
+        .from('wargas')
+        .update({ status_kehamilan: false, status_menyusui: true })
+        .eq('rumah_tangga_id', rumah_tangga_id)
+        .eq('jenis_kelamin', 'P')
+        .eq('status_kehamilan', true)
 
       return NextResponse.json({
         success: true,

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
 import type { UserProfile } from '@/types/auth';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Mail, Lock, LogIn, Globe } from 'lucide-react-native';
+import { Mail, Lock, LogIn } from 'lucide-react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 
@@ -38,77 +38,78 @@ export default function LoginScreen() {
     setLoading(true);
     setError(null);
     try {
-      // Buka dulu Google SSO - Placeholder Login untuk mempermudah pengerjaan
-      console.log('Google SSO bypass triggered: logging in using admin account...');
-      const loginPromise = supabase.auth.signInWithPassword({
-        email: 'admin@mandingan.id',
-        password: 'adminmandingan',
+      // 1. Dapatkan URL redirect untuk aplikasi mobile
+      const redirectUrl = Linking.createURL('/(auth)/login');
+      console.log('Google SSO Redirect URL:', redirectUrl);
+
+      // 2. Hubungi Supabase untuk inisiasi alur OAuth Google
+      const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: true,
+        },
       });
 
-      // Increase timeout to 10s in production/preview, 2s in development
-      const timeoutMs = __DEV__ ? 2000 : 10000;
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout')), timeoutMs)
-      );
+      if (oauthError) throw oauthError;
+      if (!data?.url) throw new Error('Gagal mendapatkan URL otentikasi Google.');
 
-      const { data, error: authError } = await Promise.race([loginPromise, timeoutPromise]) as any;
+      // 3. Buka jendela browser untuk login Google
+      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
 
-      if (authError) {
-        console.log('Supabase Auth failed (offline?), using mock developer credentials');
-        setUser({
-          id: 'demo-developer-id',
-          email: 'dev@mandingan.id',
-        } as any);
-        setProfile({
-          id: 'demo-developer-id',
-          nama_lengkap: 'Developer Mandingan',
-          role: 'dukuh',
-          rt_id: null,
-          dasawisma_id: null,
-        });
-        router.replace('/(app)' as any);
-      } else if (data.user) {
-        setUser(data.user);
+      // 4. Proses tautan balik dari Google/Supabase
+      if (result.type === 'success' && result.url) {
+        console.log('OAuth return URL:', result.url);
         
-        // Also race the profile fetch
-        const profilePromise = supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-
-        const { data: dbProfile, error: profileError } = await Promise.race([
-          profilePromise,
-          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Timeout')), timeoutMs))
-        ]);
-
-        if (profileError || !dbProfile) {
-          setProfile({
-            id: data.user.id,
-            nama_lengkap: 'Admin Mandingan (Offline)',
-            role: 'dukuh',
-            rt_id: null,
-            dasawisma_id: null,
+        // Ekstrak parameter access_token & refresh_token dari URL hash atau query
+        const params: Record<string, string> = {};
+        const queryString = result.url.split('#')[1] || result.url.split('?')[1];
+        if (queryString) {
+          queryString.split('&').forEach((pair) => {
+            const [key, val] = pair.split('=');
+            if (key && val) {
+              params[key] = decodeURIComponent(val);
+            }
           });
-        } else {
-          setProfile(dbProfile);
         }
-        router.replace('/(app)' as any);
+
+        const { access_token, refresh_token } = params;
+
+        if (access_token) {
+          // Daftarkan session ke client Supabase
+          const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+            access_token,
+            refresh_token: refresh_token || '',
+          });
+
+          if (sessionError) throw sessionError;
+
+          if (sessionData.user) {
+            setUser(sessionData.user);
+
+            // Periksa ketersediaan profil di user_profiles
+            const { data: dbProfile, error: profileError } = await supabase
+              .from('user_profiles')
+              .select('*')
+              .eq('id', sessionData.user.id)
+              .single();
+
+            if (dbProfile) {
+              setProfile(dbProfile);
+              router.replace('/(app)' as any);
+            } else {
+              // Jika belum punya profil, arahkan ke layar klaim token undangan
+              setProfile(null);
+              router.replace('/(auth)/claim-token' as any);
+            }
+          }
+        } else {
+          throw new Error('Gagal memproses otentikasi Google (access token kosong).');
+        }
       }
-    } catch (err: unknown) {
-      console.log('Error in login bypass, applying client-side mock credentials');
-      setUser({
-        id: 'demo-developer-id',
-        email: 'dev@mandingan.id',
-      } as any);
-      setProfile({
-        id: 'demo-developer-id',
-        nama_lengkap: 'Developer Mandingan',
-        role: 'dukuh',
-        rt_id: null,
-        dasawisma_id: null,
-      });
-      router.replace('/(app)' as any);
+    } catch (err: any) {
+      console.error('Google login error:', err);
+      setError(err.message || 'Terjadi kesalahan saat masuk dengan Google.');
     } finally {
       setLoading(false);
     }
@@ -182,7 +183,7 @@ export default function LoginScreen() {
                 <ActivityIndicator color={PALETTE.textDark} />
               ) : (
                 <>
-                  <Globe size={20} color={PALETTE.navy} style={{ marginRight: 10 }} />
+                  <Image source={require('../../assets/images/google_icon.png')} style={styles.googleIcon} />
                   <Text style={styles.googleButtonText}>Masuk dengan Google</Text>
                 </>
               )}
@@ -369,6 +370,12 @@ const styles = StyleSheet.create({
     color: PALETTE.textDark,
     fontSize: 14,
     fontWeight: '700',
+  },
+  googleIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 10,
+    resizeMode: 'contain',
   },
   dividerRow: {
     flexDirection: 'row',

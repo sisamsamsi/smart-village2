@@ -51,6 +51,8 @@ export const useActiveKehamilanList = () => {
           nik,
           tanggal_lahir,
           status_kehamilan,
+          rt_id,
+          rumah_tangga_id,
           rts (nomor_rt),
           rumah_tanggas (no_kk, alamat_detail)
         `)
@@ -80,12 +82,25 @@ export const useCreateKehamilan = () => {
       hpl: string;
       keterangan: string; // JSON string containing BB, TB, etc.
     }) => {
+      // 0. Get the citizen's rt_id
+      const { data: wargaData, error: wargaGetError } = await supabase
+        .from('wargas')
+        .select('rt_id')
+        .eq('id', payload.warga_id)
+        .single();
+
+      if (wargaGetError || !wargaData) {
+        throw new Error(wargaGetError?.message || 'Warga tidak ditemukan');
+      }
+
+      const targetRtId = wargaData.rt_id || profile?.rt_id;
+
       // 1. Insert into mutasi_penduduk
       const { data, error } = await supabase
         .from('mutasi_penduduk')
         .insert([{
           warga_id: payload.warga_id,
-          rt_id: profile?.rt_id,
+          rt_id: targetRtId,
           jenis_mutasi: 'kehamilan',
           tanggal_mutasi: payload.tanggal_mutasi,
           status_kehamilan: 'hamil',
@@ -127,12 +142,25 @@ export const useGugurKehamilan = () => {
       tanggal_mutasi: string;
       keterangan: string;
     }) => {
+      // 0. Get the citizen's rt_id
+      const { data: wargaData, error: wargaGetError } = await supabase
+        .from('wargas')
+        .select('rt_id')
+        .eq('id', payload.warga_id)
+        .single();
+
+      if (wargaGetError || !wargaData) {
+        throw new Error(wargaGetError?.message || 'Warga tidak ditemukan');
+      }
+
+      const targetRtId = wargaData.rt_id || profile?.rt_id;
+
       // 1. Insert into mutasi_penduduk as gugur/abortus
       const { data, error } = await supabase
         .from('mutasi_penduduk')
         .insert([{
           warga_id: payload.warga_id,
-          rt_id: profile?.rt_id,
+          rt_id: targetRtId,
           jenis_mutasi: 'kehamilan',
           tanggal_mutasi: payload.tanggal_mutasi,
           status_kehamilan: 'gugur',
@@ -152,6 +180,70 @@ export const useGugurKehamilan = () => {
 
       if (wargaError) throw wargaError;
 
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kehamilan_list'] });
+      queryClient.invalidateQueries({ queryKey: ['active_kehamilan_list'] });
+      queryClient.invalidateQueries({ queryKey: ['wargas'] });
+    }
+  });
+};
+
+export const useUpdateKehamilan = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: {
+      id: string;
+      tanggal_mutasi: string;
+      hpht: string;
+      hpl: string;
+      keterangan: string;
+    }) => {
+      const { data, error } = await supabase
+        .from('mutasi_penduduk')
+        .update({
+          tanggal_mutasi: payload.tanggal_mutasi,
+          hpht: payload.hpht,
+          hpl: payload.hpl,
+          keterangan: payload.keterangan
+        })
+        .eq('id', payload.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kehamilan_list'] });
+      queryClient.invalidateQueries({ queryKey: ['active_kehamilan_list'] });
+      queryClient.invalidateQueries({ queryKey: ['wargas'] });
+    }
+  });
+};
+
+export const useDeleteKehamilan = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: { id: string; warga_id: string }) => {
+      // 1. Set status_kehamilan to false in wargas table
+      const { error: wargaError } = await supabase
+        .from('wargas')
+        .update({ status_kehamilan: false })
+        .eq('id', payload.warga_id);
+
+      if (wargaError) throw wargaError;
+
+      // 2. Delete from mutasi_penduduk
+      const { data, error } = await supabase
+        .from('mutasi_penduduk')
+        .delete()
+        .eq('id', payload.id);
+
+      if (error) throw error;
       return data;
     },
     onSuccess: () => {

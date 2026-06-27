@@ -47,3 +47,10 @@ service-account*.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Custom exclusions
+Client ID SSO.json
+scratch/
+.agents/
+*.sqlite
+*.sqlite3

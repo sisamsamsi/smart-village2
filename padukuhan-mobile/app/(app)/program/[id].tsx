@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, StyleSheet, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useProposal, useUpdateProposalStatus } from '@/hooks/useProgram';
+import { useProposal, useUpdateProposalStatus, useDeleteProposal } from '@/hooks/useProgram';
 import { useAuthStore } from '@/stores/authStore';
 import { 
   ArrowLeft, 
@@ -32,6 +32,9 @@ export default function ProposalDetailScreen() {
   const { data: item, isLoading, error } = useProposal(proposalId as string);
   const updateStatus = useUpdateProposalStatus();
   const isDukuh = useAuthStore((s) => s.isDukuh);
+  const { profile } = useAuthStore();
+  const deleteProposal = useDeleteProposal();
+  const [processing, setProcessing] = useState(false);
 
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState({
@@ -64,6 +67,32 @@ export default function ProposalDetailScreen() {
     } catch (err: any) {
       Alert.alert('Gagal', err.message || 'Gagal memperbarui status.');
     }
+  };
+
+  const handleDeleteProposal = () => {
+    Alert.alert(
+      "Konfirmasi Hapus",
+      "Apakah Anda yakin ingin menghapus usulan program ini?",
+      [
+        { text: "Batal", style: "cancel" },
+        { 
+          text: "Hapus", 
+          style: "destructive",
+          onPress: async () => {
+            setProcessing(true);
+            try {
+              await deleteProposal.mutateAsync(proposalId as string);
+              Alert.alert("Berhasil", "Usulan program telah dihapus.");
+              router.back();
+            } catch (err: any) {
+              Alert.alert("Gagal", err.message || "Gagal menghapus usulan program.");
+            } finally {
+              setProcessing(false);
+            }
+          }
+        }
+      ]
+    );
   };
 
   if (isLoading) return (
@@ -232,6 +261,17 @@ export default function ProposalDetailScreen() {
                 {updateStatus.isPending ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>SIMPAN PERUBAHAN</Text>}
               </TouchableOpacity>
             </View>
+          )}
+
+          {/* Delete Button */}
+          {(profile?.role === 'dukuh' || profile?.role === 'ketua_rt' || profile?.rt_id === item?.rt_id) && (
+            <TouchableOpacity 
+              onPress={handleDeleteProposal}
+              style={[styles.saveButton, { backgroundColor: '#EF4444', marginTop: 16, shadowColor: '#EF4444' }]}
+              disabled={processing}
+            >
+              {processing ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>HAPUS USULAN</Text>}
+            </TouchableOpacity>
           )}
         </View>
         <View style={{ height: 40 }} />

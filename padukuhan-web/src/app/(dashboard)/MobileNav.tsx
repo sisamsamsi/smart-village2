@@ -51,6 +51,10 @@ export default function MobileNav() {
     { href: '/pengumuman', icon: <Megaphone size={20} />, label: 'Pengumuman' },
   ]
 
+  if (profile?.role === 'dukuh') {
+    menuItems.push({ href: '/undangan', icon: <Shield size={20} />, label: 'Akses Pengurus' })
+  }
+
   return (
     <div className="md:hidden">
       <Button variant="ghost" size="icon" onClick={toggle} className="rounded-xl">

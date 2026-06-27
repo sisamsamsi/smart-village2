@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F1F5F9',
   },
   chipActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#124170',
   },
   chipText: {
     fontSize: 12,
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   chipTextActive: {
-    color: '#124170',
+    color: '#fff',
   },
   listContainer: {
     padding: 16,
