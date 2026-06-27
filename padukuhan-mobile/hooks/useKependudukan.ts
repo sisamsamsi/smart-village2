@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/stores/authStore';
 
 function normalizeStatusKawin(val: string): string {
   if (!val) return 'belum_kawin';
@@ -172,10 +173,21 @@ export function useKKs() {
 
 export function useTambahWarga() {
   const queryClient = useQueryClient();
+  const { profile } = useAuthStore();
 
   return useMutation({
     mutationFn: async (data: any) => {
       let rumahTanggaId = data.rumah_tangga_id;
+      
+      let finalRtId = data.rt_id;
+      let finalDasawismaId = data.dasawisma_id;
+
+      if (profile?.role === 'kader_dasawisma') {
+        finalDasawismaId = profile.dasawisma_id;
+        finalRtId = profile.rt_id; // Dasawisma belongs to RT
+      } else if (profile?.role === 'ketua_rt') {
+        finalRtId = profile.rt_id;
+      }
 
       // Logika KK Baru
       if (data.is_new_kk && data.no_kk_baru) {
@@ -184,8 +196,8 @@ export function useTambahWarga() {
           .insert([{
             no_kk: data.no_kk_baru,
             nama_kepala_keluarga: data.nama_kepala_keluarga_baru || data.nama_lengkap,
-            rt_id: data.rt_id,
-            dasawisma_id: data.dasawisma_id
+            rt_id: finalRtId,
+            dasawisma_id: finalDasawismaId
           }])
           .select()
           .single();
@@ -201,6 +213,7 @@ export function useTambahWarga() {
         .from('wargas')
         .insert([{
           ...normalizedWargaData,
+          rt_id: finalRtId, // Set appropriate RT scoping
           rumah_tangga_id: rumahTanggaId
         }]);
 

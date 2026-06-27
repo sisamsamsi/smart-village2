@@ -316,7 +316,7 @@ export default function DashboardScreen() {
 
           <View style={styles.headerBanner}>
             <View style={styles.headerBannerLeft}>
-              <Text style={styles.greetingSub}>{getTimeGreeting()}, {getRoleLabel(profile?.role)}</Text>
+              <Text style={styles.greetingSub}>{getTimeGreeting()}, {getRoleLabel(profile?.role || undefined)}</Text>
               <Text style={styles.greetingName}>{profile?.nama_lengkap || 'Budi Santoso'}</Text>
               <Text style={styles.greetingDate}>
                 Berikut ringkasan data Padukuhan Mandingan per hari ini,{' '}
@@ -1122,11 +1122,6 @@ const styles = StyleSheet.create({
     color: '#124170',
     fontWeight: 'bold',
     marginLeft: 3,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#94A3B8',
-    fontWeight: '600',
   },
   notifModalOverlay: {
     flex: 1,

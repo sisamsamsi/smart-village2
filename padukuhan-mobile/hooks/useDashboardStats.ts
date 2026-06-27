@@ -31,15 +31,15 @@ export function useDashboardStats() {
           selectFields = 'tanggal_lahir, jenis_kelamin, status_perkawinan, status_kehamilan, status_menyusui, rumah_tanggas!inner(dasawisma_id)';
         }
 
-        let wargaCountQuery = supabase.from('wargas').select('id', { count: 'exact', head: true }).eq('status_warga', 'aktif');
-        let kkCountQuery = supabase.from('rumah_tanggas').select('id', { count: 'exact', head: true }).eq('status_aktif', true);
+        let wargaCountQuery: any = supabase.from('wargas').select('id', { count: 'exact', head: true }).eq('status_warga', 'aktif');
+        let kkCountQuery: any = supabase.from('rumah_tanggas').select('id', { count: 'exact', head: true }).eq('status_aktif', true);
         
-        let wargasQuery1 = supabase.from('wargas')
+        let wargasQuery1: any = supabase.from('wargas')
           .select(selectFields)
           .eq('status_warga', 'aktif')
           .range(0, 999);
           
-        let wargasQuery2 = supabase.from('wargas')
+        let wargasQuery2: any = supabase.from('wargas')
           .select(selectFields)
           .eq('status_warga', 'aktif')
           .range(1000, 1999);

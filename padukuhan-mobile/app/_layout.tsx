@@ -90,7 +90,7 @@ export default function RootLayout() {
     if (!initialized) return;
 
     const inAuthGroup = (segments as any[]).includes('(auth)') || (segments as any[]).includes('login');
-    const isClaimTokenScreen = segments.includes('claim-token');
+    const isClaimTokenScreen = (segments as any[]).includes('claim-token');
 
     if (!user && !inAuthGroup) {
       // Redirect to login if not authenticated

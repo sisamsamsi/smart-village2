@@ -27,6 +27,19 @@ export function QuickActionModal({ visible, onClose }: QuickActionModalProps) {
         <View style={styles.actionGrid}>
           <TouchableOpacity 
             style={styles.actionCard} 
+            onPress={() => handleNavigate('/kependudukan/tambah')}
+          >
+            <View style={[styles.iconWrapper, { backgroundColor: '#EFF6FF' }]}>
+              <UserPlus size={28} color="#124170" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.actionTitle}>Tambah Warga</Text>
+              <Text style={styles.actionDesc}>Input data warga baru di dasawisma Anda</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.actionCard} 
             onPress={() => handleNavigate('/warga')}
           >
             <View style={[styles.iconWrapper, { backgroundColor: '#E3F2FD' }]}>
